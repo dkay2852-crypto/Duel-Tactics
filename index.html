@@ -37,8 +37,8 @@
       --fight-h: 52px;
       --econ-h: 44px;
       --shop-h: 100px;
-      --board-tilt: 40deg;
-      --board-scale: 1.35;
+      --board-tilt: 35deg;
+      --board-scale: 1.45;
       /* Screen-space hex width after tilt scale (set by fitHexSize) */
       --hex-screen-w: calc(var(--hex-w) * var(--board-scale));
     }
@@ -230,7 +230,7 @@
       display: flex;
       flex-direction: column;
       perspective: 900px;
-      perspective-origin: 50% 28%;
+      perspective-origin: 50% 42%;
       background:
         radial-gradient(ellipse at 50% 30%, rgba(40, 70, 50, 0.35), transparent 55%),
         linear-gradient(180deg, rgba(20, 36, 28, 0.95), rgba(12, 24, 36, 0.95));
@@ -238,7 +238,7 @@
       border-radius: 14px;
       /* Top pad for upright billboards; light side pad for edge tokens.
          overflow must stay visible — overflow:hidden flattens preserve-3d. */
-      padding: 48px 4px 12px;
+      padding: 44px 2px 10px;
       overflow: visible;
     }
     .hex-stage {
@@ -246,12 +246,13 @@
       min-height: 0;
       display: flex;
       flex-direction: column;
-      justify-content: center;
+      justify-content: flex-end;
       position: relative;
       width: 100%;
       transform: rotateX(var(--board-tilt)) scale(var(--board-scale));
       transform-style: preserve-3d;
-      transform-origin: 50% 50%;
+      /* Origin near bottom so scale-after-tilt grows toward the camera */
+      transform-origin: 50% 78%;
       will-change: transform;
     }
     .hex-board {
@@ -261,7 +262,7 @@
       transform-style: preserve-3d;
       overflow: visible;
     }
-    .hex-board + .hex-board { margin-top: 2px; }
+    .hex-board + .hex-board { margin-top: 0; }
     .holo-layer, .combat-layer {
       position: absolute;
       inset: 0;
@@ -483,23 +484,24 @@
       width: 100%;
       flex: 1 1 auto;
       min-height: 0;
-      border-radius: 10px;
+      border-radius: 8px;
       overflow: hidden;
       background: #0a1520;
-      border: 2.5px solid rgba(140, 210, 255, 0.7);
+      border: 3px solid rgba(140, 210, 255, 0.85);
       box-shadow:
-        0 0 14px rgba(80, 180, 255, 0.55),
-        0 0 3px rgba(180, 230, 255, 0.85),
+        0 0 16px rgba(80, 180, 255, 0.65),
+        0 0 4px rgba(180, 230, 255, 0.9),
+        0 6px 10px rgba(0, 0, 0, 0.45),
         inset 0 0 14px rgba(60, 160, 255, 0.22);
       transform-origin: 50% 100%;
     }
-    .token.holo.attr-DARK .holo-billboard { border-color: #9a6ad8; }
-    .token.holo.attr-LIGHT .holo-billboard { border-color: #e8c84a; }
-    .token.holo.attr-EARTH .holo-billboard { border-color: #c09050; }
-    .token.holo.attr-WATER .holo-billboard { border-color: #4aa0e8; }
-    .token.holo.attr-FIRE .holo-billboard { border-color: #e86040; }
-    .token.holo.attr-WIND .holo-billboard { border-color: #58c058; }
-    .token.holo.attr-DIVINE .holo-billboard { border-color: #f0d060; }
+    .token.holo.attr-DARK .holo-billboard { border-color: #b07aff; }
+    .token.holo.attr-LIGHT .holo-billboard { border-color: #ffe066; }
+    .token.holo.attr-EARTH .holo-billboard { border-color: #d4a060; }
+    .token.holo.attr-WATER .holo-billboard { border-color: #5ab0ff; }
+    .token.holo.attr-FIRE .holo-billboard { border-color: #ff6a48; }
+    .token.holo.attr-WIND .holo-billboard { border-color: #68d068; }
+    .token.holo.attr-DIVINE .holo-billboard { border-color: #ffe080; }
     .token.holo .holo-art {
       width: 100%;
       height: 100%;
@@ -3380,23 +3382,23 @@
     const padY = (parseFloat(style.paddingTop) || 0) + (parseFloat(style.paddingBottom) || 0);
     const aw = Math.max(180, arena.clientWidth - padX);
     const ah = Math.max(120, arena.clientHeight - padY);
-    const tiltRad = 40 * Math.PI / 180;
+    const tiltRad = 35 * Math.PI / 180;
     const cosT = Math.cos(tiltRad);
 
-    // Width-first: 7 columns fill the content width
-    let screenHex = aw / 7.0;
+    // Width-first: 7 columns fill the content width (near edge)
+    let screenHex = aw / 6.95;
     // Two board halves × row stack, projected after rotateX
-    const flatRows = 1.12 * 3.15 * 2 + 0.1;
+    const flatRows = 1.12 * 3.05 * 2 + 0.08;
     const projectedAtFill = screenHex * flatRows * cosT;
-    // Prefer full width; only shrink if height would badly overflow
-    if (projectedAtFill > ah * 1.08) {
-      screenHex = (ah * 1.08) / (flatRows * cosT);
+    // Prefer full width; allow slight height overflow into arena padding
+    if (projectedAtFill > ah * 1.15) {
+      screenHex = (ah * 1.15) / (flatRows * cosT);
     }
-    let scale = 1.3;
+    let scale = 1.4;
     let w = Math.round(screenHex / scale);
-    w = Math.max(32, Math.min(54, w));
+    w = Math.max(30, Math.min(52, w));
     scale = screenHex / w;
-    scale = Math.max(1.15, Math.min(1.7, scale));
+    scale = Math.max(1.2, Math.min(1.85, scale));
 
     document.documentElement.style.setProperty("--hex-w", w + "px");
     document.documentElement.style.setProperty("--board-scale", scale.toFixed(3));
@@ -3410,7 +3412,7 @@
     const totalW = HEX_COLS * sample.w * 0.92 + sample.w * 0.46;
     const boardW = (el.hexStage && el.hexStage.clientWidth) || (el.arena && el.arena.clientWidth) || boardEl.clientWidth || 360;
     const offsetX = Math.max(0, boardW - totalW) / 2;
-    boardEl.style.height = (sample.h * 3.2 + 4) + "px";
+    boardEl.style.height = (sample.h * 3.05 + 2) + "px";
 
     for (let r = 0; r < HEX_ROWS; r++) {
       for (let c = 0; c < HEX_COLS; c++) {
