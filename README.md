@@ -1,6 +1,6 @@
 # Duel Tactics
 
-A single-file mobile-friendly auto-battler that mixes shop/bench/field synergy with classic Life Point combat.
+A single-file mobile auto-battler that mixes shop/bench/field synergy with classic Life Point combat. The play UI is a one-screen iPhone portrait layout (`100dvh`, safe-area insets, no page scrolling).
 
 Open `index.html` in a browser (or serve the folder locally). No build step or frameworks required.
 
