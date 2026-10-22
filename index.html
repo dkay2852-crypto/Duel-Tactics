@@ -81,7 +81,7 @@
       padding:
         calc(4px + var(--safe-t))
         calc(8px + var(--safe-r))
-        calc(6px + var(--safe-b))
+        calc(60px + var(--safe-b))
         calc(8px + var(--safe-l));
       flex-direction: column;
       gap: 4px;
@@ -370,9 +370,22 @@
     .token.hit { animation: tokenHit 0.28s ease; }
     .token.stunned { filter: grayscale(0.4) brightness(1.15); }
     .token .item-icons {
-      position: absolute; top: -2px; left: 50%; transform: translateX(-50%);
-      display: flex; gap: 1px; z-index: 4; font-size: 0.45rem; line-height: 1; pointer-events: none;
+      position: absolute;
+      top: -1px;
+      right: -2px;
+      left: auto;
+      transform: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      z-index: 3;
+      font-size: 0.42rem;
+      line-height: 1;
+      pointer-events: none;
+      max-height: 55%;
+      overflow: hidden;
     }
+    .token .bars { z-index: 5; }
     .ghost-token {
       position: fixed; z-index: 200; pointer-events: none; opacity: 0.9;
       transform: translate(-50%, -50%) scale(1.1);
@@ -487,11 +500,11 @@
       flex: 0 0 auto;
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 10px;
       background: rgba(13, 26, 40, 0.92);
       border: 1px solid var(--line);
       border-radius: 14px;
-      padding: 6px;
+      padding: 8px;
     }
     .bottom-panel.dimmed, #shopBlock.dimmed { opacity: 0.45; pointer-events: none; }
     .econ-row {
@@ -623,8 +636,18 @@
     .card.attr-DIVINE { background: linear-gradient(165deg, #fff6d0, #c89820); border-color: #806010; color: #201808; }
     .card .emoji { font-size: 1.05rem; text-align: center; line-height: 1.05; margin-top: 10px; }
     .card .name {
-      font-size: 0.52rem; font-weight: 800; text-align: center; line-height: 1.1;
-      min-height: 1.5em; overflow: hidden;
+      font-size: 12px;
+      font-weight: 800;
+      text-align: center;
+      line-height: 1.15;
+      min-height: 1.35em;
+      max-height: 2.4em;
+      overflow: hidden;
+      width: 100%;
+      padding: 0 1px;
+      transform-origin: center top;
+      word-break: break-word;
+      hyphens: auto;
     }
     .card .stats {
       display: flex; justify-content: space-between; align-items: center;
@@ -829,14 +852,283 @@
       15% { opacity: 1; }
       100% { opacity: 0; transform: translateX(-50%) translateY(-10px); }
     }
+
+    /* —— Star Chips —— */
+    .star-chips {
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      min-height: var(--tap);
+      padding: 0 8px;
+      border-radius: 12px;
+      background: rgba(232, 184, 74, 0.12);
+      border: 1px solid var(--gold-dim);
+      font-size: 0.85rem;
+      letter-spacing: -1px;
+      color: var(--gold);
+      text-shadow: 0 1px 0 #6a4a10;
+    }
+    .star-chips .chip-on { filter: drop-shadow(0 0 3px rgba(232,184,74,0.65)); }
+    .star-chips .chip-off { opacity: 0.22; filter: grayscale(1); }
+
+    .area-banner {
+      flex: 0 0 auto;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      min-height: 28px;
+      padding: 4px 10px;
+      border-radius: 10px;
+      font-size: 0.68rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-align: center;
+      border: 1px solid rgba(255,255,255,0.12);
+    }
+    .area-banner.show { display: flex; }
+    .area-banner.forest { background: rgba(30, 80, 40, 0.85); color: #b8f0c0; }
+    .area-banner.ocean { background: rgba(20, 60, 110, 0.85); color: #a8d8ff; }
+    .area-banner.mountain { background: rgba(70, 55, 40, 0.9); color: #f0d0a0; }
+    .area-banner.graveyard { background: rgba(40, 30, 55, 0.9); color: #d0b8f0; }
+    .area-banner.meadow { background: rgba(50, 90, 40, 0.85); color: #d8f0a8; }
+    .area-banner.wasteland { background: rgba(80, 55, 30, 0.9); color: #f0c898; }
+    .area-banner.castle { background: rgba(90, 40, 70, 0.9); color: #f0c0e0; }
+
+    /* —— Island map —— */
+    .map-overlay {
+      position: fixed; inset: 0; z-index: 48;
+      background: rgba(4, 12, 20, 0.92);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: calc(12px + var(--safe-t)) 12px calc(20px + var(--safe-b));
+    }
+    .map-overlay.open { display: flex; }
+    .map-overlay h2 {
+      margin: 0 0 6px;
+      font-family: "Bungee", cursive;
+      font-size: 1.15rem;
+      color: var(--gold);
+      text-align: center;
+    }
+    .map-sub {
+      margin: 0 0 10px;
+      font-size: 0.78rem;
+      color: var(--muted);
+      font-weight: 700;
+      text-align: center;
+    }
+    .island-map {
+      position: relative;
+      width: min(360px, 92vw);
+      height: min(420px, 58dvh);
+      border-radius: 24px;
+      overflow: hidden;
+      border: 2px solid #2a6a80;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+      background:
+        radial-gradient(ellipse 40% 30% at 20% 30%, #2a6a38 0%, transparent 70%),
+        radial-gradient(ellipse 35% 28% at 75% 25%, #3a5a90 0%, transparent 65%),
+        radial-gradient(ellipse 30% 25% at 55% 70%, #5a4030 0%, transparent 60%),
+        radial-gradient(ellipse 28% 22% at 25% 75%, #3a2850 0%, transparent 60%),
+        radial-gradient(ellipse 25% 20% at 80% 65%, #6a5830 0%, transparent 55%),
+        radial-gradient(ellipse 22% 18% at 50% 45%, #4a7030 0%, transparent 55%),
+        linear-gradient(165deg, #0a3048 0%, #0c2840 40%, #081820 100%);
+    }
+    .island-map::before {
+      content: "";
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(circle at 50% 8%, #6a3a58 0 18px, transparent 19px),
+        radial-gradient(circle at 50% 5%, #8a5070 0 10px, transparent 11px);
+      opacity: 0.9;
+      pointer-events: none;
+    }
+    .map-region {
+      position: absolute;
+      font-size: 0.58rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      opacity: 0.75;
+      pointer-events: none;
+      text-shadow: 0 1px 2px #000;
+    }
+    .map-region.forest { left: 8%; top: 22%; color: #8fd898; }
+    .map-region.ocean { right: 6%; top: 18%; color: #8ec8f0; }
+    .map-region.mountain { left: 38%; top: 38%; color: #e0c090; }
+    .map-region.graveyard { left: 10%; bottom: 18%; color: #c8a8e8; }
+    .map-region.meadow { left: 42%; top: 52%; color: #c8e878; }
+    .map-region.wasteland { right: 8%; bottom: 22%; color: #e8c080; }
+    .map-region.castle { left: 42%; top: 6%; color: #f0a0d0; font-size: 0.62rem; }
+
+    .map-path { position: absolute; inset: 0; pointer-events: none; }
+    .map-spot {
+      position: absolute;
+      width: 36px; height: 36px;
+      margin: -18px 0 0 -18px;
+      border-radius: 50%;
+      border: 2px solid #e8d080;
+      background: radial-gradient(circle at 40% 35%, #4a6a80, #1a2838);
+      color: #fff;
+      font-size: 0.72rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      pointer-events: auto;
+      touch-action: manipulation;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.45);
+      z-index: 2;
+    }
+    .map-spot.done {
+      background: radial-gradient(circle at 40% 35%, #3a6a48, #142820);
+      border-color: #6a9080;
+      opacity: 0.75;
+    }
+    .map-spot.locked {
+      opacity: 0.35;
+      cursor: not-allowed;
+      border-color: #5a6870;
+    }
+    .map-spot.current {
+      border-color: #ffe08a;
+      box-shadow: 0 0 0 3px rgba(232, 184, 74, 0.45), 0 0 18px rgba(232, 184, 74, 0.75);
+      animation: spotGlow 1.2s ease-in-out infinite alternate;
+      z-index: 3;
+    }
+    .map-spot.castle-spot {
+      border-color: #e8a0d0;
+      background: radial-gradient(circle at 40% 35%, #6a3a58, #2a1528);
+    }
+    @keyframes spotGlow {
+      from { transform: scale(1); }
+      to { transform: scale(1.08); }
+    }
+    .map-taunt {
+      margin-top: 12px;
+      max-width: 340px;
+      text-align: center;
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--fog);
+      min-height: 2.6em;
+      line-height: 1.35;
+    }
+    .map-taunt strong { color: var(--gold); display: block; margin-bottom: 4px; font-family: "Bungee", cursive; font-size: 0.95rem; }
+    .map-cta {
+      margin-top: 10px;
+      min-width: 200px;
+    }
+    .map-chips {
+      margin-top: 8px;
+      color: var(--gold);
+      font-weight: 800;
+      font-size: 0.85rem;
+    }
+
+    /* —— DUEL flash / rewards —— */
+    .duel-flash {
+      position: absolute;
+      inset: 0;
+      z-index: 30;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      background: radial-gradient(circle at center, rgba(0,0,0,0.35), transparent 70%);
+    }
+    .duel-flash.show { display: flex; animation: duelPop 0.85s ease forwards; }
+    .duel-flash span {
+      font-family: "Bungee", cursive;
+      font-size: clamp(2.4rem, 14vw, 3.6rem);
+      color: #fff;
+      letter-spacing: 0.12em;
+      text-shadow: 0 0 20px rgba(232,184,74,0.9), 0 4px 0 #8a4010, 0 8px 24px rgba(0,0,0,0.6);
+    }
+    @keyframes duelPop {
+      0% { opacity: 0; transform: scale(0.6); }
+      25% { opacity: 1; transform: scale(1.12); }
+      70% { opacity: 1; transform: scale(1); }
+      100% { opacity: 0; transform: scale(1.05); }
+    }
+
+    .combat-fx {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      font-family: "Bungee", cursive;
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #ff6a6a;
+      text-shadow: 0 2px 0 #400808, 0 0 8px rgba(255,80,80,0.6);
+      pointer-events: none;
+      z-index: 20;
+      animation: floatDmg 0.85s ease forwards;
+    }
+    .combat-fx.heal { color: #6aef9a; text-shadow: 0 2px 0 #084020; }
+    .combat-fx.big { font-size: 1.45rem; }
+    @keyframes floatDmg {
+      0% { opacity: 1; transform: translate(-50%, -50%) scale(0.8); }
+      100% { opacity: 0; transform: translate(-50%, -120%) scale(1.15); }
+    }
+    .combat-token.hop .token {
+      animation: tokenHop 0.28s ease;
+    }
+    @keyframes tokenHop {
+      0% { transform: translateY(0) scale(1); }
+      40% { transform: translateY(-10px) scale(1.08); }
+      100% { transform: translateY(0) scale(1); }
+    }
+
+    .results-banner {
+      top: 36%;
+    }
+    .results-rewards {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      margin: 10px 0 14px;
+      min-height: 36px;
+    }
+    .reward-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(0,0,0,0.35);
+      border: 1px solid var(--gold-dim);
+      color: var(--gold);
+      font-weight: 800;
+      font-size: 0.82rem;
+      animation: rewardPop 0.45s ease both;
+    }
+    .reward-chip.loss { border-color: var(--rose); color: var(--rose); }
+    .reward-chip:nth-child(2) { animation-delay: 0.08s; }
+    .reward-chip:nth-child(3) { animation-delay: 0.16s; }
+    @keyframes rewardPop {
+      from { opacity: 0; transform: translateY(12px) scale(0.85); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .fight-row, .bench-wrap, .bottom-panel, .top-bar, .trait-bar, .area-banner {
+      position: relative;
+      z-index: 4;
+    }
+    .arena { z-index: 1; }
+
   </style>
 </head>
 <body>
   <div class="overlay start-screen open" id="startOverlay">
     <div class="modal">
       <p class="start-brand">Duel Tactics</p>
-      <p class="start-sub">Hex · Auto · Duel</p>
-      <p style="margin-top:0">Buy, place on the hex board, and Fight.</p>
+      <p class="start-sub">Duelist Kingdom</p>
+      <p style="margin-top:0">Collect Star Chips. Conquer the island. Challenge Pegasus.</p>
       <div class="mode-toggle" role="group" aria-label="Card mode">
         <button type="button" class="mode-opt active" id="modeClassic" data-mode="classic">
           Classic cards
@@ -859,6 +1151,7 @@
         <span class="heart" aria-hidden="true">♥</span>
         <span id="lp">8000</span>
       </div>
+      <div class="star-chips" id="starChips" aria-label="Star Chips" title="Star Chips"></div>
       <div class="top-mid">
         <div class="round-line"><span id="duelistRound">R1</span><span id="round" hidden>1</span></div>
         <div class="duelist-line" id="duelistName">Weevil Underwood</div>
@@ -867,6 +1160,7 @@
     </header>
 
     <div class="notice" id="fallbackNotice">Classic API unavailable — using original roster.</div>
+    <div class="area-banner" id="areaBanner"></div>
 
     <div class="trait-bar" id="traitBar" aria-label="Traits"></div>
 
@@ -876,6 +1170,7 @@
         <div class="hex-board" id="playerBoard"></div>
         <div class="combat-layer" id="combatLayer"></div>
       </div>
+      <div class="duel-flash" id="duelFlash" aria-hidden="true"><span>DUEL!</span></div>
     </div>
 
     <div class="bench-wrap">
@@ -941,15 +1236,14 @@
     <div class="modal">
       <h2>How to Play</h2>
       <ol>
-        <li>Pick Classic or Original cards, then begin.</li>
-        <li>Buy from the shop (reroll costs 2 gold). 3 copies fuse into ★★.</li>
-        <li>Board size = your level (1–9). Buy XP for 4 gold, or earn 2 XP each round.</li>
-        <li>Traits: unique Types on the board activate at 2 / 4 / 6. Tap a trait for details.</li>
-        <li>Tap your level to see shop odds. Lock the shop to keep offers between rounds.</li>
-        <li>After rounds 2, 5, 9, and 13, pick an Equip Spell. Tap an item, then a monster (max 3 each).</li>
-        <li>Climb the duelist ladder — beat <strong>Yami Yugi</strong> to win the run.</li>
-        <li>Press <strong>FIGHT</strong> — units slide, lunge, and cast abilities. Use 1x/2x speed.</li>
-        <li>Tap a token for full stats. Drag tokens to place. Earn interest and streak gold.</li>
+        <li>Welcome to <strong>Duelist Kingdom</strong> — start with <strong>2 Star Chips</strong>.</li>
+        <li>Win a duel: +1 Star Chip. Lose: −1. Hit 0 chips or 0 LP and the run ends.</li>
+        <li>Reach <strong>10 Star Chips</strong> to unlock Pegasus's Castle.</li>
+        <li>Between rounds, tap the glowing island spot. Each area boosts matching Types by +30% ATK.</li>
+        <li>Buy, fuse (3→★★), place on hexes, then <strong>FIGHT</strong> for a DUEL!</li>
+        <li>Board size = your level (1–9). Lock the shop to keep offers between rounds.</li>
+        <li>Tournament path: Weevil → Rex → Mako → Mai → Keith → Bonz → Panik → Castle (Kaiba, Yugi, Pegasus).</li>
+        <li>Tap a token for stats. Drag to place. Items draft after rounds 2, 5, 9, 13.</li>
       </ol>
       <button type="button" class="btn btn-primary btn-wide" id="btnCloseHow">Got it</button>
     </div>
@@ -999,7 +1293,27 @@
   <div class="results-banner" id="resultsBanner">
     <h3 id="resultsTitle">Victory</h3>
     <p id="resultsMsg">No LP lost</p>
+    <div class="results-rewards" id="resultsRewards"></div>
     <button type="button" class="btn btn-primary btn-wide" id="btnResultsOk">Continue</button>
+  </div>
+
+  <div class="map-overlay" id="mapOverlay">
+    <h2>Duelist Kingdom</h2>
+    <p class="map-sub" id="mapSub">Tap the glowing spot to duel</p>
+    <div class="island-map" id="islandMap">
+      <span class="map-region forest">Forest</span>
+      <span class="map-region ocean">Ocean</span>
+      <span class="map-region mountain">Mountain</span>
+      <span class="map-region meadow">Meadow</span>
+      <span class="map-region graveyard">Graveyard</span>
+      <span class="map-region wasteland">Wasteland</span>
+      <span class="map-region castle">Castle</span>
+      <svg class="map-path" id="mapPathSvg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"></svg>
+      <div id="mapSpots"></div>
+    </div>
+    <div class="map-taunt" id="mapTaunt"></div>
+    <div class="map-chips" id="mapChipsLabel"></div>
+    <button type="button" class="btn btn-primary map-cta" id="btnMapDuel">Enter Duel</button>
   </div>
 
   <div class="toast" id="toast"></div>
@@ -1034,18 +1348,119 @@
   ];
 
   /** One opponent per round; beating Yami Yugi (round 10) wins the run. */
-  const LADDER = [
-    { name: "Weevil Underwood", theme: "Insects", types: ["Insect"], prefer: [/insect/i] },
-    { name: "Rex Raptor", theme: "Dinosaurs", types: ["Dinosaur"], prefer: [/dinosaur|rex|rage/i] },
-    { name: "Mako Tsunami", theme: "Fish / Sea", types: ["Fish", "Sea Serpent", "Aqua"], prefer: [/fish|shark|sea|jelly/i] },
-    { name: "Mai Valentine", theme: "Harpies", types: ["Winged Beast"], prefer: [/harpie|bird|lady/i] },
-    { name: "Bandit Keith", theme: "Machines", types: ["Machine"], prefer: [/machine|cannon|gear|metal/i] },
-    { name: "Bonz", theme: "Zombies", types: ["Zombie"], prefer: [/zombie|skull|bone|grave/i] },
-    { name: "Joey Wheeler", theme: "Warriors", types: ["Warrior"], prefer: [/warrior|swordsman|knight|flame swordsman/i] },
-    { name: "Maximillion Pegasus", theme: "Toons / Mixed", types: [], mixed: true, prefer: [/toon/i] },
-    { name: "Seto Kaiba", theme: "Blue-Eyes", types: ["Dragon"], prefer: [/blue-eyes|blue.eyes|white dragon/i] },
-    { name: "Yami Yugi", theme: "Dark Magician", types: ["Spellcaster"], prefer: [/dark magician|magician of|kuriboh/i], boss: true },
+  const AREAS = {
+    forest: {
+      id: "forest", name: "Forest",
+      types: ["Insect", "Beast", "Plant"],
+      blurb: "Forest · Insect / Beast / Plant +30% ATK",
+    },
+    ocean: {
+      id: "ocean", name: "Ocean",
+      types: ["Aqua", "Fish", "Sea Serpent"],
+      blurb: "Ocean · Aqua / Fish / Sea Serpent +30% ATK",
+    },
+    mountain: {
+      id: "mountain", name: "Mountain",
+      types: ["Dragon", "Thunder", "Winged Beast"],
+      blurb: "Mountain · Dragon / Thunder / Winged Beast +30% ATK",
+    },
+    graveyard: {
+      id: "graveyard", name: "Graveyard",
+      types: ["Zombie", "Fiend"],
+      blurb: "Graveyard · Zombie / Fiend +30% ATK",
+    },
+    meadow: {
+      id: "meadow", name: "Meadow",
+      types: ["Warrior", "Beast-Warrior", "Fairy"],
+      blurb: "Meadow · Warrior / Beast-Warrior / Fairy +30% ATK",
+    },
+    wasteland: {
+      id: "wasteland", name: "Wasteland",
+      types: ["Dinosaur", "Rock", "Machine"],
+      blurb: "Wasteland · Dinosaur / Rock / Machine +30% ATK",
+    },
+    castle: {
+      id: "castle", name: "Pegasus's Castle",
+      types: ["Spellcaster", "Dragon", "Toon"],
+      blurb: "Castle · Spellcaster / Dragon / Toon +30% ATK",
+    },
+  };
+
+  /** Percent positions on the island map (x/y in %). */
+  const MAP_SPOTS = [
+    { x: 22, y: 30 }, // Weevil forest
+    { x: 72, y: 72 }, // Rex wasteland
+    { x: 78, y: 28 }, // Mako ocean
+    { x: 48, y: 42 }, // Mai mountain
+    { x: 68, y: 58 }, // Keith wasteland
+    { x: 24, y: 72 }, // Bonz graveyard
+    { x: 38, y: 62 }, // Panik graveyard
+    { x: 50, y: 18 }, // Kaiba castle
+    { x: 42, y: 12 }, // Yugi castle
+    { x: 58, y: 10 }, // Pegasus castle
   ];
+
+  const LADDER = [
+    {
+      name: "Weevil Underwood", theme: "Insects", area: "forest",
+      types: ["Insect"], prefer: [/insect/i],
+      taunt: "Heh heh… my bugs will devour your deck!",
+    },
+    {
+      name: "Rex Raptor", theme: "Dinosaurs", area: "wasteland",
+      types: ["Dinosaur"], prefer: [/dinosaur|rex|rage/i],
+      taunt: "Rawr! Dinosaurs ruled once — and they will again!",
+    },
+    {
+      name: "Mako Tsunami", theme: "Ocean", area: "ocean",
+      types: ["Fish", "Sea Serpent", "Aqua"], prefer: [/fish|shark|sea|jelly|whale/i],
+      taunt: "The sea answers only to me!",
+    },
+    {
+      name: "Mai Valentine", theme: "Harpies", area: "mountain",
+      types: ["Winged Beast"], prefer: [/harpie|bird|lady/i],
+      taunt: "Don't blink, darling — Harpie Lady is already behind you.",
+    },
+    {
+      name: "Bandit Keith", theme: "Machines", area: "wasteland",
+      types: ["Machine"], prefer: [/machine|cannon|gear|metal/i],
+      taunt: "I never play fair… and I never lose.",
+    },
+    {
+      name: "Bonz", theme: "Zombies", area: "graveyard",
+      types: ["Zombie"], prefer: [/zombie|skull|bone|grave/i],
+      taunt: "Welcome to my graveyard… you won't leave it.",
+    },
+    {
+      name: "Panik", theme: "Shadows", area: "graveyard",
+      types: ["Fiend"], prefer: [/fiend|shadow|dark|castle/i],
+      taunt: "In the dark, fear is my greatest monster!",
+    },
+    {
+      name: "Seto Kaiba", theme: "Blue-Eyes", area: "castle", castle: true,
+      types: ["Dragon"], prefer: [/blue-eyes|blue.eyes|white dragon/i],
+      taunt: "I'll crush you with the power of Blue-Eyes!",
+    },
+    {
+      name: "Yami Yugi", theme: "Dark Magician", area: "castle", castle: true,
+      types: ["Spellcaster"], prefer: [/dark magician|magician of|kuriboh/i],
+      taunt: "It's time to duel — heart of the cards!",
+    },
+    {
+      name: "Maximillion Pegasus", theme: "Toon World", area: "castle", castle: true, boss: true, toon: true,
+      types: ["Toon"], mixed: true, prefer: [/toon/i],
+      taunt: "Welcome to my Toon World — smile while you lose!",
+    },
+  ];
+
+  const TOON_POOL = [
+    { id: "toon_goblin", name: "Toon Goblin Attack Force", type: "Toon", attribute: "EARTH", level: 4, atk: 2300, def: 0 },
+    { id: "toon_mermaid", name: "Toon Mermaid", type: "Toon", attribute: "WATER", level: 4, atk: 1400, def: 1500 },
+    { id: "toon_summoned", name: "Toon Summoned Skull", type: "Toon", attribute: "DARK", level: 6, atk: 2500, def: 1200 },
+    { id: "toon_dm", name: "Toon Dark Magician", type: "Toon", attribute: "DARK", level: 7, atk: 2500, def: 2100 },
+    { id: "toon_beud", name: "Toon Blue-Eyes", type: "Toon", attribute: "LIGHT", level: 8, atk: 3000, def: 2500 },
+    { id: "toon_cannon", name: "Toon Cannon Soldier", type: "Toon", attribute: "DARK", level: 4, atk: 1400, def: 1300 },
+  ].map((c) => Object.assign({}, c, { cost: costFromLevel(c.level) }));
 
   /**
    * Shop odds by player level for monster Level buckets:
@@ -1125,6 +1540,7 @@
     Fish: { emoji: "🐟" },
     BeastWarrior: { emoji: "🦁" },
     "Beast-Warrior": { emoji: "🦁" },
+    Toon: { emoji: "🎨" },
   };
 
   function costFromLevel(level) {
@@ -1177,11 +1593,13 @@
     lp: 8000,
     gold: 10,
     round: 1,
+    duelIndex: 0,
+    starChips: 2,
     level: 1,
     xp: 0,
     winStreak: 0,
     lossStreak: 0,
-    phase: "menu", // menu | shop | fight | end
+    phase: "menu", // menu | map | shop | fight | end
     shop: [],
     bench: [null, null, null, null, null, null, null, null, null],
     shopLocked: false,
@@ -1239,6 +1657,16 @@
     btnBuyXp: $("btnBuyXp"),
     duelistRound: $("duelistRound"),
     duelistName: $("duelistName"),
+    starChips: $("starChips"),
+    areaBanner: $("areaBanner"),
+    duelFlash: $("duelFlash"),
+    mapOverlay: $("mapOverlay"),
+    mapSpots: $("mapSpots"),
+    mapTaunt: $("mapTaunt"),
+    mapSub: $("mapSub"),
+    mapChipsLabel: $("mapChipsLabel"),
+    btnMapDuel: $("btnMapDuel"),
+    resultsRewards: $("resultsRewards"),
     menuDrawer: $("menuDrawer"),
     menuBackdrop: $("menuBackdrop"),
     btnMenu: $("btnMenu"),
@@ -1359,8 +1787,49 @@
   }
 
   function currentDuelist() {
-    const idx = Math.min(LADDER.length - 1, Math.max(0, state.round - 1));
+    const idx = Math.min(LADDER.length - 1, Math.max(0, state.duelIndex || 0));
     return LADDER[idx];
+  }
+
+  function currentArea() {
+    const d = currentDuelist();
+    return AREAS[d.area] || AREAS.meadow;
+  }
+
+  function castleUnlocked() {
+    return state.starChips >= 10;
+  }
+
+  function areaAtkBonus(unit) {
+    if (!unit) return 0;
+    const area = currentArea();
+    if (!area || !area.types) return 0;
+    if (area.types.indexOf(unit.type) !== -1) return 0.3;
+    // Toon units also count as their flavor types in castle
+    if (unit.type === "Toon" && area.id === "castle") return 0.3;
+    return 0;
+  }
+
+  function renderStarChips() {
+    if (!el.starChips) return;
+    const n = Math.max(0, Math.min(10, state.starChips | 0));
+    let html = "";
+    for (let i = 0; i < 10; i++) {
+      html += '<span class="' + (i < n ? "chip-on" : "chip-off") + '" aria-hidden="true">★</span>';
+    }
+    el.starChips.innerHTML = html;
+    el.starChips.title = n + " / 10 Star Chips";
+  }
+
+  function renderAreaBanner() {
+    if (!el.areaBanner) return;
+    if (state.phase !== "shop" && state.phase !== "fight") {
+      el.areaBanner.className = "area-banner";
+      return;
+    }
+    const area = currentArea();
+    el.areaBanner.className = "area-banner show " + area.id;
+    el.areaBanner.textContent = area.blurb;
   }
 
   function itemDef(id) {
@@ -1612,7 +2081,8 @@
     const b = traitBonusesFor(unit);
     let base = unit.atk + itemAtkBonus(unit);
     if (hasMegamorph(unit) && state.lp < state.enemyLp) base *= 2;
-    return Math.round(base * (1 + b.atkPct));
+    const areaPct = areaAtkBonus(unit);
+    return Math.round(base * (1 + b.atkPct + areaPct));
   }
 
   function effectiveMaxHp(unit) {
@@ -1779,16 +2249,30 @@
   function cardHTML(card) {
     const meta = raceMeta(card.type);
     const attr = String(card.attribute || "DARK").toUpperCase();
-    const short = card.name.length > 10 ? card.name.slice(0, 9) + "…" : card.name;
     return (
       '<div class="card attr-' + attr + (card.stars === 2 ? " star2" : "") + '">' +
       '<span class="cost-badge">' + card.cost + "</span>" +
       '<div class="emoji">' + meta.emoji + "</div>" +
-      '<div class="name">' + escapeHtml(short) + "</div>" +
+      '<div class="name">' + escapeHtml(card.name) + "</div>" +
       '<div class="stats"><span class="atk">' + card.atk + '</span><span class="type-ico">' +
       meta.emoji + '</span><span class="def">' + card.def + "</span></div>" +
       "</div>"
     );
+  }
+
+  function fitShopNames() {
+    el.shop.querySelectorAll(".card .name").forEach((node) => {
+      node.style.transform = "";
+      const parent = node.parentElement;
+      if (!parent) return;
+      const maxW = parent.clientWidth - 6;
+      const maxH = 28;
+      if (node.scrollWidth <= maxW && node.scrollHeight <= maxH) return;
+      const sx = maxW / Math.max(1, node.scrollWidth);
+      const sy = maxH / Math.max(1, node.scrollHeight);
+      const s = Math.max(0.72, Math.min(1, sx, sy));
+      node.style.transform = "scale(" + s.toFixed(3) + ")";
+    });
   }
 
   function renderShop() {
@@ -1802,6 +2286,7 @@
       }
       el.shop.appendChild(wrap);
     });
+    requestAnimationFrame(fitShopNames);
   }
 
   function renderBench() {
@@ -1903,6 +2388,8 @@
     el.lp.textContent = state.lp;
     el.gold.textContent = state.gold;
     el.round.textContent = state.round;
+    renderStarChips();
+    renderAreaBanner();
     el.levelNum.textContent = String(state.level);
     if (el.boardCap) el.boardCap.textContent = String(boardCap());
     if (el.boardCount) el.boardCount.textContent = playerCount() + "/" + boardCap();
@@ -2327,17 +2814,22 @@
 
   function themedPool(duelist) {
     let pool = [];
+    if (duelist.toon) {
+      pool = TOON_POOL.slice();
+      const named = state.roster.filter((c) => /toon/i.test(c.name));
+      pool = pool.concat(named.filter((c) => !pool.some((p) => p.id === c.id)));
+    }
     if (duelist.prefer && duelist.prefer.length) {
-      pool = state.roster.filter((c) => duelist.prefer.some((re) => re.test(c.name)));
+      const pref = state.roster.filter((c) => duelist.prefer.some((re) => re.test(c.name)));
+      pool = pool.concat(pref.filter((c) => !pool.some((p) => p.id === c.id)));
     }
     if (pool.length < 3 && duelist.types && duelist.types.length) {
       const typed = state.roster.filter((c) => duelist.types.indexOf(c.type) !== -1);
-      pool = pool.concat(typed.filter((c) => pool.indexOf(c) === -1));
+      pool = pool.concat(typed.filter((c) => !pool.some((p) => p.id === c.id)));
     }
     if (duelist.mixed || pool.length < 2) {
-      // Pegasus / fallback: mix high-ATK with any leftover theme
       const mixed = state.roster.slice().sort((a, b) => b.atk - a.atk).slice(0, 40);
-      pool = pool.concat(mixed.filter((c) => pool.indexOf(c) === -1));
+      pool = pool.concat(mixed.filter((c) => !pool.some((p) => p.id === c.id)));
     }
     if (!pool.length) pool = state.roster.slice();
     return pool;
@@ -2490,12 +2982,13 @@
     const v = state.combatVisuals[uid];
     if (!v) return;
     const fx = document.createElement("div");
-    fx.className = "combat-fx" + (heal ? " heal" : "");
+    const big = !heal && String(text).replace(/\D/g, "") && +String(text).replace(/\D/g, "") >= 40;
+    fx.className = "combat-fx" + (heal ? " heal" : "") + (big ? " big" : "");
     fx.textContent = text;
     fx.style.left = v.x + "px";
     fx.style.top = (v.y - 18) + "px";
     el.combatLayer.appendChild(fx);
-    setTimeout(() => fx.remove(), 800);
+    setTimeout(() => fx.remove(), 900);
   }
 
   function flashHit(unit) {
@@ -2513,7 +3006,7 @@
     const dx = vt.x - va.x;
     const dy = vt.y - va.y;
     const len = Math.hypot(dx, dy) || 1;
-    const dist = Math.min(18, len * 0.35);
+    const dist = Math.min(28, len * 0.45);
     va.lungeX = (dx / len) * dist;
     va.lungeY = (dy / len) * dist;
     va.lungeT = 180 / state.fightSpeed;
@@ -2763,8 +3256,17 @@
       u.moveCd = Math.random() * 100;
     });
     const d = currentDuelist();
-    logLine('<span class="sys">—— Round ' + state.round + ": " + escapeHtml(d.name) + " ——</span>");
+    logLine('<span class="sys">—— Duel vs ' + escapeHtml(d.name) + " ——</span>");
     render();
+    if (el.btnFight) el.btnFight.style.display = "none";
+    if (el.boardCount) el.boardCount.style.visibility = "hidden";
+    if (el.duelFlash) {
+      el.duelFlash.classList.remove("show");
+      void el.duelFlash.offsetWidth;
+      el.duelFlash.classList.add("show");
+    }
+    await sleep(850 / state.fightSpeed);
+    if (el.duelFlash) el.duelFlash.classList.remove("show");
     requestAnimationFrame(() => { mountCombatTokens(); });
     await sleep(80);
     mountCombatTokens();
@@ -2829,6 +3331,12 @@
           } else if (u.moveCd <= 0) {
             if (stepToward(u, target)) {
               u.moveCd = MOVE_MS;
+              const vv = state.combatVisuals[u.uid];
+              if (vv) {
+                vv.wrap.classList.remove("hop");
+                void vv.wrap.offsetWidth;
+                vv.wrap.classList.add("hop");
+              }
             } else {
               u.moveCd = MOVE_MS * 0.5;
             }
@@ -2869,14 +3377,24 @@
       logLine('<span class="win">Board wiped — no LP damage!</span>');
     }
 
-    // Clear enemy; gather player survivors and reseat on player half
-    // Update streaks before reseating
+    let chipDelta = 0;
     if (victory) {
       state.winStreak += 1;
       state.lossStreak = 0;
+      state.starChips += 1;
+      chipDelta = 1;
+      // Clearing Panik with <10 chips opens the castle gate
+      if (state.duelIndex === 6 && state.starChips < 10) {
+        state.starChips = 10;
+        logLine('<span class="sys">★ Star Chips fill the gate — Pegasus Castle unlocks!</span>');
+      }
+      logLine('<span class="win">★ Star Chip +1 (' + state.starChips + "/10)</span>");
     } else {
       state.lossStreak += 1;
       state.winStreak = 0;
+      state.starChips = Math.max(0, state.starChips - 1);
+      chipDelta = -1;
+      logLine('<span class="dmg">★ Star Chip −1 (' + state.starChips + "/10)</span>");
     }
 
     const survivorsP = allUnits("player").filter((u) => !u.dead).map((u) => {
@@ -2907,13 +3425,21 @@
 
     const duelist = currentDuelist();
     const beatBoss = victory && duelist.boss;
+    const streak = streakGoldBonus();
+    const baseGold = 4 + Math.min(state.round, 6);
+    const interest = Math.min(5, Math.floor(state.gold / 10));
+    const previewGold = baseGold + interest + streak;
 
     state.pendingResult = {
       victory,
       lpDmg,
-      gameOver: state.lp <= 0,
+      chipDelta,
+      previewGold,
+      streak,
+      gameOver: state.lp <= 0 || state.starChips <= 0,
       beatBoss,
       completedRound: state.round,
+      completedDuel: state.duelIndex,
     };
 
     el.resultsBanner.classList.toggle("defeat", !state.pendingResult.victory && !beatBoss);
@@ -2921,12 +3447,23 @@
       el.resultsTitle.textContent = "Champion!";
       el.resultsMsg.textContent = "You defeated " + duelist.name + "!";
     } else {
-      el.resultsTitle.textContent = state.pendingResult.victory ? "Victory" : "Defeat";
-      el.resultsMsg.textContent = lpDmg > 0 ? ("−" + lpDmg + " Life Points") : "No LP lost";
+      el.resultsTitle.textContent = state.pendingResult.victory ? "Victory!" : "Defeat";
+      el.resultsMsg.textContent = victory
+        ? ("Defeated " + duelist.name)
+        : (lpDmg > 0 ? ("−" + lpDmg + " Life Points") : "Your monsters fell");
+    }
+    if (el.resultsRewards) {
+      const chips = [];
+      chips.push('<span class="reward-chip">🪙 +' + previewGold + " gold</span>");
+      if (streak) chips.push('<span class="reward-chip">🔥 Streak +' + streak + "</span>");
+      if (chipDelta > 0) chips.push('<span class="reward-chip">★ Star Chip +1</span>');
+      if (chipDelta < 0) chips.push('<span class="reward-chip loss">★ Star Chip −1</span>');
+      el.resultsRewards.innerHTML = chips.join("");
     }
     el.resultsBanner.classList.add("show");
     el.fightBar.classList.remove("show");
     el.btnFight.style.display = "none";
+    renderStarChips();
   }
 
   function fillRunSummary(won) {
@@ -2939,7 +3476,8 @@
       : "None";
     el.runSummary.innerHTML =
       "<div><span class='k'>Result:</span> <span class='v'>" + (won ? "Victory" : "Defeat") + "</span></div>" +
-      "<div><span class='k'>Rounds survived:</span> <span class='v'>" + state.round + "</span></div>" +
+      "<div><span class='k'>Duels survived:</span> <span class='v'>" + state.round + "</span></div>" +
+      "<div><span class='k'>Star Chips:</span> <span class='v'>" + state.starChips + "/10</span></div>" +
       "<div><span class='k'>Strongest monster:</span> <span class='v'>" + strong + "</span></div>" +
       "<div><span class='k'>Items used:</span> <span class='v'>" + items + "</span></div>" +
       "<div><span class='k'>Final level:</span> <span class='v'>" + state.level + "</span></div>";
@@ -2947,6 +3485,7 @@
 
   function showEndScreen(won, msg) {
     state.phase = "end";
+    hideMap();
     el.endTitle.textContent = won ? "You Win!" : "Defeat";
     el.endMsg.textContent = msg;
     fillRunSummary(won);
@@ -2982,7 +3521,7 @@
     el.itemDraftOverlay.classList.add("open");
   }
 
-  function advanceToShop() {
+  function grantIncome() {
     const base = 4 + Math.min(state.round, 6);
     const interest = Math.min(5, Math.floor(state.gold / 10));
     const streak = streakGoldBonus();
@@ -2994,11 +3533,99 @@
     if (streak) parts.push("streak +" + streak);
     logLine('<span class="sys">Income +' + gained + "🪙 (" + parts.join(", ") + ") · +2 XP</span>");
     toast("+" + gained + " gold");
-    state.round += 1;
+    return gained;
+  }
+
+  function showMap() {
+    state.phase = "map";
+    state.fightSpeed = 1;
+    if (el.mapOverlay) el.mapOverlay.classList.add("open");
+    renderMap();
+    render();
+  }
+
+  function hideMap() {
+    if (el.mapOverlay) el.mapOverlay.classList.remove("open");
+  }
+
+  function renderMap() {
+    if (!el.mapSpots) return;
+    const idx = state.duelIndex;
+    const d = currentDuelist();
+    el.mapSpots.innerHTML = "";
+    // path lines
+    const svg = $("mapPathSvg");
+    if (svg) {
+      let poly = "";
+      MAP_SPOTS.forEach((s, i) => {
+        poly += (i ? " " : "") + s.x + "," + s.y;
+      });
+      svg.innerHTML = '<polyline points="' + poly +
+        '" fill="none" stroke="rgba(232,184,74,0.45)" stroke-width="1.2" stroke-dasharray="2 2" />';
+    }
+    MAP_SPOTS.forEach((s, i) => {
+      const duelist = LADDER[i];
+      const spot = document.createElement("button");
+      spot.type = "button";
+      spot.className = "map-spot";
+      if (duelist.castle) spot.classList.add("castle-spot");
+      spot.style.left = s.x + "%";
+      spot.style.top = s.y + "%";
+      spot.textContent = String(i + 1);
+      const lockedCastle = duelist.castle && !castleUnlocked();
+      if (i < idx) spot.classList.add("done");
+      if (i === idx && !lockedCastle) spot.classList.add("current");
+      if (i > idx || lockedCastle) spot.classList.add("locked");
+      spot.title = duelist.name + (lockedCastle ? " (need 10 ★)" : "");
+      spot.addEventListener("click", () => {
+        if (i !== idx) return;
+        if (lockedCastle) { toast("Need 10 Star Chips for the castle"); return; }
+        enterDuelFromMap();
+      });
+      el.mapSpots.appendChild(spot);
+    });
+    if (el.mapTaunt) {
+      el.mapTaunt.innerHTML = "<strong>" + escapeHtml(d.name) + "</strong>" + escapeHtml(d.taunt || "");
+    }
+    if (el.mapSub) {
+      const area = currentArea();
+      el.mapSub.textContent = area.blurb + (d.castle && !castleUnlocked() ? " · Castle locked" : "");
+    }
+    if (el.mapChipsLabel) {
+      el.mapChipsLabel.textContent = "★ Star Chips " + state.starChips + "/10" +
+        (castleUnlocked() ? " · Castle open" : "");
+    }
+    if (el.btnMapDuel) {
+      el.btnMapDuel.disabled = !!(d.castle && !castleUnlocked());
+      el.btnMapDuel.textContent = d.castle && !castleUnlocked() ? "Need 10 ★" : "Enter Duel";
+    }
+  }
+
+  function enterDuelFromMap() {
+    const d = currentDuelist();
+    if (d.castle && !castleUnlocked()) {
+      toast("Need 10 Star Chips for the castle");
+      return;
+    }
+    hideMap();
     state.phase = "shop";
     state.fightSpeed = 1;
-    rollShop();
+    if (!state.shop || !state.shop.length) rollShop();
+    toast(d.name + ': "' + (d.taunt || "Let's duel!") + '"');
+    logLine('<span class="sys">🗺 ' + escapeHtml(currentArea().name) + " — vs " +
+      escapeHtml(d.name) + "</span>");
     render();
+    requestAnimationFrame(() => renderBoards());
+  }
+
+  function advanceAfterDuel(won) {
+    grantIncome();
+    if (won) {
+      state.duelIndex = Math.min(LADDER.length - 1, state.duelIndex + 1);
+    }
+    state.round += 1;
+    rollShop();
+    showMap();
   }
 
   function dismissResults() {
@@ -3008,21 +3635,26 @@
     if (!res) return;
 
     if (res.beatBoss) {
-      showEndScreen(true, "You defeated Yami Yugi and claimed the throne!");
+      showEndScreen(true, "You defeated Maximillion Pegasus and conquered Duelist Kingdom!");
       return;
     }
 
-    if (res.gameOver || state.lp <= 0) {
-      showEndScreen(false, "You survived " + res.completedRound + " round" + (res.completedRound === 1 ? "" : "s") + ". Your Life Points hit zero.");
+    if (res.gameOver || state.lp <= 0 || state.starChips <= 0) {
+      const why = state.starChips <= 0
+        ? "You ran out of Star Chips."
+        : "Your Life Points hit zero.";
+      showEndScreen(false, "You survived " + res.completedRound + " duel" +
+        (res.completedRound === 1 ? "" : "s") + ". " + why);
       return;
     }
 
     const afterRound = res.completedRound;
+    const cont = () => advanceAfterDuel(!!res.victory);
     if (ITEM_DRAFT_ROUNDS.indexOf(afterRound) !== -1) {
-      openItemDraft(advanceToShop);
+      openItemDraft(cont);
       return;
     }
-    advanceToShop();
+    cont();
   }
 
   function buyXp() {
@@ -3106,11 +3738,13 @@
     state.enemyLp = 8000;
     state.gold = 10;
     state.round = 1;
+    state.duelIndex = 0;
+    state.starChips = 2;
     state.level = 1;
     state.xp = 0;
     state.winStreak = 0;
     state.lossStreak = 0;
-    state.phase = "shop";
+    state.phase = "map";
     state.bench = [null, null, null, null, null, null, null, null, null];
     state.shopLocked = false;
     state.itemBench = [];
@@ -3131,9 +3765,9 @@
     el.app.classList.add("visible");
     rollShop();
     const modeLabel = state.mode === "classic" && !usedFallback ? "Classic" : "Original";
-    logLine('<span class="sys">Duel start (' + modeLabel + ") vs " + escapeHtml(currentDuelist().name) + " — Lv1 · 8000 LP</span>");
+    logLine('<span class="sys">Duelist Kingdom (' + modeLabel + ") — 2 ★ Star Chips · 8000 LP</span>");
     render();
-    requestAnimationFrame(() => renderBoards());
+    showMap();
   }
 
   async function onStart() {
@@ -3169,8 +3803,10 @@
       state.combatTimer = null;
     }
     state.phase = "menu";
+    hideMap();
     el.app.classList.remove("visible");
     el.endOverlay.classList.remove("open");
+    el.resultsBanner.classList.remove("show");
     el.startOverlay.classList.add("open");
     el.loadStatus.className = "load-status";
     el.loadStatus.textContent = "";
@@ -3200,6 +3836,7 @@
   });
   $("btnReroll").addEventListener("click", reroll);
   el.btnFight.addEventListener("click", () => { startFight(); });
+  if (el.btnMapDuel) el.btnMapDuel.addEventListener("click", () => enterDuelFromMap());
   el.btnSpeed.addEventListener("click", () => {
     if (state.phase !== "fight") return;
     cycleSpeed();
