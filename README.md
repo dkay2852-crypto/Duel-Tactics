@@ -11,12 +11,15 @@ Open `index.html` in a browser (or serve the folder locally). No build step or f
 - Best Star Chip count, wins, and favorite monster are saved in `localStorage`.
 - Settings (gear): sound, fight speed, reset progress. How to Play uses the book icon.
 
-## Cards
+## Cards & combat
 
 - Always uses Classic monsters from the public [YGOPRODeck API](https://db.ygoprodeck.com/api-guide/) (*Legend of Blue Eyes White Dragon* + *Metal Raiders*), cached in `localStorage` for 7 days.
 - Art lives under `images/small/` and `images/cropped/` (YGOPRODeck asks not to hotlink); emoji art is the fallback if a file is missing.
 - If the API/cache load fails, the home screen shows **Couldn't load cards, tap to retry** (no fantasy roster fallback).
-- Card Binder is a searchable grid of every loaded monster.
+- **Cost** from ATK+DEF: under 2000→1, 2000s→2, 3000s→3, 4000s→4, 5000+→5 (Level ignored). Borders: gray / green / blue / purple / gold.
+- **Battle:** HP = DEF×1.5 (min 600), damage = ATK÷4. ★★ ×1.8, ★★★ ×3.2.
+- **Roles:** Tank / Attacker / Fighter from ATK vs DEF; Attackers that are Spellcaster, Thunder, or Machine have range 2.
+- Tap a monster (binder, shop, or board) for the full-screen **Guide** (fusion chain, ability, Types / Items / Basics / Duelists tabs).
 
 ## Board & art
 
