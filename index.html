@@ -227,6 +227,123 @@
       white-space: nowrap;
     }
 
+    .duelist-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      background: linear-gradient(90deg, rgba(90, 40, 50, 0.55), rgba(20, 36, 50, 0.9));
+      border: 1px solid #6a3040;
+      border-radius: 12px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+      min-height: 48px;
+    }
+    .duelist-banner .d-round {
+      font-size: 0.72rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 700;
+    }
+    .duelist-banner .d-name {
+      font-family: "Bungee", cursive;
+      font-size: 0.95rem;
+      color: #f0b8c0;
+      line-height: 1.15;
+    }
+    .duelist-banner .d-theme {
+      font-size: 0.72rem;
+      color: var(--gold);
+      font-weight: 700;
+    }
+
+    .item-bench {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      min-height: 52px;
+      margin-top: 8px;
+    }
+    .item-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      min-height: 44px;
+      padding: 6px 10px;
+      border-radius: 12px;
+      border: 1.5px solid #6a5080;
+      background: linear-gradient(160deg, rgba(60, 40, 80, 0.7), rgba(20, 16, 36, 0.95));
+      color: #e8d8ff;
+      font-weight: 800;
+      font-size: 0.72rem;
+      cursor: pointer;
+      touch-action: manipulation;
+      user-select: none;
+    }
+    .item-chip.selected {
+      outline: 3px solid var(--cyan);
+      outline-offset: 1px;
+    }
+    .item-chip .iemoji { font-size: 1.05rem; }
+
+    .token .item-icons {
+      position: absolute;
+      top: -2px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 1px;
+      z-index: 4;
+      font-size: 0.55rem;
+      line-height: 1;
+      pointer-events: none;
+    }
+
+    .item-draft-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+      margin: 12px 0;
+    }
+    .item-draft-card {
+      text-align: left;
+      padding: 14px;
+      border-radius: 14px;
+      border: 2px solid #6a5080;
+      background: linear-gradient(160deg, rgba(50, 36, 70, 0.95), rgba(16, 14, 28, 0.98));
+      color: var(--fog);
+      font-family: inherit;
+      cursor: pointer;
+      touch-action: manipulation;
+      min-height: 72px;
+    }
+    .item-draft-card:active { transform: scale(0.98); }
+    .item-draft-card strong {
+      display: block;
+      color: #e8d8ff;
+      font-size: 1rem;
+      margin-bottom: 4px;
+    }
+    .item-draft-card span {
+      font-size: 0.82rem;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .summary-stats {
+      text-align: left;
+      background: rgba(0,0,0,0.25);
+      border-radius: 12px;
+      padding: 12px;
+      margin: 10px 0 14px;
+      font-size: 0.9rem;
+      line-height: 1.45;
+    }
+    .summary-stats div { margin-bottom: 6px; }
+    .summary-stats .k { color: var(--muted); }
+    .summary-stats .v { color: var(--gold); font-weight: 800; }
+
     .btn {
       appearance: none;
       border: none;
@@ -902,6 +1019,14 @@
 
     <div class="notice" id="fallbackNotice">Classic API unavailable — using original roster.</div>
 
+    <div class="duelist-banner" id="duelistBanner">
+      <div>
+        <div class="d-round" id="duelistRound">Round 1</div>
+        <div class="d-name" id="duelistName">Weevil Underwood</div>
+      </div>
+      <div class="d-theme" id="duelistTheme">Insects</div>
+    </div>
+
     <div class="level-row" id="levelRow">
       <button type="button" class="level-pill" id="btnLevel" aria-label="Level and shop odds">
         <div class="lv-top">
@@ -947,6 +1072,11 @@
         <span class="hint">Tap → hex to place · 3 fuse ★★</span>
       </div>
       <div class="bench-row" id="bench"></div>
+      <div class="block-head" style="margin-top:10px">
+        <h2>Items</h2>
+        <span class="hint">Tap item → monster · max 3</span>
+      </div>
+      <div class="item-bench" id="itemBench"></div>
       <div class="sell-bar" id="sellBar">
         <button type="button" class="btn btn-danger btn-wide" id="btnSell">Sell selected · 1🪙</button>
       </div>
@@ -967,10 +1097,20 @@
         <li>Board size = your level (1–9). Buy XP for 4 gold, or earn 2 XP each round.</li>
         <li>Traits: unique Types on the board activate at 2 / 4 / 6 (bronze / silver / gold). Tap a trait for details.</li>
         <li>Tap your level to see shop odds. Higher levels roll stronger monsters.</li>
-        <li>Press <strong>FIGHT</strong> — units slide, lunge, and cast Type abilities. Use 1x/2x speed.</li>
-        <li>Earn interest (+1 per 10 gold, max +5) and streak bonuses. 0 LP ends the duel.</li>
+        <li>After rounds 2, 5, 9, and 13, pick an Equip Spell. Tap an item, then a monster (max 3 each).</li>
+        <li>Climb the duelist ladder — beat <strong>Yami Yugi</strong> to win the run.</li>
+        <li>Press <strong>FIGHT</strong> — units slide, lunge, and cast abilities. Use 1x/2x speed.</li>
+        <li>Earn interest and streak gold. 0 LP ends the duel.</li>
       </ol>
       <button type="button" class="btn btn-primary btn-wide" id="btnCloseHow">Got it</button>
+    </div>
+  </div>
+
+  <div class="overlay" id="itemDraftOverlay">
+    <div class="modal">
+      <h2>Equip Spell</h2>
+      <p style="margin-top:0">Choose 1 of 3 items for your item bench.</p>
+      <div class="item-draft-grid" id="itemDraftGrid"></div>
     </div>
   </div>
 
@@ -994,6 +1134,7 @@
     <div class="modal">
       <h2 id="endTitle">Defeat</h2>
       <p id="endMsg">Your Life Points hit zero.</p>
+      <div class="summary-stats" id="runSummary"></div>
       <button type="button" class="btn btn-primary btn-wide" id="btnRestart">Play Again</button>
     </div>
   </div>
@@ -1018,9 +1159,36 @@
   const ATTACK_MS = 1000;
   const MOVE_MS = 380;
   const TRAIT_THRESHOLDS = [2, 4, 6];
+  const ITEM_DRAFT_ROUNDS = [2, 5, 9, 13];
+  const MAX_ITEMS = 3;
 
   /** XP needed to go from level L → L+1 (index = current level). Level 9 is max. */
   const XP_TO_NEXT = [0, 2, 2, 6, 10, 20, 40, 60, 80, 0];
+
+  const ITEM_DEFS = [
+    { id: "axe", name: "Axe of Despair", emoji: "🪓", desc: "+1000 ATK", atk: 1000 },
+    { id: "book", name: "Book of Secret Arts", emoji: "📖", desc: "+300 ATK/DEF · +20 mana / attack", atk: 300, def: 300, manaPerAttack: 20 },
+    { id: "pendant", name: "Black Pendant", emoji: "📿", desc: "+500 ATK · on death deal 500 to a random foe", atk: 500, onDeathDmg: 500 },
+    { id: "horn", name: "Horn of the Unicorn", emoji: "🦄", desc: "+700 ATK/DEF", atk: 700, def: 700 },
+    { id: "nuzzler", name: "Malevolent Nuzzler", emoji: "💋", desc: "+700 ATK", atk: 700 },
+    { id: "sword", name: "Legendary Sword", emoji: "🗡️", desc: "+300 ATK · Warriors get double", atk: 300, warriorDouble: true },
+    { id: "moon", name: "Mystical Moon", emoji: "🌙", desc: "+300 ATK/DEF · Beasts get double", atk: 300, def: 300, beastDouble: true },
+    { id: "megamorph", name: "Megamorph", emoji: "💎", desc: "Double ATK if you have fewer LP than the foe", megamorph: true },
+  ];
+
+  /** One opponent per round; beating Yami Yugi (round 10) wins the run. */
+  const LADDER = [
+    { name: "Weevil Underwood", theme: "Insects", types: ["Insect"], prefer: [/insect/i] },
+    { name: "Rex Raptor", theme: "Dinosaurs", types: ["Dinosaur"], prefer: [/dinosaur|rex|rage/i] },
+    { name: "Mako Tsunami", theme: "Fish / Sea", types: ["Fish", "Sea Serpent", "Aqua"], prefer: [/fish|shark|sea|jelly/i] },
+    { name: "Mai Valentine", theme: "Harpies", types: ["Winged Beast"], prefer: [/harpie|bird|lady/i] },
+    { name: "Bandit Keith", theme: "Machines", types: ["Machine"], prefer: [/machine|cannon|gear|metal/i] },
+    { name: "Bonz", theme: "Zombies", types: ["Zombie"], prefer: [/zombie|skull|bone|grave/i] },
+    { name: "Joey Wheeler", theme: "Warriors", types: ["Warrior"], prefer: [/warrior|swordsman|knight|flame swordsman/i] },
+    { name: "Maximillion Pegasus", theme: "Toons / Mixed", types: [], mixed: true, prefer: [/toon/i] },
+    { name: "Seto Kaiba", theme: "Blue-Eyes", types: ["Dragon"], prefer: [/blue-eyes|blue.eyes|white dragon/i] },
+    { name: "Yami Yugi", theme: "Dark Magician", types: ["Spellcaster"], prefer: [/dark magician|magician of|kuriboh/i], boss: true },
+  ];
 
   /**
    * Shop odds by player level for monster Level buckets:
@@ -1168,6 +1336,12 @@
     fightSpeed: 1,
     combatVisuals: {}, // uid -> { wrap, x, y, lungeX, lungeY, lungeT }
     pendingResult: null,
+    itemBench: [],
+    selectedItem: null, // index in itemBench
+    enemyLp: 8000,
+    itemsPicked: [],
+    strongestEver: null, // { name, atk }
+    awaitingItemDraft: false,
   };
 
   const $ = (id) => document.getElementById(id);
@@ -1181,7 +1355,11 @@
     howOverlay: $("howOverlay"), endOverlay: $("endOverlay"),
     startOverlay: $("startOverlay"),
     traitOverlay: $("traitOverlay"), oddsOverlay: $("oddsOverlay"),
+    itemDraftOverlay: $("itemDraftOverlay"),
+    itemDraftGrid: $("itemDraftGrid"),
+    itemBench: $("itemBench"),
     endTitle: $("endTitle"), endMsg: $("endMsg"), toast: $("toast"),
+    runSummary: $("runSummary"),
     fallbackNotice: $("fallbackNotice"),
     loadStatus: $("loadStatus"),
     btnStart: $("btnStart"),
@@ -1198,6 +1376,9 @@
     xpFill: $("xpFill"),
     boardCap: $("boardCap"),
     btnBuyXp: $("btnBuyXp"),
+    duelistRound: $("duelistRound"),
+    duelistName: $("duelistName"),
+    duelistTheme: $("duelistTheme"),
   };
 
   function raceMeta(race) {
@@ -1311,6 +1492,83 @@
     return 0;
   }
 
+  function currentDuelist() {
+    const idx = Math.min(LADDER.length - 1, Math.max(0, state.round - 1));
+    return LADDER[idx];
+  }
+
+  function itemDef(id) {
+    return ITEM_DEFS.find((d) => d.id === id) || ITEM_DEFS[0];
+  }
+
+  function makeItem(defId) {
+    return { uid: uid(), defId: defId };
+  }
+
+  function unitItems(unit) {
+    return (unit && unit.items) ? unit.items : [];
+  }
+
+  function itemAtkBonus(unit) {
+    let atk = 0;
+    unitItems(unit).forEach((it) => {
+      const d = itemDef(it.defId);
+      if (d.megamorph) return;
+      let add = d.atk || 0;
+      if (d.warriorDouble && unit.type === "Warrior") add *= 2;
+      if (d.beastDouble && (unit.type === "Beast" || unit.type === "Winged Beast" || unit.type === "Beast-Warrior")) add *= 2;
+      atk += add;
+    });
+    return atk;
+  }
+
+  function hasMegamorph(unit) {
+    return unitItems(unit).some((it) => itemDef(it.defId).megamorph);
+  }
+
+  function itemDefBonus(unit) {
+    let def = 0;
+    unitItems(unit).forEach((it) => {
+      const d = itemDef(it.defId);
+      let add = d.def || 0;
+      if (d.beastDouble && (unit.type === "Beast" || unit.type === "Winged Beast" || unit.type === "Beast-Warrior")) add *= 2;
+      def += add;
+    });
+    return def;
+  }
+
+  function itemManaBonus(unit) {
+    let m = 0;
+    unitItems(unit).forEach((it) => {
+      m += itemDef(it.defId).manaPerAttack || 0;
+    });
+    return m;
+  }
+
+  function returnItemsToBench(unit) {
+    if (!unit || !unit.items || !unit.items.length) return;
+    unit.items.forEach((it) => state.itemBench.push(it));
+    unit.items = [];
+  }
+
+  function trackStrongest(unit) {
+    if (!unit) return;
+    const atk = effectiveAtk(unit);
+    if (!state.strongestEver || atk > state.strongestEver.atk) {
+      state.strongestEver = { name: unit.name, atk: atk };
+    }
+  }
+
+  function allPlayerUnits() {
+    return allUnits("player").concat(state.bench.filter(Boolean));
+  }
+
+  function findUnitByUid(id) {
+    const onBoard = allUnits("player").find((u) => u.uid === id);
+    if (onBoard) return onBoard;
+    return state.bench.find((u) => u && u.uid === id) || null;
+  }
+
   function uid() { return state.uid++; }
 
   function key(row, col) { return row + "," + col; }
@@ -1369,6 +1627,7 @@
       col: null,
       atkCd: 0,
       moveCd: 0,
+      items: [],
     };
   }
 
@@ -1444,8 +1703,15 @@
     const take = locs.slice(0, 3);
     const base = state.roster.find((r) => r.id === baseId);
     if (!base) return false;
-    take.forEach(removeLoc);
+    const pooledItems = [];
+    take.forEach((l) => {
+      const u = l.from === "bench" ? state.bench[l.index] : getCell(l.row, l.col);
+      if (u && u.items) pooledItems.push.apply(pooledItems, u.items);
+      removeLoc(l);
+    });
     const fused = makeInstance(base, 2);
+    fused.items = pooledItems.slice(0, MAX_ITEMS);
+    pooledItems.slice(MAX_ITEMS).forEach((it) => state.itemBench.push(it));
     // Prefer first emptied hex among take, else bench
     let placed = false;
     for (const l of take) {
@@ -1477,13 +1743,16 @@
   function effectiveAtk(unit) {
     if (!unit) return 0;
     const b = traitBonusesFor(unit);
-    return Math.round(unit.atk * (1 + b.atkPct));
+    let base = unit.atk + itemAtkBonus(unit);
+    if (hasMegamorph(unit) && state.lp < state.enemyLp) base *= 2;
+    return Math.round(base * (1 + b.atkPct));
   }
 
   function effectiveMaxHp(unit) {
     if (!unit) return 500;
     const b = traitBonusesFor(unit);
-    return Math.max(500, Math.round(Math.max(500, unit.def) * (1 + b.hpPct)));
+    const def = Math.max(0, unit.def + itemDefBonus(unit));
+    return Math.max(500, Math.round(Math.max(500, def) * (1 + b.hpPct)));
   }
 
   function escapeHtml(s) {
@@ -1587,10 +1856,12 @@
     const tok = document.createElement("div");
     tok.className = "token attr-" + attr + (unit.stars === 2 ? " star2" : "");
     tok.dataset.uid = String(unit.uid);
-    const hpPct = Math.max(0, Math.min(100, ((unit.hp || unit.maxHp) / unit.maxHp) * 100));
+    const hpPct = Math.max(0, Math.min(100, ((unit.hp || unit.maxHp) / (unit.maxHp || 1)) * 100));
     const manaPct = Math.max(0, Math.min(100, (unit.mana || 0)));
     const short = unit.name.length > 8 ? unit.name.slice(0, 7) + "…" : unit.name;
+    const icons = unitItems(unit).map((it) => itemDef(it.defId).emoji).join("");
     tok.innerHTML =
+      (icons ? '<div class="item-icons">' + icons + "</div>" : "") +
       '<div class="ring"></div>' +
       '<div class="emoji">' + meta.emoji + "</div>" +
       '<div class="stars">' + (unit.stars === 2 ? "★★" : "★") + "</div>" +
@@ -1751,12 +2022,63 @@
     $("levelRow").style.opacity = state.phase === "fight" ? "0.45" : "1";
   }
 
+  function renderItemBench() {
+    el.itemBench.innerHTML = "";
+    if (!state.itemBench.length) {
+      const hint = document.createElement("span");
+      hint.className = "hint";
+      hint.textContent = "Items appear after rounds 2, 5, 9, 13";
+      el.itemBench.appendChild(hint);
+      return;
+    }
+    state.itemBench.forEach((it, i) => {
+      const d = itemDef(it.defId);
+      const chip = document.createElement("button");
+      chip.type = "button";
+      chip.className = "item-chip" + (state.selectedItem === i ? " selected" : "");
+      chip.innerHTML = '<span class="iemoji">' + d.emoji + "</span><span>" + escapeHtml(d.name) + "</span>";
+      chip.addEventListener("click", () => {
+        state.selected = null;
+        state.selectedItem = state.selectedItem === i ? null : i;
+        render();
+      });
+      el.itemBench.appendChild(chip);
+    });
+  }
+
+  function tryEquipOnUnit(unit) {
+    if (state.selectedItem == null) return false;
+    const it = state.itemBench[state.selectedItem];
+    if (!it || !unit) return false;
+    if (!unit.items) unit.items = [];
+    if (unit.items.length >= MAX_ITEMS) {
+      toast("Max 3 items");
+      return true;
+    }
+    unit.items.push(it);
+    state.itemBench.splice(state.selectedItem, 1);
+    state.selectedItem = null;
+    toast("Equipped " + itemDef(it.defId).name);
+    trackStrongest(unit);
+    return true;
+  }
+
+  function renderDuelist() {
+    const d = currentDuelist();
+    el.duelistRound.textContent = "Round " + state.round;
+    el.duelistName.textContent = d.name;
+    el.duelistTheme.textContent = d.theme;
+  }
+
   function render() {
     renderHUD();
+    renderDuelist();
     renderTraits();
     renderShop();
     renderBoards();
     renderBench();
+    renderItemBench();
+    allPlayerUnits().forEach(trackStrongest);
   }
 
   function buyCard(index) {
@@ -1779,6 +2101,12 @@
   function onBenchTap(index) {
     if (state.phase !== "shop") return;
     const card = state.bench[index];
+
+    if (state.selectedItem != null && card) {
+      tryEquipOnUnit(card);
+      render();
+      return;
+    }
 
     // Returning from hex selection to empty bench slot
     if (state.selected && state.selected.from === "hex") {
@@ -1805,6 +2133,7 @@
       state.selected = null;
     } else {
       state.selected = { from: "bench", index };
+      state.selectedItem = null;
     }
     render();
   }
@@ -1813,6 +2142,12 @@
     if (state.phase !== "shop") return;
     const unit = getCell(row, col);
     const isPlayerHalf = row >= HEX_ROWS;
+
+    if (state.selectedItem != null && unit && unit.side === "player") {
+      tryEquipOnUnit(unit);
+      render();
+      return;
+    }
 
     // Place from bench
     if (state.selected && state.selected.from === "bench") {
@@ -1990,6 +2325,7 @@
     if (!state.selected || state.selected.from !== "bench") return;
     const card = state.bench[state.selected.index];
     if (!card) return;
+    returnItemsToBench(card);
     state.bench[state.selected.index] = null;
     const refund = Math.max(1, Math.floor(card.cost * card.stars));
     state.gold += refund;
@@ -2012,38 +2348,58 @@
     allUnits("enemy").forEach((u) => setCell(u.row, u.col, null));
   }
 
+  function themedPool(duelist) {
+    let pool = [];
+    if (duelist.prefer && duelist.prefer.length) {
+      pool = state.roster.filter((c) => duelist.prefer.some((re) => re.test(c.name)));
+    }
+    if (pool.length < 3 && duelist.types && duelist.types.length) {
+      const typed = state.roster.filter((c) => duelist.types.indexOf(c.type) !== -1);
+      pool = pool.concat(typed.filter((c) => pool.indexOf(c) === -1));
+    }
+    if (duelist.mixed || pool.length < 2) {
+      // Pegasus / fallback: mix high-ATK with any leftover theme
+      const mixed = state.roster.slice().sort((a, b) => b.atk - a.atk).slice(0, 40);
+      pool = pool.concat(mixed.filter((c) => pool.indexOf(c) === -1));
+    }
+    if (!pool.length) pool = state.roster.slice();
+    return pool;
+  }
+
   function placeEnemy() {
     clearEnemy();
-    const count = Math.min(5, 1 + Math.floor(state.round / 1.5));
-    const pool = shopPoolForRound(state.round + 1);
-    if (!pool.length) return;
+    const duelist = currentDuelist();
+    const count = Math.min(boardCap() + 1, Math.min(7, 1 + Math.floor(state.round * 0.7) + (duelist.boss ? 1 : 0)));
+    const pool = themedPool(duelist);
     const sorted = [...pool].sort((a, b) => b.atk - a.atk);
-    // Prefer front rows (closer to player): local rows 2–3 → global 2–3
     const slots = [];
     for (let r = HEX_ROWS - 1; r >= 0; r--) {
       for (let c = 0; c < HEX_COLS; c++) slots.push({ row: r, col: c });
     }
-    // shuffle lightly within preference
     for (let i = slots.length - 1; i > 0; i--) {
       if (Math.random() < 0.35) {
         const j = Math.floor(Math.random() * (i + 1));
         const tmp = slots[i]; slots[i] = slots[j]; slots[j] = tmp;
       }
     }
+    const scale = (state.round - 1) * 90 + (duelist.boss ? 200 : 0);
     for (let i = 0; i < count; i++) {
-      let base = state.round >= 4 && Math.random() < 0.35
+      let base = (state.round >= 4 && Math.random() < 0.4)
         ? sorted[Math.min(i, sorted.length - 1)]
-        : weightedPick(pool);
+        : pool[Math.floor(Math.random() * pool.length)];
       let stars = 1;
-      if (state.round >= 3 && Math.random() < 0.15 + state.round * 0.03) stars = 2;
+      if (state.round >= 3 && Math.random() < 0.12 + state.round * 0.04) stars = 2;
+      if (duelist.boss && i === 0 && sorted.length) {
+        base = sorted[0];
+        stars = state.round >= 8 ? 2 : 1;
+      }
       const mon = makeInstance(base, stars);
-      mon.atk += (state.round - 1) * 80;
-      mon.def += (state.round - 1) * 40;
+      mon.atk += scale;
+      mon.def += Math.floor(scale * 0.5);
       mon.maxHp = Math.max(500, mon.def);
       mon.hp = mon.maxHp;
       mon.side = "enemy";
-      const slot = slots[i];
-      setCell(slot.row, slot.col, mon);
+      setCell(slots[i].row, slots[i].col, mon);
     }
   }
 
@@ -2221,7 +2577,7 @@
     }
     syncCombatBars(target);
     let steal = opts.lifesteal || 0;
-    if (attacker && !attacker.dead) {
+    if (!opts.noLifesteal && attacker && !attacker.dead) {
       steal = Math.max(steal, traitBonusesFor(attacker).lifesteal || 0);
     }
     if (steal > 0 && attacker && dmg > 0) {
@@ -2239,6 +2595,7 @@
   }
 
   function handleDeath(unit, killer) {
+    if (!unit || unit.dead) return;
     const revivePct = traitBonusesFor(unit).revivePct;
     if (unit.type === "Zombie" && !unit.revived && revivePct > 0) {
       unit.revived = true;
@@ -2251,6 +2608,27 @@
       logLine('<span class="sys">' + escapeHtml(unit.name) + " revives!</span>");
       return;
     }
+
+    // Black Pendant: damage random foe on death
+    let pendantDmg = 0;
+    unitItems(unit).forEach((it) => {
+      pendantDmg += itemDef(it.defId).onDeathDmg || 0;
+    });
+    if (pendantDmg > 0) {
+      const foes = allUnits(unit.side === "player" ? "enemy" : "player").filter((f) => !f.dead);
+      if (foes.length) {
+        const foe = foes[Math.floor(Math.random() * foes.length)];
+        dealDamage(unit, foe, pendantDmg, { noMana: true, noLifesteal: true });
+      }
+    }
+
+    if (unit.side === "player") {
+      returnItemsToBench(unit);
+    }
+    if (unit.side === "enemy") {
+      state.enemyLp = Math.max(0, state.enemyLp - 200 * (unit.level || 1));
+    }
+
     unit.dead = true;
     unit.hp = 0;
     setCell(unit.row, unit.col, null);
@@ -2352,7 +2730,7 @@
     startLunge(unit, target);
     const dmg = Math.max(1, Math.round(effectiveAtk(unit) / 4));
     dealDamage(unit, target, dmg);
-    const manaGain = traitBonusesFor(unit).manaOnHit || 10;
+    const manaGain = (traitBonusesFor(unit).manaOnHit || 10) + itemManaBonus(unit);
     gainMana(unit, manaGain);
     if (!unit.dead && unit.mana >= 100) {
       castAbilityFixed(unit, closestEnemy(unit) || target);
@@ -2390,7 +2768,9 @@
     if (state.phase !== "shop" || playerCount() < 1) return;
     state.phase = "fight";
     state.selected = null;
+    state.selectedItem = null;
     state.fightSpeed = 1;
+    state.enemyLp = 8000;
     placeEnemy();
     allUnits().forEach((u) => {
       const tb = traitBonusesFor(u);
@@ -2405,12 +2785,10 @@
       u.atkCd = Math.random() * 200;
       u.moveCd = Math.random() * 100;
     });
-    logLine('<span class="sys">—— Round ' + state.round + " FIGHT ——</span>");
+    const d = currentDuelist();
+    logLine('<span class="sys">—— Round ' + state.round + ": " + escapeHtml(d.name) + " ——</span>");
     render();
-    // Remount combat tokens after boards laid out
-    requestAnimationFrame(() => {
-      mountCombatTokens();
-    });
+    requestAnimationFrame(() => { mountCombatTokens(); });
     await sleep(80);
     mountCombatTokens();
     await runCombatLoop();
@@ -2550,35 +2928,84 @@
       if (slot) setCell(slot.row, slot.col, u);
     });
 
+    const duelist = currentDuelist();
+    const beatBoss = victory && duelist.boss;
+
     state.pendingResult = {
       victory,
       lpDmg,
       gameOver: state.lp <= 0,
+      beatBoss,
+      completedRound: state.round,
     };
 
-    el.resultsBanner.classList.toggle("defeat", !state.pendingResult.victory);
-    el.resultsTitle.textContent = state.pendingResult.victory ? "Victory" : "Defeat";
-    el.resultsMsg.textContent = lpDmg > 0 ? ("−" + lpDmg + " Life Points") : "No LP lost";
+    el.resultsBanner.classList.toggle("defeat", !state.pendingResult.victory && !beatBoss);
+    if (beatBoss) {
+      el.resultsTitle.textContent = "Champion!";
+      el.resultsMsg.textContent = "You defeated " + duelist.name + "!";
+    } else {
+      el.resultsTitle.textContent = state.pendingResult.victory ? "Victory" : "Defeat";
+      el.resultsMsg.textContent = lpDmg > 0 ? ("−" + lpDmg + " Life Points") : "No LP lost";
+    }
     el.resultsBanner.classList.add("show");
     el.fightBar.classList.remove("show");
     el.btnFight.style.display = "none";
   }
 
-  function dismissResults() {
-    el.resultsBanner.classList.remove("show");
-    const res = state.pendingResult;
-    state.pendingResult = null;
-    if (!res) return;
+  function fillRunSummary(won) {
+    allPlayerUnits().forEach(trackStrongest);
+    const strong = state.strongestEver
+      ? escapeHtml(state.strongestEver.name) + " (" + state.strongestEver.atk + " ATK)"
+      : "—";
+    const items = state.itemsPicked.length
+      ? state.itemsPicked.map(escapeHtml).join(", ")
+      : "None";
+    el.runSummary.innerHTML =
+      "<div><span class='k'>Result:</span> <span class='v'>" + (won ? "Victory" : "Defeat") + "</span></div>" +
+      "<div><span class='k'>Rounds survived:</span> <span class='v'>" + state.round + "</span></div>" +
+      "<div><span class='k'>Strongest monster:</span> <span class='v'>" + strong + "</span></div>" +
+      "<div><span class='k'>Items used:</span> <span class='v'>" + items + "</span></div>" +
+      "<div><span class='k'>Final level:</span> <span class='v'>" + state.level + "</span></div>";
+  }
 
-    if (res.gameOver || state.lp <= 0) {
-      state.phase = "end";
-      el.endTitle.textContent = "Defeat";
-      el.endMsg.textContent = "You survived " + state.round + " round" + (state.round === 1 ? "" : "s") + ". Your Life Points hit zero.";
-      el.endOverlay.classList.add("open");
-      render();
-      return;
+  function showEndScreen(won, msg) {
+    state.phase = "end";
+    el.endTitle.textContent = won ? "You Win!" : "Defeat";
+    el.endMsg.textContent = msg;
+    fillRunSummary(won);
+    el.endOverlay.classList.add("open");
+    render();
+  }
+
+  function openItemDraft(thenContinue) {
+    state.awaitingItemDraft = true;
+    const picks = [];
+    const pool = ITEM_DEFS.slice();
+    while (picks.length < 3 && pool.length) {
+      const i = Math.floor(Math.random() * pool.length);
+      picks.push(pool.splice(i, 1)[0]);
     }
+    el.itemDraftGrid.innerHTML = "";
+    picks.forEach((def) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "item-draft-card";
+      btn.innerHTML = "<strong>" + def.emoji + " " + escapeHtml(def.name) + "</strong><span>" + escapeHtml(def.desc) + "</span>";
+      btn.addEventListener("click", () => {
+        state.itemBench.push(makeItem(def.id));
+        state.itemsPicked.push(def.name);
+        el.itemDraftOverlay.classList.remove("open");
+        state.awaitingItemDraft = false;
+        toast("Got " + def.name);
+        logLine('<span class="sys">🧰 Equipped draft: ' + escapeHtml(def.name) + "</span>");
+        thenContinue();
+      });
+      el.itemDraftGrid.appendChild(btn);
+    });
+    el.itemDraftOverlay.classList.add("open");
+  }
 
+  function advanceToShop() {
     const base = 4 + Math.min(state.round, 6);
     const interest = Math.min(5, Math.floor(state.gold / 10));
     const streak = streakGoldBonus();
@@ -2595,6 +3022,30 @@
     state.fightSpeed = 1;
     rollShop();
     render();
+  }
+
+  function dismissResults() {
+    el.resultsBanner.classList.remove("show");
+    const res = state.pendingResult;
+    state.pendingResult = null;
+    if (!res) return;
+
+    if (res.beatBoss) {
+      showEndScreen(true, "You defeated Yami Yugi and claimed the throne!");
+      return;
+    }
+
+    if (res.gameOver || state.lp <= 0) {
+      showEndScreen(false, "You survived " + res.completedRound + " round" + (res.completedRound === 1 ? "" : "s") + ". Your Life Points hit zero.");
+      return;
+    }
+
+    const afterRound = res.completedRound;
+    if (ITEM_DRAFT_ROUNDS.indexOf(afterRound) !== -1) {
+      openItemDraft(advanceToShop);
+      return;
+    }
+    advanceToShop();
   }
 
   function buyXp() {
@@ -2675,6 +3126,7 @@
     state.roster = roster;
     state.usedFallback = !!usedFallback;
     state.lp = 8000;
+    state.enemyLp = 8000;
     state.gold = 10;
     state.round = 1;
     state.level = 1;
@@ -2683,18 +3135,25 @@
     state.lossStreak = 0;
     state.phase = "shop";
     state.bench = [null, null, null, null, null];
+    state.itemBench = [];
+    state.selectedItem = null;
+    state.itemsPicked = [];
+    state.strongestEver = null;
+    state.awaitingItemDraft = false;
     state.grid = {};
     state.selected = null;
     el.log.innerHTML = "";
+    el.runSummary.innerHTML = "";
     el.endOverlay.classList.remove("open");
     el.resultsBanner.classList.remove("show");
     el.traitOverlay.classList.remove("open");
     el.oddsOverlay.classList.remove("open");
+    el.itemDraftOverlay.classList.remove("open");
     el.startOverlay.classList.remove("open");
     el.app.classList.add("visible");
     rollShop();
     const modeLabel = state.mode === "classic" && !usedFallback ? "Classic" : "Original";
-    logLine('<span class="sys">Duel start (' + modeLabel + ") — Lv1 · 8000 LP · 10 gold · " + roster.length + " monsters</span>");
+    logLine('<span class="sys">Duel start (' + modeLabel + ") vs " + escapeHtml(currentDuelist().name) + " — Lv1 · 8000 LP</span>");
     render();
     requestAnimationFrame(() => renderBoards());
   }
