@@ -528,10 +528,9 @@
     .token.holo .holo-art {
       width: 100%;
       height: 100%;
-      object-fit: cover;
+      object-fit: cover !important;
       object-position: center 20%;
       display: block;
-      aspect-ratio: 3 / 4;
     }
     .token.holo .holo-billboard .emoji {
       display: flex; align-items: center; justify-content: center;
@@ -3805,8 +3804,9 @@
     document.documentElement.style.setProperty("--hex-w", w + "px");
     document.documentElement.style.setProperty("--board-scale", "1");
     document.documentElement.style.setProperty("--hex-screen-w", w + "px");
-    document.documentElement.style.setProperty("--tok-h", (w * 1.2).toFixed(1) + "px");
-    document.documentElement.style.setProperty("--tok-w", (w * 1.2 * 0.75).toFixed(1) + "px");
+    const th = w * 1.15 * 1.2;
+    document.documentElement.style.setProperty("--tok-h", th.toFixed(1) + "px");
+    document.documentElement.style.setProperty("--tok-w", (th * 0.75).toFixed(1) + "px");
   }
 
   function measureScreenHexW() {
@@ -3825,8 +3825,9 @@
   function sizeHoloToken(tok) {
     if (!tok) return;
     const hw = measureScreenHexW();
-    const th = hw * 1.2;
-    const tw = th * 0.75; // 3:4 portrait
+    const hexH = hw * 1.15;
+    const th = hexH * 1.2; // ~1.2× hex tall so heads overlap the hex behind
+    const tw = th * 0.75; // 3:4 portrait, never stretched
     tok.style.width = tw.toFixed(1) + "px";
     tok.style.height = th.toFixed(1) + "px";
   }
@@ -4231,7 +4232,8 @@
           pressTimer = setTimeout(() => {
             longPressed = true;
             showShopPeek(card);
-          }, 420);
+            try { wrap.setPointerCapture(e.pointerId); } catch (err) {}
+          }, 380);
         });
         wrap.addEventListener("pointerup", () => clearPress());
         wrap.addEventListener("pointerleave", () => clearPress());
@@ -4240,7 +4242,8 @@
           if (longPressed) {
             e.preventDefault();
             e.stopPropagation();
-            setTimeout(hideShopPeek, 1600);
+            longPressed = false;
+            setTimeout(hideShopPeek, 1800);
             return;
           }
           hideShopPeek();
