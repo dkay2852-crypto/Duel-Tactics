@@ -29,14 +29,18 @@
       --safe-l: env(safe-area-inset-left, 0px);
       --safe-r: env(safe-area-inset-right, 0px);
       --tap: 44px;
-      --hex-w: 36px;
+      --hex-w: 48px;
       --hex-h: calc(var(--hex-w) * 1.12);
-      --top-h: 48px;
+      --top-h: 52px;
       --trait-h: 40px;
       --bench-h: 52px;
       --fight-h: 52px;
       --econ-h: 44px;
-      --shop-h: 78px;
+      --shop-h: 108px;
+      --board-tilt: 35deg;
+      --board-scale: 1.45;
+      /* Screen-space hex width after tilt scale (set by fitHexSize) */
+      --hex-screen-w: calc(var(--hex-w) * var(--board-scale));
     }
 
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -103,38 +107,61 @@
       align-items: center;
       gap: 4px;
       min-height: var(--tap);
-      padding: 0 10px;
+      padding: 0 8px;
       border-radius: 12px;
       background: rgba(19, 38, 54, 0.95);
       border: 1px solid #6a3040;
       font-weight: 800;
-      font-size: 0.95rem;
+      font-size: 0.82rem;
       color: var(--rose);
+      flex: 0 0 auto;
     }
-    .lp-heart .heart { font-size: 1rem; line-height: 1; }
+    .lp-heart .heart { font-size: 0.9rem; line-height: 1; }
+    .lp-heart .lp-tag {
+      font-size: 0.55rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .lp-heart.foe {
+      border-color: #4a6080;
+      color: #8ec8f0;
+      flex-direction: row-reverse;
+    }
+    .lp-heart.foe .lp-tag { color: #6a88a8; }
+    .lp-heart.shake { animation: lpShake 0.4s ease; }
+    @keyframes lpShake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-3px); }
+      75% { transform: translateX(3px); }
+    }
     .top-mid {
       flex: 1;
       min-width: 0;
       display: flex;
       flex-direction: column;
       justify-content: center;
+      align-items: center;
       gap: 1px;
+      text-align: center;
     }
     .top-mid .round-line {
-      font-size: 0.68rem;
+      font-size: 0.72rem;
       font-weight: 800;
-      letter-spacing: 0.1em;
+      letter-spacing: 0.06em;
       text-transform: uppercase;
-      color: var(--muted);
+      color: var(--gold);
     }
     .top-mid .duelist-line {
       font-family: "Bungee", cursive;
       font-size: 0.78rem;
       color: #f0b8c0;
       white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      overflow: visible;
+      text-overflow: clip;
       line-height: 1.15;
+      max-width: 100%;
     }
     .btn-menu {
       flex: 0 0 auto;
@@ -159,7 +186,7 @@
       color: var(--gold);
       border-radius: 8px;
       padding: 4px 8px;
-      font-size: 0.68rem;
+      font-size: 12px;
       font-weight: 700;
     }
     .notice.show { display: block; }
@@ -181,7 +208,7 @@
     }
     .trait-bar::-webkit-scrollbar { display: none; }
     .trait-bar .hint {
-      font-size: 0.68rem;
+      font-size: 12px;
       color: var(--muted);
       white-space: nowrap;
     }
@@ -198,7 +225,7 @@
       background: rgba(20, 30, 40, 0.85);
       color: #6a7a88;
       font-weight: 800;
-      font-size: 0.68rem;
+      font-size: 12px;
       cursor: pointer;
       touch-action: manipulation;
       user-select: none;
@@ -219,19 +246,31 @@
       background: linear-gradient(160deg, rgba(200, 150, 40, 0.5), rgba(60, 40, 10, 0.95));
     }
 
+    /* Board wrap owns overlays OUTSIDE the perspective tree (WebKit/iOS Safari). */
+    .board-wrap {
+      flex: 1 1 auto;
+      min-height: 0;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
     .arena {
       flex: 1 1 auto;
       min-height: 0;
       position: relative;
       display: flex;
       flex-direction: column;
+      perspective: 900px;
+      perspective-origin: 50% 40%;
+      -webkit-perspective: 900px;
       background:
         radial-gradient(ellipse at 50% 30%, rgba(40, 70, 50, 0.35), transparent 55%),
         linear-gradient(180deg, rgba(20, 36, 28, 0.95), rgba(12, 24, 36, 0.95));
       border: 1px solid #2a5040;
       border-radius: 14px;
-      padding: 4px 2px;
-      overflow: hidden;
+      /* Tight pad so hexes fill; overlays sit above in board-wrap */
+      padding: 4px 0 2px;
+      overflow: visible;
     }
     .hex-stage {
       flex: 1 1 auto;
@@ -241,29 +280,61 @@
       justify-content: center;
       position: relative;
       width: 100%;
+      transform: rotateX(var(--board-tilt)) scale(var(--board-scale));
+      -webkit-transform: rotateX(var(--board-tilt)) scale(var(--board-scale));
+      transform-style: preserve-3d;
+      -webkit-transform-style: preserve-3d;
+      transform-origin: 50% 50%;
+      will-change: transform;
     }
     .hex-board {
       position: relative;
       width: 100%;
       flex: 0 0 auto;
+      transform-style: preserve-3d;
+      -webkit-transform-style: preserve-3d;
+      overflow: visible;
     }
-    .hex-board + .hex-board { margin-top: 2px; }
-    .combat-layer {
+    .hex-board + .hex-board { margin-top: 0; }
+    /* Flat screen-space layers — siblings of .arena, never inside preserve-3d */
+    .holo-layer, .combat-layer {
       position: absolute;
       inset: 0;
       pointer-events: none;
       z-index: 12;
-      overflow: hidden;
+      overflow: visible;
+      transform: translateZ(0);
+      -webkit-transform: translateZ(0);
+      transform-style: flat;
+      -webkit-transform-style: flat;
+      isolation: isolate;
     }
+    .holo-layer { z-index: 11; }
+    .combat-layer { z-index: 13; }
     .combat-token {
       position: absolute;
       left: 0; top: 0;
+      width: 0;
+      height: 0;
       will-change: transform;
       pointer-events: none;
       z-index: 2;
     }
-    .combat-token .token { cursor: default; animation: none; }
-    .combat-token.dying .token { animation: tokenDie 0.45s ease forwards; }
+    .combat-token .token { cursor: default; }
+    .combat-token.dying .token.holo { animation: none; }
+    .combat-token.dying .holo-rig { animation: none; }
+    .combat-token.dying .holo-billboard { animation: holoShatter 0.55s steps(6, end) forwards; }
+    .holo-shard {
+      position: absolute;
+      width: 7px;
+      height: 7px;
+      border-radius: 1px;
+      pointer-events: none;
+      z-index: 8;
+      background: linear-gradient(135deg, #c8f0ff, #5ec8ff);
+      box-shadow: 0 0 6px rgba(100, 200, 255, 0.8);
+      animation: shardFly 0.55s ease-out forwards;
+    }
     .combat-token .ability-tag {
       position: absolute; left: 50%; top: -12px; transform: translateX(-50%);
       white-space: nowrap; font-size: 0.5rem; font-weight: 800; color: #fff;
@@ -282,8 +353,7 @@
       position: absolute;
       width: var(--hex-w);
       height: var(--hex-h);
-      clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-      background: rgba(30, 55, 48, 0.85);
+      background: transparent;
       border: none;
       display: flex;
       align-items: center;
@@ -291,14 +361,19 @@
       cursor: pointer;
       touch-action: manipulation;
       transition: filter 0.12s;
+      transform-style: preserve-3d;
+      overflow: visible;
     }
     .hex::before {
       content: "";
       position: absolute;
-      inset: 2px;
+      inset: 0;
       clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-      background: linear-gradient(160deg, rgba(60, 100, 80, 0.45), rgba(20, 40, 35, 0.7));
+      background:
+        linear-gradient(160deg, rgba(60, 100, 80, 0.55), rgba(20, 40, 35, 0.85)),
+        rgba(30, 55, 48, 0.9);
       pointer-events: none;
+      z-index: 0;
     }
     .hex.enemy-hex::before {
       background: linear-gradient(160deg, rgba(90, 50, 60, 0.4), rgba(35, 20, 30, 0.7));
@@ -313,6 +388,14 @@
     }
     .hex.drop-hover::before {
       background: linear-gradient(160deg, rgba(62, 199, 194, 0.55), rgba(20, 60, 70, 0.7));
+    }
+    .hex.place-glow::before {
+      animation: placeGlow 0.5s ease;
+      box-shadow: 0 0 18px rgba(90, 210, 255, 0.9), inset 0 0 0 2px #7ad8ff;
+    }
+    @keyframes placeGlow {
+      0% { filter: brightness(2.2); }
+      100% { filter: brightness(1); }
     }
 
     .token {
@@ -334,7 +417,7 @@
     }
     .token:active { cursor: grabbing; }
     .token.selected { outline: 2px solid var(--cyan); outline-offset: 1px; }
-    .token.dragging { opacity: 0.85; z-index: 100; transform: scale(1.08); pointer-events: none; }
+    .token.dragging { opacity: 0.85; z-index: 100; pointer-events: none; }
     .token .ring {
       position: absolute; inset: 0; border-radius: 50%;
       border: 2px solid #888; pointer-events: none;
@@ -352,7 +435,7 @@
       color: var(--gold); line-height: 1; z-index: 1; letter-spacing: -1px;
     }
     .token .bars {
-      position: absolute; left: 10%; right: 10%; bottom: 2px; z-index: 2;
+      position: absolute; left: 10%; right: 10%; bottom: 2px; z-index: 5;
       display: flex; flex-direction: column; gap: 1px;
     }
     .token .hp-bar, .token .mana-bar {
@@ -367,7 +450,8 @@
       background: linear-gradient(90deg, #2060e0, #50c8ff); border-radius: 2px;
     }
     .token.star2 { box-shadow: 0 0 8px rgba(232, 184, 74, 0.55), 0 2px 6px rgba(0,0,0,0.45); }
-    .token.hit { animation: tokenHit 0.28s ease; }
+    .token.hit .holo-billboard { animation: holoHitFlash 0.3s ease; }
+    .token.hit .holo-art { animation: holoHitFlash 0.3s ease; }
     .token.stunned { filter: grayscale(0.4) brightness(1.15); }
     .token .item-icons {
       position: absolute;
@@ -378,17 +462,166 @@
       display: flex;
       flex-direction: column;
       gap: 0;
-      z-index: 3;
+      z-index: 6;
       font-size: 0.42rem;
       line-height: 1;
       pointer-events: none;
-      max-height: 55%;
+      max-height: 40%;
       overflow: hidden;
     }
-    .token .bars { z-index: 5; }
+    /* Hologram billboards live in screen-space layers (not inside the tilted stage) */
+    .hex .token.holo { display: none; }
+    .token.holo {
+      /* ~1.3× hex wide, 1.5× tall in screen space (hex-screen-w includes board scale) */
+      width: calc(var(--hex-screen-w) * 1.3);
+      height: calc(var(--hex-screen-w) * 1.5);
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
+      display: block;
+      position: absolute;
+      left: 0;
+      top: 0;
+      transform: translate(-50%, -100%);
+      transform-origin: bottom center;
+      animation: holoRise 0.45s cubic-bezier(0.2, 0.85, 0.3, 1) both;
+      overflow: visible;
+      pointer-events: none;
+    }
+    .token.holo.star2, .token.holo.star3 { box-shadow: none; }
+    .token.holo .holo-shadow {
+      position: absolute;
+      left: 8%;
+      right: 8%;
+      bottom: -8%;
+      height: 14%;
+      border-radius: 50%;
+      background: radial-gradient(ellipse at center, rgba(0,0,0,0.65) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+      transform: scaleY(0.55);
+    }
+    .holo-ground {
+      position: absolute;
+      width: calc(var(--hex-screen-w) * 0.9);
+      height: calc(var(--hex-screen-w) * 0.4);
+      margin-left: calc(var(--hex-screen-w) * -0.45);
+      margin-top: calc(var(--hex-screen-w) * -0.2);
+      border-radius: 50%;
+      background: radial-gradient(ellipse at center, rgba(40, 140, 220, 0.35) 0%, rgba(0,0,0,0.45) 40%, transparent 70%);
+      pointer-events: none;
+      z-index: 10;
+    }
+    .token.holo .holo-rig {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 2px;
+      transform-origin: bottom center;
+      animation: holoBob 2.6s ease-in-out 0.45s infinite;
+    }
+    .token.holo .holo-billboard {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      flex: 1 1 auto;
+      min-height: 0;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #0a1520;
+      border: 3px solid rgba(140, 210, 255, 0.85);
+      box-shadow:
+        0 0 16px rgba(80, 180, 255, 0.65),
+        0 0 4px rgba(180, 230, 255, 0.9),
+        0 6px 10px rgba(0, 0, 0, 0.45),
+        inset 0 0 14px rgba(60, 160, 255, 0.22);
+      transform-origin: 50% 100%;
+    }
+    .token.holo.attr-DARK .holo-billboard { border-color: #b07aff; }
+    .token.holo.attr-LIGHT .holo-billboard { border-color: #ffe066; }
+    .token.holo.attr-EARTH .holo-billboard { border-color: #d4a060; }
+    .token.holo.attr-WATER .holo-billboard { border-color: #5ab0ff; }
+    .token.holo.attr-FIRE .holo-billboard { border-color: #ff6a48; }
+    .token.holo.attr-WIND .holo-billboard { border-color: #68d068; }
+    .token.holo.attr-DIVINE .holo-billboard { border-color: #ffe080; }
+    .token.holo .holo-art {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 22%;
+      display: block;
+    }
+    .token.holo .holo-billboard .emoji {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+      font-size: calc(var(--hex-screen-w) * 0.5);
+      background: linear-gradient(160deg, #1a3048, #0c1828);
+    }
+    .token.holo .stars {
+      position: relative;
+      left: auto; right: auto; bottom: auto;
+      order: 0;
+      flex: 0 0 auto;
+      text-align: center;
+      font-size: calc(var(--hex-screen-w) * 0.2);
+      line-height: 1;
+      text-shadow: 0 1px 3px #000, 0 0 6px rgba(255, 220, 80, 0.55);
+      z-index: 3;
+      letter-spacing: -1px;
+    }
+    .token.holo .bars {
+      position: relative;
+      top: auto;
+      bottom: auto;
+      left: auto;
+      right: auto;
+      width: 92%;
+      order: -1;
+      flex: 0 0 auto;
+      gap: 2px;
+    }
+    .token.holo .hp-bar, .token.holo .mana-bar {
+      height: 5px;
+      border-radius: 3px;
+      opacity: 1;
+      visibility: visible;
+      background: rgba(0, 0, 0, 0.65);
+    }
+    .token.holo .bars { z-index: 6; }
+    .token.holo.attacking .holo-rig {
+      animation: holoLean 0.28s ease;
+    }
+    .combat-token.hop .holo-rig {
+      animation: holoHop 0.3s ease;
+    }
+    .token.holo.selected {
+      outline: 2px solid var(--cyan);
+      outline-offset: 2px;
+    }
+    .token.holo.just-placed {
+      animation: holoRise 0.5s cubic-bezier(0.2, 0.85, 0.3, 1) both;
+      filter: drop-shadow(0 0 14px rgba(90, 210, 255, 0.95));
+    }
+    .hex-hit-token {
+      width: 70% !important;
+      height: 70% !important;
+      border-radius: 50%;
+    }
     .ghost-token {
       position: fixed; z-index: 200; pointer-events: none; opacity: 0.9;
-      transform: translate(-50%, -50%) scale(1.1);
+      transform: translate(-50%, -50%) scale(1.05);
+    }
+    .ghost-token.holo {
+      transform: translate(-50%, -90%) scale(1.05);
+      transform-origin: bottom center;
     }
 
     .bench-wrap {
@@ -422,12 +655,70 @@
     .bench-slot.valid-target { border-color: var(--gold); background: rgba(232, 184, 74, 0.12); }
     .bench-slot .token { width: 36px; height: 36px; }
     .bench-slot .token .emoji { font-size: 0.95rem; }
+    .bench-slot .bench-card {
+      width: 100%;
+      height: 100%;
+      min-height: 46px;
+      display: flex;
+      flex-direction: column;
+      border-radius: 6px;
+      overflow: hidden;
+      background: #142433;
+      border: 1px solid var(--gold-dim);
+      pointer-events: none;
+    }
+    .bench-slot .bench-art, .bench-slot .bench-emoji {
+      flex: 1 1 auto;
+      min-height: 0;
+      width: 100%;
+      object-fit: cover;
+      object-position: center 18%;
+      display: block;
+    }
+    .bench-slot .bench-emoji {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      background: #1a3040;
+    }
+    .bench-slot .bench-meta {
+      flex: 0 0 auto;
+      padding: 1px 2px 2px;
+      background: rgba(0,0,0,0.55);
+      text-align: center;
+    }
+    .bench-slot .bench-meta .n {
+      display: block;
+      font-size: 0.45rem;
+      font-weight: 800;
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      line-height: 1.1;
+    }
+    .bench-slot .bench-meta .s {
+      display: block;
+      font-size: 0.42rem;
+      font-weight: 800;
+      color: var(--gold);
+      line-height: 1.1;
+    }
+    .bench-slot .bench-meta .s .atk { color: #ff8a8a; }
+    .bench-slot .bench-meta .s .def { color: #8ab8ff; }
     .item-bench {
       display: flex; flex-wrap: nowrap; gap: 4px;
       overflow-x: auto; -webkit-overflow-scrolling: touch;
       min-height: 0; max-height: 36px; align-items: center;
     }
-    .item-bench:empty, .item-bench .hint { display: none; }
+    .item-bench:empty { display: none; }
+    .item-bench .hint {
+      font-size: 12px;
+      color: var(--muted);
+      white-space: nowrap;
+      font-weight: 700;
+    }
     .item-chip {
       display: inline-flex; align-items: center; gap: 3px;
       min-height: 32px; padding: 4px 8px; border-radius: 10px;
@@ -535,7 +826,7 @@
       font-weight: 800; font-size: 0.78rem;
     }
     .level-pill .lv { color: var(--cyan); }
-    .level-pill .xp-label { color: var(--muted); font-size: 0.68rem; font-weight: 700; }
+    .level-pill .xp-label { color: var(--muted); font-size: 12px; font-weight: 700; }
     .xp-track {
       height: 5px; border-radius: 4px; background: rgba(0,0,0,0.4); overflow: hidden;
     }
@@ -555,7 +846,7 @@
       color: var(--fog);
       font-family: inherit;
       font-weight: 800;
-      font-size: 0.68rem;
+      font-size: 12px;
       line-height: 1.15;
       cursor: pointer;
       touch-action: manipulation;
@@ -626,22 +917,47 @@
       background: linear-gradient(165deg, #fff8ee 0%, #e8dcc8 100%);
       touch-action: manipulation;
     }
-    .card.star2 { box-shadow: 0 0 10px rgba(232, 184, 74, 0.45); }
-    .card.attr-DARK { background: linear-gradient(165deg, #d8cce8, #5a3a78); border-color: #3a2060; color: #140820; }
-    .card.attr-LIGHT { background: linear-gradient(165deg, #fffef5, #e0c860); border-color: #a89030; color: #2a2410; }
-    .card.attr-EARTH { background: linear-gradient(165deg, #f0e0c8, #8a6840); border-color: #5a4020; color: #1e1408; }
-    .card.attr-WATER { background: linear-gradient(165deg, #e0f0ff, #3070b0); border-color: #184878; color: #081828; }
-    .card.attr-FIRE { background: linear-gradient(165deg, #ffe8d8, #b03828); border-color: #801818; color: #200808; }
-    .card.attr-WIND { background: linear-gradient(165deg, #e8f8e0, #408838); border-color: #204818; color: #0c1c08; }
-    .card.attr-DIVINE { background: linear-gradient(165deg, #fff6d0, #c89820); border-color: #806010; color: #201808; }
-    .card .emoji { font-size: 1.05rem; text-align: center; line-height: 1.05; margin-top: 10px; }
+    .card.star2, .card.star3 { box-shadow: 0 0 10px rgba(232, 184, 74, 0.45); }
+    /* Cost-colored borders: gray / green / blue / purple / gold */
+    .card.cost-1 { border-color: #9aa3ad; background: linear-gradient(165deg, #2a3340, #141a22); color: #e8eef5; }
+    .card.cost-2 { border-color: #3ecf6a; background: linear-gradient(165deg, #163528, #0c1a14); color: #e8f8ee; }
+    .card.cost-3 { border-color: #3a8aef; background: linear-gradient(165deg, #142848, #0a1528); color: #e8f0ff; }
+    .card.cost-4 { border-color: #a64dff; background: linear-gradient(165deg, #2a1848, #140a28); color: #f3e8ff; }
+    .card.cost-5 { border-color: #f0c040; background: linear-gradient(165deg, #3a3010, #1e1808); color: #fff8e0; }
+    .card.cost-1 .cost-badge { background: #9aa3ad; color: #101418; }
+    .card.cost-2 .cost-badge { background: #3ecf6a; color: #062010; }
+    .card.cost-3 .cost-badge { background: #3a8aef; color: #061428; }
+    .card.cost-4 .cost-badge { background: #a64dff; color: #140820; }
+    .card.cost-5 .cost-badge { background: #f0c040; color: #1a1408; }
+    .card .art-wrap {
+      flex: 1 1 auto;
+      min-height: 42px;
+      margin-top: 12px;
+      border-radius: 4px;
+      overflow: hidden;
+      background: rgba(0,0,0,0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .card .card-art {
+      width: 100%;
+      height: 100%;
+      max-height: 52px;
+      object-fit: cover;
+      object-position: center 18%;
+      display: block;
+    }
+    .card .emoji {
+      font-size: 1.15rem; text-align: center; line-height: 1.05;
+    }
     .card .name {
       font-size: 12px;
       font-weight: 800;
       text-align: center;
       line-height: 1.15;
-      min-height: 1.35em;
-      max-height: 2.4em;
+      min-height: 1.2em;
+      max-height: 2.3em;
       overflow: hidden;
       width: 100%;
       padding: 0 1px;
@@ -651,12 +967,13 @@
     }
     .card .stats {
       display: flex; justify-content: space-between; align-items: center;
-      font-size: 0.55rem; font-weight: 800;
-      background: rgba(0,0,0,0.1); border-radius: 3px; padding: 1px 2px; margin-top: auto;
+      font-size: 14px; font-weight: 800;
+      background: rgba(0,0,0,0.18); border-radius: 3px; padding: 3px 4px; margin-top: auto;
+      line-height: 1.1;
     }
-    .card .atk { color: #8a1010; }
-    .card .def { color: #103868; }
-    .card .type-ico { font-size: 0.55rem; opacity: 0.85; }
+    .card .atk { color: #ff8a8a; font-size: 14px; }
+    .card .def { color: #8ab8ff; font-size: 14px; }
+    .card .type-ico { font-size: 12px; opacity: 0.85; }
     .card .cost-badge {
       position: absolute; top: 1px; right: 1px; background: var(--gold); color: #1a1408;
       font-size: 0.58rem; font-weight: 800; border-radius: 5px; padding: 1px 4px;
@@ -710,29 +1027,724 @@
     .modal ol li { margin-bottom: 6px; }
     .modal p { color: var(--muted); font-size: 0.9rem; line-height: 1.4; }
 
-    .start-screen .modal { text-align: center; }
-    .start-brand {
-      font-family: "Bungee", cursive; font-size: 1.85rem; color: var(--gold); margin: 0;
+    /* —— Home menu (mobile game hub) —— */
+    .home {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 40;
+      width: 100%;
+      max-width: 480px;
+      margin: 0 auto;
+      height: 100%;
+      height: 100dvh;
+      padding:
+        calc(8px + var(--safe-t))
+        calc(12px + var(--safe-r))
+        calc(10px + var(--safe-b))
+        calc(12px + var(--safe-l));
+      flex-direction: column;
+      gap: 6px;
+      overflow: hidden;
+      background:
+        radial-gradient(ellipse 100% 60% at 50% 0%, #3a7bd5 0%, transparent 55%),
+        radial-gradient(ellipse 80% 50% at 0% 100%, #f7b73355 0%, transparent 50%),
+        linear-gradient(165deg, #1a4a8a 0%, #0d2b55 40%, #081e3d 100%);
+    }
+    .home.open { display: flex; }
+    .home-main {
+      flex: 1 1 auto;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      overflow: hidden;
+      padding-bottom: 72px; /* room for fixed home nav */
+    }
+    .home-top {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 44px;
+      gap: 8px;
+    }
+    .home-chips {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 44px;
+      padding: 0 14px;
+      border-radius: 16px;
+      border: 3px solid #f0d060;
+      background: linear-gradient(180deg, #fff6c8, #f0c040);
+      color: #5a3a00;
+      font-weight: 800;
+      font-size: 1rem;
+      box-shadow: 0 4px 0 #b8860b;
+    }
+    .home-chips .star { color: #c48a00; font-size: 1.15rem; }
+    .home-top-actions { display: flex; gap: 8px; }
+    .home-icon-btn {
+      width: 48px; height: 48px;
+      border-radius: 16px;
+      border: 3px solid #fff;
+      background: linear-gradient(180deg, #5ecfff, #2a7fd4);
+      color: #fff;
+      font-size: 1.35rem;
+      cursor: pointer;
+      box-shadow: 0 4px 0 #185a9a;
+      display: grid; place-items: center;
+      touch-action: manipulation;
+    }
+    .home-icon-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #185a9a; }
+    .home-logo {
+      flex: 0 0 auto;
+      text-align: center;
+      position: relative;
+      padding: 2px 0 4px;
+    }
+    .home-logo h1 {
+      margin: 0;
+      font-family: "Bungee", cursive;
+      font-size: clamp(1.55rem, 7.2vw, 2.05rem);
+      line-height: 1.05;
+      color: #ffe566;
+      text-shadow:
+        0 0 18px rgba(255, 220, 80, 0.75),
+        0 3px 0 #c48a00,
+        0 6px 0 #8a5a00;
+      letter-spacing: 0.02em;
+      animation: logoPulse 2.4s ease-in-out infinite;
+    }
+    @keyframes logoPulse {
+      0%, 100% { filter: brightness(1); transform: scale(1); }
+      50% { filter: brightness(1.12); transform: scale(1.02); }
+    }
+    .home-ribbon {
+      display: inline-block;
+      margin-top: 6px;
+      padding: 4px 16px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #e85a6b, #ff8a5c);
+      border: 2px solid #fff;
+      color: #fff;
+      font-weight: 800;
+      font-size: 0.72rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      box-shadow: 0 3px 0 #9a3040;
+    }
+    .home-hero {
+      flex: 1 1 auto;
+      min-height: 0;
+      border-radius: 20px;
+      border: 4px solid #fff;
+      background:
+        linear-gradient(135deg, rgba(20, 40, 80, 0.55), rgba(10, 20, 40, 0.35)),
+        radial-gradient(circle at 30% 40%, #3ec7c255, transparent 50%),
+        radial-gradient(circle at 70% 40%, #e85a6b55, transparent 50%),
+        linear-gradient(180deg, #1e4a8c, #0f2748);
+      box-shadow: 0 6px 0 #0a1a30, inset 0 0 40px rgba(0,0,0,0.25);
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      position: relative;
+      overflow: hidden;
+    }
+    .home-vs-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+    }
+    .home-vs-side {
+      flex: 1;
+      min-width: 0;
+      text-align: center;
+    }
+    .home-vs-side .who {
+      font-weight: 800;
+      font-size: 0.78rem;
+      color: #fff;
+      text-shadow: 0 1px 2px #000;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .home-vs-side .who.foe { color: #ffb0b8; }
+    .home-vs-art {
+      width: min(38vw, 132px);
+      aspect-ratio: 3 / 4;
+      border-radius: 14px;
+      border: 3px solid #f0d060;
+      background: #0a1524;
+      overflow: hidden;
+      box-shadow: 0 0 24px rgba(255, 210, 80, 0.35);
+      display: grid;
+      place-items: center;
+    }
+    .home-vs-art img {
+      width: 100%; height: 100%; object-fit: cover; display: block;
+    }
+    .home-vs-art .emoji-fallback {
+      font-size: 2.4rem;
+    }
+    .home-vs-badge {
+      font-family: "Bungee", cursive;
+      font-size: 1.5rem;
+      color: #fff;
+      text-shadow: 0 0 12px #ff6a6a, 0 2px 0 #800;
+      flex: 0 0 auto;
+    }
+    .home-best {
+      font-weight: 800;
+      font-size: 0.82rem;
+      color: #ffe9a0;
+      background: rgba(0,0,0,0.35);
+      border: 2px solid rgba(255,220,120,0.45);
+      border-radius: 999px;
+      padding: 4px 12px;
+    }
+    .home-modes {
+      flex: 0 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .mode-card {
+      position: relative;
+      min-height: 72px;
+      border-radius: 16px;
+      border: 3px solid #7aa8d4;
+      background: linear-gradient(180deg, #2a5a9a, #1a3a6a);
+      color: #e8f4ff;
+      font-family: inherit;
+      font-weight: 800;
+      font-size: 0.82rem;
+      line-height: 1.2;
+      padding: 10px 8px;
+      cursor: pointer;
+      touch-action: manipulation;
+      box-shadow: 0 4px 0 #0e2a4a;
+      text-align: left;
+    }
+    .mode-card .mode-title { display: block; font-size: 0.9rem; }
+    .mode-card .mode-sub {
+      display: block; margin-top: 4px;
+      font-size: 0.68rem; font-weight: 700; color: #a8c8e8; opacity: 0.95;
+    }
+    .mode-card.selected {
+      border-color: #f0d060;
+      background: linear-gradient(180deg, #f6d060, #e0a020);
+      color: #3a2800;
+      box-shadow: 0 4px 0 #a87810, 0 0 16px rgba(240, 200, 60, 0.45);
+    }
+    .mode-card.selected .mode-sub { color: #6a4a10; }
+    .mode-card.locked {
+      opacity: 0.72;
+      filter: saturate(0.7);
+    }
+    .mode-card .lock {
+      position: absolute;
+      top: 8px; right: 8px;
+      font-size: 1.1rem;
+    }
+    .btn-duel-huge {
+      flex: 0 0 auto;
+      min-height: 56px;
+      border: none;
+      border-radius: 18px;
+      border: 4px solid #fff8d0;
+      background: linear-gradient(180deg, #ffe566, #f0b400 55%, #e09800);
+      color: #3a2800;
+      font-family: "Bungee", cursive;
+      font-size: 1.35rem;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      box-shadow: 0 6px 0 #a87810, 0 0 22px rgba(255, 200, 40, 0.55);
+      touch-action: manipulation;
+      animation: duelGlow 1.8s ease-in-out infinite;
+    }
+    .btn-duel-huge:active { transform: translateY(3px); box-shadow: 0 3px 0 #a87810; }
+    .btn-duel-huge:disabled {
+      opacity: 0.55; animation: none; cursor: wait;
+    }
+    .btn-continue-run {
+      flex: 0 0 auto;
+      min-height: 48px;
+      border-radius: 14px;
+      border: 3px solid #5ec8ff;
+      background: linear-gradient(180deg, #1a4060, #0c2840);
+      color: #d8f0ff;
+      font-family: "Bungee", cursive;
+      font-size: 1rem;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      touch-action: manipulation;
+      display: none;
+    }
+    .btn-continue-run.show { display: block; }
+    .btn-continue-run:active { filter: brightness(1.1); }
+    @keyframes duelGlow {
+      0%, 100% { box-shadow: 0 6px 0 #a87810, 0 0 18px rgba(255, 200, 40, 0.4); }
+      50% { box-shadow: 0 6px 0 #a87810, 0 0 28px rgba(255, 220, 80, 0.75); }
+    }
+    .home-load-error {
+      display: none;
+      flex: 0 0 auto;
+      text-align: center;
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 3px solid #ff8a9a;
+      background: rgba(80, 16, 28, 0.92);
+      color: #ffe0e6;
+      font-weight: 800;
+      font-size: 0.88rem;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+    .home-load-error.show { display: block; }
+    .home-nav {
+      position: absolute;
+      left: calc(12px + var(--safe-l));
+      right: calc(12px + var(--safe-r));
+      bottom: calc(8px + var(--safe-b));
+      z-index: 3;
+      display: grid;
+      grid-template-columns: 1fr 72px 1fr;
+      align-items: end;
+      gap: 6px;
+      min-height: 58px;
+      pointer-events: none;
+    }
+    .home-nav > * { pointer-events: auto; }
+    .home-nav-btn {
+      min-height: 48px;
+      border-radius: 16px;
+      border: 3px solid #fff;
+      background: linear-gradient(180deg, #4a8ad4, #2a5a9a);
+      color: #fff;
+      font-family: inherit;
+      font-weight: 800;
+      font-size: 0.78rem;
+      cursor: pointer;
+      box-shadow: 0 4px 0 #163a6a;
+      touch-action: manipulation;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+    }
+    .home-nav-btn .ico { font-size: 1.15rem; line-height: 1; }
+    .home-nav-btn.active {
+      background: linear-gradient(180deg, #6ecfff, #3a8ad4);
+      border-color: #ffe566;
+    }
+    .home-nav-duel {
+      width: 72px; height: 72px;
+      margin-bottom: 4px;
+      border-radius: 50%;
+      border: 4px solid #fff;
+      background: linear-gradient(180deg, #ffe566, #f0a800);
+      color: #3a2800;
+      font-family: "Bungee", cursive;
+      font-size: 0.72rem;
+      line-height: 1.1;
+      cursor: pointer;
+      box-shadow: 0 5px 0 #a87810, 0 0 18px rgba(255, 200, 40, 0.5);
+      touch-action: manipulation;
+    }
+    .home-panel {
+      display: none;
+      position: absolute;
+      left: 0; right: 0; top: 0;
+      bottom: calc(68px + var(--safe-b));
+      z-index: 2;
+      padding:
+        calc(8px + var(--safe-t))
+        calc(12px + var(--safe-r))
+        8px
+        calc(12px + var(--safe-l));
+      flex-direction: column;
+      gap: 8px;
+      background:
+        linear-gradient(165deg, #1a4a8a 0%, #0d2b55 40%, #081e3d 100%);
+      overflow: hidden;
+    }
+    .home-panel.open { display: flex; }
+    .home-panel h2 {
+      margin: 0;
+      font-family: "Bungee", cursive;
+      font-size: 1.15rem;
+      color: #ffe566;
+      text-shadow: 0 2px 0 #8a5a00;
+    }
+    .home-panel-body {
+      flex: 1;
+      min-height: 0;
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+      border-radius: 16px;
+      border: 3px solid #fff;
+      background: rgba(8, 24, 48, 0.75);
+      padding: 12px;
+    }
+    .records-grid {
+      display: grid;
+      gap: 10px;
+    }
+    .record-card {
+      border-radius: 14px;
+      border: 3px solid #f0d060;
+      background: linear-gradient(180deg, #2a5a9a, #1a3a6a);
+      padding: 12px;
+    }
+    .record-card .rk {
+      font-size: 0.68rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #a8c8e8;
+      font-weight: 800;
+    }
+    .record-card .rv {
+      margin-top: 4px;
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: #ffe566;
+    }
+    .binder-search {
+      width: 100%;
+      min-height: 44px;
+      border-radius: 12px;
+      border: 3px solid #7aa8d4;
+      background: #0a1a30;
+      color: #fff;
+      padding: 0 12px;
+      font: inherit;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .binder-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    .binder-card {
+      border-radius: 12px;
+      border: 3px solid #5a8ab8;
+      background: #12283c;
+      overflow: hidden;
+      cursor: pointer;
+      touch-action: manipulation;
+      text-align: left;
+      padding: 0;
+      color: inherit;
+      font: inherit;
+    }
+    .binder-card .ba {
+      aspect-ratio: 1;
+      background: #0a1524;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+    }
+    .binder-card .ba img { width: 100%; height: 100%; object-fit: cover; }
+    .binder-card .bm { padding: 5px 6px 7px; }
+    .binder-card .bn {
+      font-size: 0.65rem;
+      font-weight: 800;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .binder-card .bs {
+      font-size: 0.62rem;
+      font-weight: 700;
+      color: #a8c8e8;
+    }
+    .binder-card .bs .atk { color: #ff8a8a; }
+    .binder-card .bs .def { color: #8ab8ff; }
+    .binder-empty {
+      text-align: center;
+      color: #a8c8e8;
+      font-weight: 700;
+      padding: 24px 8px;
+    }
+    .settings-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 12px;
+      border-radius: 14px;
+      border: 3px solid #5a8ab8;
+      background: #12283c;
+      margin-bottom: 8px;
+      font-weight: 800;
+    }
+    .settings-row button {
+      min-height: 40px;
+      min-width: 72px;
+      border-radius: 12px;
+      border: 2px solid #fff;
+      background: linear-gradient(180deg, #5ecfff, #2a7fd4);
+      color: #fff;
+      font-weight: 800;
+      font-family: inherit;
+      cursor: pointer;
+    }
+    .settings-danger {
+      width: 100%;
+      min-height: 48px;
+      margin-top: 8px;
+      border-radius: 14px;
+      border: 3px solid #ff8a9a;
+      background: linear-gradient(180deg, #e85a6b, #a03040);
+      color: #fff;
+      font-weight: 800;
+      font-family: inherit;
+      font-size: 0.95rem;
+      cursor: pointer;
+    }
+
+    /* —— Monster / game guide —— */
+    .guide {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 70;
+      width: 100%;
+      max-width: 480px;
+      margin: 0 auto;
+      height: 100%;
+      height: 100dvh;
+      background: linear-gradient(165deg, #0e1a2c 0%, #152848 45%, #0a1420 100%);
+      flex-direction: column;
+      overflow: hidden;
+      padding:
+        calc(6px + var(--safe-t))
+        calc(10px + var(--safe-r))
+        calc(6px + var(--safe-b))
+        calc(10px + var(--safe-l));
+    }
+    .guide.open { display: flex; }
+    .guide-top {
+      flex: 0 0 auto;
+      display: grid;
+      grid-template-columns: 48px 1fr auto;
+      align-items: center;
+      gap: 8px;
+      min-height: 48px;
+    }
+    .guide-top h2 {
+      margin: 0;
+      text-align: center;
+      font-family: "Bungee", cursive;
+      font-size: 1rem;
+      color: #ffe566;
       text-shadow: 0 2px 0 #6a4a10;
     }
-    .start-sub {
-      font-size: 0.75rem; letter-spacing: 0.22em; text-transform: uppercase;
-      color: var(--cyan); margin: 4px 0 12px; font-weight: 800;
+    .guide-close, .guide-buy, .guide-arrow {
+      min-height: 44px;
+      min-width: 44px;
+      border-radius: 14px;
+      border: 3px solid #fff;
+      background: linear-gradient(180deg, #4a8ad4, #2a5a9a);
+      color: #fff;
+      font-weight: 800;
+      font-family: inherit;
+      font-size: 1.1rem;
+      cursor: pointer;
+      touch-action: manipulation;
     }
-    .mode-toggle {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 12px 0;
+    .guide-buy {
+      padding: 0 12px;
+      font-size: 0.85rem;
+      background: linear-gradient(180deg, #ffe566, #e0a020);
+      color: #3a2800;
+      border-color: #fff8d0;
     }
-    .mode-opt {
-      text-align: left; padding: 12px; border-radius: 12px;
-      border: 2px solid var(--line); background: rgba(0,0,0,0.25);
-      color: var(--fog); font-family: inherit; font-weight: 800; font-size: 0.9rem;
-      cursor: pointer; touch-action: manipulation;
+    .guide-body {
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+      margin: 6px 0;
+      border-radius: 16px;
+      border: 3px solid rgba(255,255,255,0.2);
+      background: rgba(0,0,0,0.28);
+      padding: 12px;
     }
-    .mode-opt small { display: block; font-size: 0.68rem; font-weight: 600; color: var(--muted); margin-top: 4px; }
-    .mode-opt.active { border-color: var(--gold); background: rgba(232, 184, 74, 0.12); }
-    .load-status { min-height: 1.2em; font-size: 0.78rem; font-weight: 700; color: var(--muted); }
-    .load-status.ok { color: var(--mint); }
-    .load-status.error { color: var(--rose); }
+    .guide-flip {
+      flex: 0 0 auto;
+      display: none;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+    .guide-flip.show { display: flex; }
+    .guide-arrow { flex: 1; font-size: 1.6rem; line-height: 1; }
+    .guide-tabs {
+      flex: 0 0 auto;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 4px;
+      padding-top: 4px;
+    }
+    .guide-tab {
+      min-height: 48px;
+      border-radius: 12px;
+      border: 2px solid #5a8ab8;
+      background: #12283c;
+      color: #c8dcec;
+      font-family: inherit;
+      font-weight: 800;
+      font-size: 0.62rem;
+      line-height: 1.15;
+      cursor: pointer;
+      touch-action: manipulation;
+      padding: 4px 2px;
+    }
+    .guide-tab.active {
+      border-color: #f0d060;
+      background: linear-gradient(180deg, #f0c040, #c99220);
+      color: #2a1c00;
+    }
+    .g-hero {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+    .g-art {
+      width: 112px;
+      flex: 0 0 auto;
+      aspect-ratio: 3/4;
+      border-radius: 12px;
+      border: 3px solid #f0d060;
+      overflow: hidden;
+      background: #0a1524;
+      display: grid;
+      place-items: center;
+    }
+    .g-art img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .g-art .emoji { font-size: 2.4rem; }
+    .g-meta { flex: 1; min-width: 0; }
+    .g-name {
+      font-family: "Bungee", cursive;
+      font-size: 0.95rem;
+      color: #ffe566;
+      line-height: 1.15;
+      margin: 0 0 6px;
+    }
+    .g-cost {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      font-weight: 800;
+      margin-right: 6px;
+      color: #101418;
+    }
+    .g-cost.c1 { background: #9aa3ad; }
+    .g-cost.c2 { background: #3ecf6a; }
+    .g-cost.c3 { background: #3a8aef; color: #fff; }
+    .g-cost.c4 { background: #a64dff; color: #fff; }
+    .g-cost.c5 { background: #f0c040; }
+    .g-stars { color: #ffe566; font-weight: 800; font-size: 0.95rem; }
+    .g-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .g-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 2px solid #5a8ab8;
+      background: #1a3348;
+      font-size: 0.72rem;
+      font-weight: 800;
+      color: #e8f4ff;
+    }
+    .g-pill.role { border-color: #e85a6b; color: #ffc0c8; }
+    .g-pill.range { border-color: #3ec7c2; color: #a8fff8; }
+    .g-section { margin-top: 14px; }
+    .g-section h3 {
+      margin: 0 0 8px;
+      font-size: 0.72rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #8ab4d4;
+    }
+    .g-fusion {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr auto 1fr;
+      gap: 4px;
+      align-items: stretch;
+    }
+    .g-fuse-card {
+      border-radius: 12px;
+      border: 2px solid #5a8ab8;
+      background: #12283c;
+      padding: 6px;
+      text-align: center;
+    }
+    .g-fuse-card.active { border-color: #f0d060; box-shadow: 0 0 10px rgba(240,200,60,0.35); }
+    .g-fuse-card img {
+      width: 100%;
+      aspect-ratio: 1;
+      object-fit: cover;
+      border-radius: 8px;
+      display: block;
+      background: #0a1524;
+    }
+    .g-fuse-card .fs { color: #ffe566; font-weight: 800; font-size: 0.75rem; margin-top: 4px; }
+    .g-fuse-card .fh { font-size: 0.62rem; font-weight: 700; color: #a8c8e8; }
+    .g-fuse-arrow { align-self: center; color: #ffe566; font-weight: 800; font-size: 1.1rem; }
+    .g-ability {
+      border-radius: 12px;
+      border: 2px solid #7a5ab8;
+      background: linear-gradient(180deg, #2a1848, #141028);
+      padding: 10px;
+    }
+    .g-ability .an { font-weight: 800; color: #e0c0ff; }
+    .g-ability .am { float: right; font-size: 0.72rem; color: #8ab8ff; font-weight: 800; }
+    .g-ability .ad { margin: 6px 0 0; font-size: 0.8rem; color: #d0d8e8; line-height: 1.35; clear: both; }
+    .g-raw {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .g-raw div {
+      flex: 1;
+      border-radius: 12px;
+      border: 2px solid #5a8ab8;
+      background: #12283c;
+      padding: 8px;
+      text-align: center;
+      font-weight: 800;
+    }
+    .g-raw .atk { color: #ff8a8a; }
+    .g-raw .def { color: #8ab8ff; }
+    .g-raw small { display: block; font-size: 0.65rem; color: #8ab4d4; font-weight: 700; }
+    .g-list { display: grid; gap: 8px; }
+    .g-list-card {
+      border-radius: 12px;
+      border: 2px solid #5a8ab8;
+      background: #12283c;
+      padding: 10px;
+    }
+    .g-list-card h4 { margin: 0 0 4px; color: #ffe566; font-size: 0.95rem; }
+    .g-list-card p { margin: 0; font-size: 0.78rem; color: #c8d9e6; line-height: 1.35; }
+    .g-list-card ul { margin: 6px 0 0; padding-left: 1.1em; font-size: 0.78rem; color: #c8d9e6; }
+    .g-basics ol { margin: 0; padding-left: 1.2em; font-size: 0.85rem; line-height: 1.4; color: #d8e4f0; }
+    .g-basics li { margin-bottom: 8px; }
 
     .menu-backdrop {
       position: fixed; inset: 0; z-index: 60;
@@ -807,7 +1819,8 @@
       margin: 0 0 6px; font-family: "Bungee", cursive; font-size: 1.4rem; color: var(--gold);
     }
     .results-banner.defeat h3 { color: var(--rose); }
-    .results-banner p { margin: 0 0 14px; color: var(--fog); font-weight: 700; }
+    .results-banner p { margin: 0 0 10px; color: var(--fog); font-weight: 700; font-size: 14px; }
+    .results-banner .btn { display: none; } /* auto-advances after ~2s */
 
     .ts-head { display: flex; gap: 10px; align-items: center; margin-bottom: 12px; }
     .ts-emoji { font-size: 2rem; }
@@ -818,6 +1831,50 @@
     }
     .ts-stats b { color: var(--gold); }
     .ts-items { font-size: 0.8rem; color: #e8d8ff; }
+    .ts-art {
+      width: 100%;
+      max-height: 220px;
+      object-fit: contain;
+      border-radius: 10px;
+      margin: 0 0 10px;
+      background: #0a1520;
+      box-shadow: 0 0 16px rgba(80,180,255,0.35);
+    }
+    .card-view-modal { text-align: center; }
+    .card-view-modal img {
+      width: min(260px, 70vw);
+      height: auto;
+      border-radius: 12px;
+      box-shadow: 0 8px 28px rgba(0,0,0,0.55), 0 0 18px rgba(80,180,255,0.35);
+      background: #0a1520;
+    }
+    .card-view-modal .cv-emoji {
+      font-size: 4rem;
+      line-height: 1.2;
+      margin: 12px 0;
+    }
+    .card-view-modal .cv-name {
+      font-family: "Bungee", cursive;
+      font-size: 1.05rem;
+      color: var(--gold);
+      margin: 10px 0 4px;
+    }
+    .card-view-modal .cv-sub {
+      color: var(--muted);
+      font-weight: 700;
+      font-size: 0.82rem;
+      margin-bottom: 8px;
+    }
+    .card-view-modal .cv-stats {
+      display: flex;
+      justify-content: center;
+      gap: 18px;
+      font-weight: 800;
+      margin-bottom: 14px;
+    }
+    .card-view-modal .cv-stats .atk { color: #ff8a8a; }
+    .card-view-modal .cv-stats .def { color: #8ab8ff; }
+    .card-view-actions { display: grid; gap: 8px; }
 
     .toast {
       position: fixed; left: 50%; bottom: calc(18px + var(--safe-b));
@@ -847,6 +1904,62 @@
     @keyframes tokenDie {
       to { transform: scale(0.3); opacity: 0; }
     }
+    @keyframes holoRise {
+      0% {
+        opacity: 0;
+        transform: translate(-50%, -100%) scaleY(0);
+        filter: brightness(2.4) drop-shadow(0 0 16px #5ec8ff);
+      }
+      55% { filter: brightness(1.35) drop-shadow(0 0 12px #5ec8ff); }
+      100% {
+        opacity: 1;
+        transform: translate(-50%, -100%) scaleY(1);
+        filter: drop-shadow(0 0 8px rgba(80, 180, 255, 0.55));
+      }
+    }
+    @keyframes holoBob {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-5px); }
+    }
+    @keyframes holoHop {
+      0% { transform: translateY(0) scale(1); }
+      40% { transform: translateY(-14px) scale(1.06); }
+      100% { transform: translateY(0) scale(1); }
+    }
+    @keyframes holoLean {
+      0% { transform: rotateX(0) translateY(0); }
+      35% { transform: rotateX(32deg) translateY(4px) scaleY(1.05); filter: brightness(1.3); }
+      100% { transform: rotateX(0) translateY(0); }
+    }
+    @keyframes holoHitFlash {
+      0%, 100% { filter: brightness(1) saturate(1); }
+      20% { filter: brightness(6) contrast(1.4) saturate(0); }
+      45% { filter: brightness(3.2) saturate(0.15); }
+      70% { filter: brightness(1.6); }
+    }
+    @keyframes holoShatter {
+      0% { opacity: 1; filter: brightness(1); transform: scale(1); }
+      20% { filter: brightness(3.2); }
+      45% {
+        opacity: 0.85;
+        filter: brightness(3.8) contrast(2);
+        clip-path: inset(0 0 0 0);
+        transform: scale(1.05);
+      }
+      100% {
+        opacity: 0;
+        transform: scale(1.25) translateY(-10px);
+        filter: brightness(4);
+        clip-path: inset(40% 40% 40% 40%);
+      }
+    }
+    @keyframes shardFly {
+      0% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+      100% {
+        opacity: 0;
+        transform: translate(calc(-50% + var(--sx, 0px)), calc(-50% + var(--sy, -20px))) scale(0.3) rotate(40deg);
+      }
+    }
     @keyframes abilityPop {
       0% { opacity: 0; transform: translateX(-50%) translateY(4px); }
       15% { opacity: 1; }
@@ -857,16 +1970,18 @@
     .star-chips {
       display: inline-flex;
       align-items: center;
-      gap: 2px;
-      min-height: var(--tap);
-      padding: 0 8px;
-      border-radius: 12px;
-      background: rgba(232, 184, 74, 0.12);
-      border: 1px solid var(--gold-dim);
-      font-size: 0.85rem;
+      justify-content: center;
+      gap: 1px;
+      min-height: 0;
+      padding: 0 4px;
+      border-radius: 8px;
+      background: transparent;
+      border: none;
+      font-size: 0.62rem;
       letter-spacing: -1px;
       color: var(--gold);
       text-shadow: 0 1px 0 #6a4a10;
+      line-height: 1;
     }
     .star-chips .chip-on { filter: drop-shadow(0 0 3px rgba(232,184,74,0.65)); }
     .star-chips .chip-off { opacity: 0.22; filter: grayscale(1); }
@@ -880,7 +1995,7 @@
       min-height: 28px;
       padding: 4px 10px;
       border-radius: 10px;
-      font-size: 0.68rem;
+      font-size: 12px;
       font-weight: 800;
       letter-spacing: 0.04em;
       text-align: center;
@@ -1060,27 +2175,19 @@
       position: absolute;
       transform: translate(-50%, -50%);
       font-family: "Bungee", cursive;
-      font-size: 1.15rem;
+      font-size: 1.35rem;
       font-weight: 800;
       color: #ff6a6a;
-      text-shadow: 0 2px 0 #400808, 0 0 8px rgba(255,80,80,0.6);
+      text-shadow: 0 2px 0 #400808, 0 0 10px rgba(255,80,80,0.75);
       pointer-events: none;
       z-index: 20;
-      animation: floatDmg 0.85s ease forwards;
+      animation: floatDmg 0.95s ease forwards;
     }
     .combat-fx.heal { color: #6aef9a; text-shadow: 0 2px 0 #084020; }
-    .combat-fx.big { font-size: 1.45rem; }
+    .combat-fx.big { font-size: 1.65rem; }
     @keyframes floatDmg {
       0% { opacity: 1; transform: translate(-50%, -50%) scale(0.8); }
       100% { opacity: 0; transform: translate(-50%, -120%) scale(1.15); }
-    }
-    .combat-token.hop .token {
-      animation: tokenHop 0.28s ease;
-    }
-    @keyframes tokenHop {
-      0% { transform: translateY(0) scale(1); }
-      40% { transform: translateY(-10px) scale(1.08); }
-      100% { transform: translateY(0) scale(1); }
     }
 
     .results-banner {
@@ -1124,53 +2231,105 @@
   </style>
 </head>
 <body>
-  <div class="overlay start-screen open" id="startOverlay">
-    <div class="modal">
-      <p class="start-brand">Duel Tactics</p>
-      <p class="start-sub">Duelist Kingdom</p>
-      <p style="margin-top:0">Collect Star Chips. Conquer the island. Challenge Pegasus.</p>
-      <div class="mode-toggle" role="group" aria-label="Card mode">
-        <button type="button" class="mode-opt active" id="modeClassic" data-mode="classic">
-          Classic cards
-          <small>LOB + Metal Raiders via API</small>
+  <div class="home open" id="homeScreen">
+    <div class="home-main" id="homeMain">
+      <div class="home-top">
+        <div class="home-chips" id="homeChips" aria-label="Star Chips"><span class="star">★</span><span id="homeChipCount">0</span></div>
+        <div class="home-top-actions">
+          <button type="button" class="home-icon-btn" id="btnHomeHow" aria-label="How to Play" title="How to Play">📖</button>
+          <button type="button" class="home-icon-btn" id="btnHomeSettings" aria-label="Settings" title="Settings">⚙</button>
+        </div>
+      </div>
+      <div class="home-logo">
+        <h1>DUEL TACTICS</h1>
+        <span class="home-ribbon">Duelist Kingdom</span>
+      </div>
+      <div class="home-hero" id="homeHero">
+        <div class="home-vs-row">
+          <div class="home-vs-side">
+            <div class="who">YOU</div>
+          </div>
+          <div class="home-vs-badge">VS</div>
+          <div class="home-vs-side">
+            <div class="who foe" id="homeFoeName">Weevil Underwood</div>
+          </div>
+        </div>
+        <div class="home-vs-art" id="homeSigArt"><span class="emoji-fallback">🐛</span></div>
+        <div class="home-best" id="homeBest">Best: 0 Star Chips</div>
+      </div>
+      <div class="home-modes" role="group" aria-label="Game mode">
+        <button type="button" class="mode-card selected" id="modeKingdom" data-mode="kingdom">
+          <span class="mode-title">Duelist Kingdom</span>
+          <span class="mode-sub">Main tournament run</span>
         </button>
-        <button type="button" class="mode-opt" id="modeOriginal" data-mode="original">
-          Original
-          <small>Built-in fantasy roster</small>
+        <button type="button" class="mode-card locked" id="modeCastle" data-mode="castle">
+          <span class="lock" aria-hidden="true">🔒</span>
+          <span class="mode-title">Pegasus's Castle</span>
+          <span class="mode-sub">Beat Pegasus to unlock</span>
         </button>
       </div>
-      <p class="load-status" id="loadStatus"></p>
-      <button type="button" class="btn btn-primary btn-wide" id="btnStart">Begin Duel</button>
-      <button type="button" class="btn btn-ghost btn-wide" id="btnStartHow" style="margin-top:8px">How to Play</button>
+      <button type="button" class="btn-continue-run" id="btnContinue">▶ Continue</button>
+      <button type="button" class="btn-duel-huge" id="btnStart">▶ New Run</button>
+      <button type="button" class="home-load-error" id="homeLoadError">Couldn't load cards, tap to retry</button>
     </div>
+
+    <div class="home-panel" id="panelRecords">
+      <h2>Records</h2>
+      <div class="home-panel-body">
+        <div class="records-grid" id="recordsGrid"></div>
+      </div>
+    </div>
+
+    <div class="home-panel" id="panelBinder">
+      <h2>Card Binder</h2>
+      <div class="home-panel-body">
+        <input type="search" class="binder-search" id="binderSearch" placeholder="Search monsters…" autocomplete="off" />
+        <div class="binder-grid" id="binderGrid"></div>
+      </div>
+    </div>
+
+    <nav class="home-nav" aria-label="Home navigation">
+      <button type="button" class="home-nav-btn" id="navRecords"><span class="ico">🏆</span>Records</button>
+      <button type="button" class="home-nav-duel" id="navDuel">DUEL</button>
+      <button type="button" class="home-nav-btn" id="navBinder"><span class="ico">📇</span>Card Binder</button>
+    </nav>
   </div>
 
   <div class="app" id="app">
     <header class="top-bar">
-      <div class="lp-heart" aria-label="Life Points">
+      <div class="lp-heart" id="lpYouWrap" aria-label="Your Life Points">
+        <span class="lp-tag">You</span>
         <span class="heart" aria-hidden="true">♥</span>
-        <span id="lp">8000</span>
+        <span id="lp">4000</span>
       </div>
-      <div class="star-chips" id="starChips" aria-label="Star Chips" title="Star Chips"></div>
       <div class="top-mid">
         <div class="round-line"><span id="duelistRound">R1</span><span id="round" hidden>1</span></div>
         <div class="duelist-line" id="duelistName">Weevil Underwood</div>
+        <div class="star-chips" id="starChips" aria-label="Star Chips" title="Star Chips"></div>
+      </div>
+      <div class="lp-heart foe" id="lpFoeWrap" aria-label="Duelist Life Points">
+        <span class="lp-tag">Foe</span>
+        <span class="heart" aria-hidden="true">♥</span>
+        <span id="enemyLp">4000</span>
       </div>
       <button type="button" class="btn-menu" id="btnMenu" aria-label="Menu">☰</button>
     </header>
 
-    <div class="notice" id="fallbackNotice">Classic API unavailable — using original roster.</div>
     <div class="area-banner" id="areaBanner"></div>
 
     <div class="trait-bar" id="traitBar" aria-label="Traits"></div>
 
-    <div class="arena" id="arena">
-      <div class="hex-stage" id="hexStage">
-        <div class="hex-board" id="enemyBoard"></div>
-        <div class="hex-board" id="playerBoard"></div>
-        <div class="combat-layer" id="combatLayer"></div>
+    <div class="board-wrap" id="boardWrap">
+      <div class="arena" id="arena">
+        <div class="hex-stage" id="hexStage">
+          <div class="hex-board" id="enemyBoard"></div>
+          <div class="hex-board" id="playerBoard"></div>
+        </div>
+        <div class="duel-flash" id="duelFlash" aria-hidden="true"><span>DUEL!</span></div>
       </div>
-      <div class="duel-flash" id="duelFlash" aria-hidden="true"><span>DUEL!</span></div>
+      <!-- Screen-space overlays OUTSIDE perspective (fixes flat/tiny holos on iOS Safari) -->
+      <div class="holo-layer" id="holoLayer"></div>
+      <div class="combat-layer" id="combatLayer"></div>
     </div>
 
     <div class="bench-wrap">
@@ -1216,13 +2375,6 @@
       <button type="button" class="btn btn-ghost btn-wide" id="btnHow">How to Play</button>
     </div>
     <div class="menu-section">
-      <label>Card mode</label>
-      <div class="mode-toggle" style="margin:0">
-        <button type="button" class="mode-opt active" id="menuModeClassic">Classic</button>
-        <button type="button" class="mode-opt" id="menuModeOriginal">Original</button>
-      </div>
-    </div>
-    <div class="menu-section">
       <label>Combat</label>
       <button type="button" class="btn btn-secondary btn-wide" id="btnSpeedMenu">Speed 1x</button>
     </div>
@@ -1237,13 +2389,13 @@
       <h2>How to Play</h2>
       <ol>
         <li>Welcome to <strong>Duelist Kingdom</strong> — start with <strong>2 Star Chips</strong>.</li>
-        <li>Win a duel: +1 Star Chip. Lose: −1. Hit 0 chips or 0 LP and the run ends.</li>
-        <li>Reach <strong>10 Star Chips</strong> to unlock Pegasus's Castle.</li>
-        <li>Between rounds, tap the glowing island spot. Each area boosts matching Types by +30% ATK.</li>
-        <li>Buy, fuse (3→★★), place on hexes, then <strong>FIGHT</strong> for a DUEL!</li>
-        <li>Board size = your level (1–9). Lock the shop to keep offers between rounds.</li>
-        <li>Tournament path: Weevil → Rex → Mako → Mai → Keith → Bonz → Panik → Castle (Kaiba, Yugi, Pegasus).</li>
-        <li>Tap a token for stats. Drag to place. Items draft after rounds 2, 5, 9, 13.</li>
+        <li>Each duel is a mini-match: you and the duelist start at <strong>4000 LP</strong>. Shop, then fight — usually 5–8 rounds.</li>
+        <li>Loser of a fight loses LP = (2 + survivors' cost + round×2) × 100. Hit 0 LP to end the duel.</li>
+        <li>Your board, bench, gold, level, and items carry across rounds and duels. LP resets to 4000 each new duel.</li>
+        <li>Win a duel: +1 Star Chip. Lose a duel: −1. Hit 0 chips and the run ends. Reach <strong>10 ★</strong> for the Castle.</li>
+        <li>Buy, fuse (3→★★→★★★), place on hexes, then <strong>FIGHT</strong>. Progress saves every round — use Continue on the home screen.</li>
+        <li>Cost follows ATK+DEF. HP = DEF×1.5, damage = ATK÷4. Board size = your level (1–9).</li>
+        <li>Path: Weevil → Rex → Mako → Mai → Keith → Bonz → Panik → Castle (Kaiba, Yugi, Pegasus).</li>
       </ol>
       <button type="button" class="btn btn-primary btn-wide" id="btnCloseHow">Got it</button>
     </div>
@@ -1281,12 +2433,48 @@
     </div>
   </div>
 
+  <div class="guide" id="guideOverlay" aria-modal="true" role="dialog">
+    <header class="guide-top">
+      <button type="button" class="guide-close" id="btnGuideClose" aria-label="Close">✕</button>
+      <h2 id="guideTitle">Guide</h2>
+      <button type="button" class="guide-buy" id="btnGuideBuy" style="display:none">Buy</button>
+    </header>
+    <div class="guide-body" id="guideBody"></div>
+    <div class="guide-flip" id="guideFlip">
+      <button type="button" class="guide-arrow" id="btnGuidePrev" aria-label="Previous">‹</button>
+      <button type="button" class="guide-arrow" id="btnGuideNext" aria-label="Next">›</button>
+    </div>
+    <nav class="guide-tabs" aria-label="Guide sections">
+      <button type="button" class="guide-tab active" data-tab="monsters">Monsters</button>
+      <button type="button" class="guide-tab" data-tab="types">Types</button>
+      <button type="button" class="guide-tab" data-tab="items">Items</button>
+      <button type="button" class="guide-tab" data-tab="basics">Basics</button>
+      <button type="button" class="guide-tab" data-tab="duelists">Duelists</button>
+    </nav>
+  </div>
+
   <div class="overlay" id="endOverlay">
     <div class="modal">
       <h2 id="endTitle">Defeat</h2>
       <p id="endMsg">Your Life Points hit zero.</p>
       <div class="summary-stats" id="runSummary"></div>
-      <button type="button" class="btn btn-primary btn-wide" id="btnRestart">Play Again</button>
+      <button type="button" class="btn btn-primary btn-wide" id="btnRestart">Home</button>
+    </div>
+  </div>
+
+  <div class="overlay" id="settingsOverlay" role="dialog" aria-modal="true">
+    <div class="modal">
+      <h2>Settings</h2>
+      <div class="settings-row">
+        <span>Sound</span>
+        <button type="button" id="btnToggleSound">On</button>
+      </div>
+      <div class="settings-row">
+        <span>Fight speed</span>
+        <button type="button" id="btnSettingsSpeed">1x</button>
+      </div>
+      <button type="button" class="settings-danger" id="btnResetProgress">Reset progress</button>
+      <button type="button" class="btn btn-ghost btn-wide" id="btnCloseSettings" style="margin-top:10px">Close</button>
     </div>
   </div>
 
@@ -1322,13 +2510,16 @@
 (function () {
   "use strict";
 
-  const CACHE_KEY = "duelTacticsClassicV1";
+  const CACHE_KEY = "duelTacticsClassicV3";
   const CACHE_MS = 7 * 24 * 60 * 60 * 1000;
   const API_SETS = ["Legend of Blue Eyes White Dragon", "Metal Raiders"];
   const HEX_ROWS = 4;
   const HEX_COLS = 7;
-  const ATTACK_MS = 1000;
-  const MOVE_MS = 380;
+  const ATTACK_MS = 3200;
+  const MOVE_MS = 1050;
+  const RESULTS_HOLD_MS = 2000;
+  const COMBAT_MAX_MS = 15000;
+  const COMBAT_END_HOLD_MS = 850; // let shatter / last floats finish
   const TRAIT_THRESHOLDS = [2, 4, 6];
   const ITEM_DRAFT_ROUNDS = [2, 5, 9, 13];
   const MAX_ITEMS = 3;
@@ -1404,51 +2595,61 @@
     {
       name: "Weevil Underwood", theme: "Insects", area: "forest",
       types: ["Insect"], prefer: [/insect/i],
+      sig: [/basic insect/i, /great moth|perfectly ultimate/i, /insect/i],
       taunt: "Heh heh… my bugs will devour your deck!",
     },
     {
       name: "Rex Raptor", theme: "Dinosaurs", area: "wasteland",
       types: ["Dinosaur"], prefer: [/dinosaur|rex|rage/i],
+      sig: [/two-headed king rex|swamp king|uraby|dinosaur/i],
       taunt: "Rawr! Dinosaurs ruled once — and they will again!",
     },
     {
       name: "Mako Tsunami", theme: "Ocean", area: "ocean",
       types: ["Fish", "Sea Serpent", "Aqua"], prefer: [/fish|shark|sea|jelly|whale/i],
+      sig: [/fortress whale|jelly|shark|fish/i],
       taunt: "The sea answers only to me!",
     },
     {
       name: "Mai Valentine", theme: "Harpies", area: "mountain",
       types: ["Winged Beast"], prefer: [/harpie|bird|lady/i],
+      sig: [/harpie lady|harpie/i],
       taunt: "Don't blink, darling — Harpie Lady is already behind you.",
     },
     {
       name: "Bandit Keith", theme: "Machines", area: "wasteland",
       types: ["Machine"], prefer: [/machine|cannon|gear|metal/i],
+      sig: [/launcher spider|machine king|cannon|machine/i],
       taunt: "I never play fair… and I never lose.",
     },
     {
       name: "Bonz", theme: "Zombies", area: "graveyard",
       types: ["Zombie"], prefer: [/zombie|skull|bone|grave/i],
+      sig: [/pumpking|zombie|skull/i],
       taunt: "Welcome to my graveyard… you won't leave it.",
     },
     {
       name: "Panik", theme: "Shadows", area: "graveyard",
       types: ["Fiend"], prefer: [/fiend|shadow|dark|castle/i],
+      sig: [/castle of d|fiend|shadow/i],
       taunt: "In the dark, fear is my greatest monster!",
     },
     {
       name: "Seto Kaiba", theme: "Blue-Eyes", area: "castle", castle: true,
       types: ["Dragon"], prefer: [/blue-eyes|blue.eyes|white dragon/i],
+      sig: [/blue-eyes white dragon|blue.eyes/i],
       taunt: "I'll crush you with the power of Blue-Eyes!",
     },
     {
       name: "Yami Yugi", theme: "Dark Magician", area: "castle", castle: true,
       types: ["Spellcaster"], prefer: [/dark magician|magician of|kuriboh/i],
+      sig: [/dark magician(?! girl)|dark magician/i],
       taunt: "It's time to duel — heart of the cards!",
     },
     {
       name: "Maximillion Pegasus", theme: "Toon World", area: "castle", castle: true, boss: true, toon: true,
       types: ["Toon"], mixed: true, prefer: [/toon/i],
+      sig: [/toon|red-eyes|dragon capture/i],
       taunt: "Welcome to my Toon World — smile while you lose!",
     },
   ];
@@ -1460,22 +2661,35 @@
     { id: "toon_dm", name: "Toon Dark Magician", type: "Toon", attribute: "DARK", level: 7, atk: 2500, def: 2100 },
     { id: "toon_beud", name: "Toon Blue-Eyes", type: "Toon", attribute: "LIGHT", level: 8, atk: 3000, def: 2500 },
     { id: "toon_cannon", name: "Toon Cannon Soldier", type: "Toon", attribute: "DARK", level: 4, atk: 1400, def: 1300 },
-  ].map((c) => Object.assign({}, c, { cost: costFromLevel(c.level) }));
+  ].map((c) => enrichCardBase(c));
 
   /**
-   * Shop odds by player level for monster Level buckets:
-   * [Lv1–2, Lv3–4, Lv5–6, Lv7–8+]
+   * Shop odds by player level for cost buckets (TFT-style):
+   * [1-cost, 2-cost, 3-cost, 4-cost, 5-cost]
+   * 4- and 5-cost stay rare until level 7+.
    */
   const SHOP_ODDS = {
-    1: [75, 25, 0, 0],
-    2: [65, 30, 5, 0],
-    3: [50, 35, 15, 0],
-    4: [40, 35, 20, 5],
-    5: [30, 35, 25, 10],
-    6: [24, 30, 30, 16],
-    7: [18, 25, 32, 25],
-    8: [14, 20, 33, 33],
-    9: [10, 18, 32, 40],
+    1: [100, 0, 0, 0, 0],
+    2: [70, 30, 0, 0, 0],
+    3: [55, 35, 10, 0, 0],
+    4: [40, 40, 18, 2, 0],
+    5: [30, 35, 28, 7, 0],
+    6: [24, 32, 30, 13, 1],
+    7: [18, 28, 32, 18, 4],
+    8: [14, 22, 32, 24, 8],
+    9: [10, 18, 28, 30, 14],
+  };
+
+  const ABILITIES = {
+    Dragon: { name: "Fire Breath", mana: 100, desc: "Breathe fire: deal 2× ATK split among the 3 closest foes." },
+    Spellcaster: { name: "Arc Stun", mana: 100, desc: "Blast the target for 1.5× ATK and stun them for 1s." },
+    Warrior: { name: "Double Strike", mana: 100, desc: "Strike twice for ATK÷4 damage each hit." },
+    Fiend: { name: "Life Drain", mana: 100, desc: "Deal ATK÷4 and heal for 50% of damage dealt." },
+    Beast: { name: "Bloodrush", mana: 100, desc: "Gain haste for 3s and strike for ATK÷4." },
+    "Winged Beast": { name: "Bloodrush", mana: 100, desc: "Gain haste for 3s and strike for ATK÷4." },
+    Machine: { name: "Hard Shield", mana: 100, desc: "Gain a 30% max-HP shield, then strike for ATK÷4." },
+    Zombie: { name: "Grave Bolt", mana: 100, desc: "Unleash a 2× ATK nuke (Zombies can also revive once)." },
+    _other: { name: "Power Strike", mana: 100, desc: "Unleash a 2× ATK nuke on the target." },
   };
 
   const TRAIT_INFO = {
@@ -1543,56 +2757,218 @@
     Toon: { emoji: "🎨" },
   };
 
-  function costFromLevel(level) {
-    const lv = Number(level) || 1;
-    if (lv <= 2) return 1;
-    if (lv <= 4) return 2;
-    if (lv <= 6) return 3;
-    if (lv === 7) return 4;
+  /** Cost from ATK+DEF total (Level ignored). */
+  function costFromStats(atk, def) {
+    const sum = (Number(atk) || 0) + (Number(def) || 0);
+    if (sum < 2000) return 1;
+    if (sum < 3000) return 2;
+    if (sum < 4000) return 3;
+    if (sum < 5000) return 4;
     return 5;
   }
 
-  const ORIGINAL_ROSTER = [
-    { id: "ember_wyrm", name: "Ember Wyrm", type: "Dragon", attribute: "FIRE", level: 4, atk: 1600, def: 1200 },
-    { id: "storm_drake", name: "Storm Drake", type: "Dragon", attribute: "WIND", level: 5, atk: 2000, def: 1400 },
-    { id: "iron_scale", name: "Iron Scale", type: "Dragon", attribute: "EARTH", level: 3, atk: 1200, def: 1800 },
-    { id: "void_serpent", name: "Void Serpent", type: "Dragon", attribute: "DARK", level: 7, atk: 2600, def: 1800 },
-    { id: "ash_hatchling", name: "Ash Hatchling", type: "Dragon", attribute: "FIRE", level: 1, atk: 600, def: 500 },
-    { id: "arc_mage", name: "Arc Mage", type: "Spellcaster", attribute: "LIGHT", level: 4, atk: 1500, def: 1300 },
-    { id: "hex_adept", name: "Hex Adept", type: "Spellcaster", attribute: "DARK", level: 3, atk: 1100, def: 900 },
-    { id: "rune_seer", name: "Rune Seer", type: "Spellcaster", attribute: "WATER", level: 5, atk: 1800, def: 1600 },
-    { id: "shadow_channel", name: "Shadow Channeler", type: "Spellcaster", attribute: "DARK", level: 6, atk: 2200, def: 1500 },
-    { id: "spark_apprentice", name: "Spark Apprentice", type: "Spellcaster", attribute: "LIGHT", level: 2, atk: 800, def: 700 },
-    { id: "blade_guard", name: "Blade Guard", type: "Warrior", attribute: "EARTH", level: 4, atk: 1700, def: 1400 },
-    { id: "shield_knight", name: "Shield Knight", type: "Warrior", attribute: "LIGHT", level: 3, atk: 1000, def: 1900 },
-    { id: "dual_swords", name: "Dual Swordsman", type: "Warrior", attribute: "WIND", level: 5, atk: 2100, def: 1200 },
-    { id: "banner_captain", name: "Banner Captain", type: "Warrior", attribute: "EARTH", level: 6, atk: 2300, def: 1800 },
-    { id: "militia_scout", name: "Militia Scout", type: "Warrior", attribute: "EARTH", level: 1, atk: 700, def: 400 },
-    { id: "night_imp", name: "Night Imp", type: "Fiend", attribute: "DARK", level: 2, atk: 900, def: 500 },
-    { id: "soul_siphon", name: "Soul Siphon", type: "Fiend", attribute: "DARK", level: 4, atk: 1600, def: 1000 },
-    { id: "grin_mask", name: "Grinning Mask", type: "Fiend", attribute: "DARK", level: 5, atk: 1900, def: 1300 },
-    { id: "abyss_howler", name: "Abyss Howler", type: "Fiend", attribute: "DARK", level: 7, atk: 2500, def: 1600 },
-    { id: "whisper_shade", name: "Whisper Shade", type: "Fiend", attribute: "DARK", level: 3, atk: 1300, def: 800 },
-    { id: "cog_golem", name: "Cog Golem", type: "Machine", attribute: "EARTH", level: 4, atk: 1400, def: 2000 },
-    { id: "pulse_drone", name: "Pulse Drone", type: "Machine", attribute: "LIGHT", level: 2, atk: 850, def: 850 },
-    { id: "gear_titan", name: "Gear Titan", type: "Machine", attribute: "EARTH", level: 7, atk: 2700, def: 2200 },
-    { id: "circuit_scout", name: "Circuit Scout", type: "Machine", attribute: "LIGHT", level: 3, atk: 1250, def: 1100 },
-    { id: "bolt_cannon", name: "Bolt Cannon", type: "Machine", attribute: "FIRE", level: 6, atk: 2400, def: 1500 },
-    { id: "briar_boar", name: "Briar Boar", type: "Beast", attribute: "EARTH", level: 3, atk: 1300, def: 1000 },
-    { id: "dusk_fang", name: "Dusk Fang", type: "Beast", attribute: "DARK", level: 5, atk: 1900, def: 1400 },
-    { id: "gale_talon", name: "Gale Talon", type: "Winged Beast", attribute: "WIND", level: 4, atk: 1600, def: 1100 },
-    { id: "sky_reaver", name: "Sky Reaver", type: "Winged Beast", attribute: "WIND", level: 6, atk: 2200, def: 1500 },
-    { id: "tomb_walker", name: "Tomb Walker", type: "Zombie", attribute: "DARK", level: 4, atk: 1500, def: 0 },
-    { id: "bone_captain", name: "Bone Captain", type: "Zombie", attribute: "EARTH", level: 5, atk: 1800, def: 1600 },
-  ].map((c) => Object.assign({}, c, { cost: costFromLevel(c.level) }));
+  function starMult(stars) {
+    const s = Number(stars) || 1;
+    if (s >= 3) return 3.2;
+    if (s === 2) return 1.8;
+    return 1;
+  }
+
+  function starsLabel(stars) {
+    const s = Math.max(1, Math.min(3, Number(stars) || 1));
+    return "★".repeat(s);
+  }
+
+  /** DEF much higher → Tank; ATK much higher → Attacker; else Fighter. */
+  function roleFor(card) {
+    const atk = Number(card && card.atk) || 0;
+    const def = Number(card && card.def) || 0;
+    if (def >= atk * 1.35 || (def > atk && def - atk >= 400)) return "Tank";
+    if (atk >= def * 1.35 || (atk > def && atk - def >= 400)) return "Attacker";
+    return "Fighter";
+  }
+
+  function rangeFor(card) {
+    const role = roleFor(card);
+    if (role === "Attacker") {
+      const t = card && card.type;
+      if (t === "Spellcaster" || t === "Thunder" || t === "Machine") return 2;
+    }
+    return 1;
+  }
+
+  function abilityFor(card) {
+    const t = (card && card.type) || "";
+    return ABILITIES[t] || ABILITIES._other;
+  }
+
+  function enrichCardBase(card) {
+    if (!card) return card;
+    const next = Object.assign({}, card);
+    next.cost = costFromStats(next.atk, next.def);
+    next.role = roleFor(next);
+    next.range = rangeFor(next);
+    return next;
+  }
+
+  function battleHpFromDef(def, stars) {
+    return Math.round(Math.max(600, (Number(def) || 0) * 1.5) * starMult(stars));
+  }
+
+  function battleDmgFromAtk(atk, stars) {
+    return Math.max(1, Math.round(((Number(atk) || 0) * starMult(stars)) / 4));
+  }
+
+  const META_KEY = "duelTacticsMetaV1";
+  const SAVE_KEY = "duelTacticsRunV1";
+  const DUEL_START_LP = 4000;
+  const DEFAULT_META = {
+    bestStarChips: 0,
+    wins: 0,
+    favoriteMonster: null, // { name, atk, imgSmall }
+    pegasusBeaten: false,
+    soundOn: true,
+    fightSpeed: 1,
+    lastMode: "kingdom", // kingdom | castle
+  };
+
+  function readMeta() {
+    try {
+      const raw = localStorage.getItem(META_KEY);
+      if (!raw) return Object.assign({}, DEFAULT_META);
+      const parsed = JSON.parse(raw);
+      return Object.assign({}, DEFAULT_META, parsed || {});
+    } catch (_) {
+      return Object.assign({}, DEFAULT_META);
+    }
+  }
+
+  function writeMeta(patch) {
+    const next = Object.assign(readMeta(), patch || {});
+    try { localStorage.setItem(META_KEY, JSON.stringify(next)); } catch (_) {}
+    return next;
+  }
+
+  function cloneUnit(u) {
+    if (!u) return null;
+    const copy = Object.assign({}, u);
+    copy.items = (u.items || []).map((it) => Object.assign({}, it));
+    return copy;
+  }
+
+  function serializeRun() {
+    const grid = {};
+    Object.keys(state.grid || {}).forEach((k) => {
+      const u = state.grid[k];
+      if (u && u.side === "player" && !u.dead) grid[k] = cloneUnit(u);
+    });
+    return {
+      v: 1,
+      lp: state.lp,
+      enemyLp: state.enemyLp,
+      gold: state.gold,
+      round: state.round,
+      duelRound: state.duelRound,
+      duelIndex: state.duelIndex,
+      starChips: state.starChips,
+      level: state.level,
+      xp: state.xp,
+      winStreak: state.winStreak,
+      lossStreak: state.lossStreak,
+      phase: state.phase === "fight" ? "shop" : state.phase,
+      shop: (state.shop || []).map((c) => (c ? cloneUnit(c) : null)),
+      bench: (state.bench || []).map((c) => (c ? cloneUnit(c) : null)),
+      shopLocked: !!state.shopLocked,
+      grid,
+      itemBench: (state.itemBench || []).map((it) => Object.assign({}, it)),
+      itemsPicked: (state.itemsPicked || []).slice(),
+      strongestEver: state.strongestEver ? Object.assign({}, state.strongestEver) : null,
+      homeMode: state.homeMode,
+      uid: state.uid,
+      fightSpeed: state.fightSpeed,
+      soundOn: state.soundOn,
+    };
+  }
+
+  function saveRun() {
+    if (state.phase === "menu" || state.phase === "end") return;
+    try { localStorage.setItem(SAVE_KEY, JSON.stringify(serializeRun())); } catch (_) {}
+  }
+
+  function clearSavedRun() {
+    try { localStorage.removeItem(SAVE_KEY); } catch (_) {}
+  }
+
+  function readSavedRun() {
+    try {
+      const raw = localStorage.getItem(SAVE_KEY);
+      if (!raw) return null;
+      const data = JSON.parse(raw);
+      if (!data || data.v !== 1) return null;
+      return data;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function hasSavedRun() {
+    const data = readSavedRun();
+    return !!(data && (data.phase === "shop" || data.phase === "map"));
+  }
+
+  function applySavedRun(data) {
+    if (!data) return false;
+    state.lp = data.lp | 0;
+    state.enemyLp = data.enemyLp | 0;
+    state.gold = data.gold | 0;
+    state.round = Math.max(1, data.round | 0);
+    state.duelRound = Math.max(1, data.duelRound | 0);
+    state.duelIndex = Math.max(0, data.duelIndex | 0);
+    state.starChips = Math.max(0, data.starChips | 0);
+    state.level = Math.max(1, data.level | 0);
+    state.xp = Math.max(0, data.xp | 0);
+    state.winStreak = data.winStreak | 0;
+    state.lossStreak = data.lossStreak | 0;
+    state.phase = data.phase === "map" ? "map" : "shop";
+    state.shop = Array.isArray(data.shop) ? data.shop.map((c) => (c ? cloneUnit(c) : null)) : [];
+    state.bench = Array.isArray(data.bench)
+      ? data.bench.map((c) => (c ? cloneUnit(c) : null))
+      : [null, null, null, null, null, null, null, null, null];
+    while (state.bench.length < 9) state.bench.push(null);
+    state.shopLocked = !!data.shopLocked;
+    state.grid = {};
+    Object.keys(data.grid || {}).forEach((k) => {
+      const u = data.grid[k];
+      if (u) state.grid[k] = cloneUnit(u);
+    });
+    state.itemBench = Array.isArray(data.itemBench)
+      ? data.itemBench.map((it) => Object.assign({}, it))
+      : [];
+    state.itemsPicked = Array.isArray(data.itemsPicked) ? data.itemsPicked.slice() : [];
+    state.strongestEver = data.strongestEver ? Object.assign({}, data.strongestEver) : null;
+    state.homeMode = data.homeMode === "castle" ? "castle" : "kingdom";
+    state.uid = Math.max(1, data.uid | 0);
+    state.fightSpeed = data.fightSpeed || 1;
+    state.soundOn = data.soundOn !== false;
+    state.selected = null;
+    state.selectedItem = null;
+    state.awaitingItemDraft = false;
+    state.pendingResult = null;
+    state.combatVisuals = {};
+    return true;
+  }
 
   const state = {
-    mode: "classic",
-    roster: ORIGINAL_ROSTER.slice(),
-    usedFallback: false,
-    lp: 8000,
+    roster: [],
+    cardsReady: false,
+    cardsError: false,
+    homeMode: "kingdom", // kingdom | castle
+    homeTab: "duel", // duel | records | binder
+    lp: DUEL_START_LP,
+    enemyLp: DUEL_START_LP,
     gold: 10,
-    round: 1,
+    round: 1, // global economy / item-draft round (whole tournament)
+    duelRound: 1, // round within the current duel
     duelIndex: 0,
     starChips: 2,
     level: 1,
@@ -1609,15 +2985,19 @@
     uid: 1,
     combatTimer: null,
     drag: null,
-    fightSpeed: 1,
+    fightSpeed: readMeta().fightSpeed || 1,
+    soundOn: readMeta().soundOn !== false,
     combatVisuals: {}, // uid -> { wrap, x, y, lungeX, lungeY, lungeT }
     pendingResult: null,
     itemBench: [],
     selectedItem: null, // index in itemBench
-    enemyLp: 8000,
     itemsPicked: [],
-    strongestEver: null, // { name, atk }
+    strongestEver: null, // { name, atk, imgSmall }
     awaitingItemDraft: false,
+    preFightArmy: null, // snapshot of player board units before combat
+    justPlacedUid: null,
+    placeGlowHex: null, // { row, col } hex to pulse after bench→board place
+    resultsHoldTimer: null,
   };
 
   const $ = (id) => document.getElementById(id);
@@ -1629,16 +3009,30 @@
     traitBar: $("traitBar"), log: $("log"),
     sellBar: $("sellBar"), shopBlock: $("shopBlock"),
     howOverlay: $("howOverlay"), endOverlay: $("endOverlay"),
-    startOverlay: $("startOverlay"),
+    homeScreen: $("homeScreen"),
+    homeMain: $("homeMain"),
+    homeChipCount: $("homeChipCount"),
+    homeFoeName: $("homeFoeName"),
+    homeSigArt: $("homeSigArt"),
+    homeBest: $("homeBest"),
+    homeLoadError: $("homeLoadError"),
+    panelRecords: $("panelRecords"),
+    panelBinder: $("panelBinder"),
+    recordsGrid: $("recordsGrid"),
+    binderSearch: $("binderSearch"),
+    binderGrid: $("binderGrid"),
+    settingsOverlay: $("settingsOverlay"),
     traitOverlay: $("traitOverlay"), oddsOverlay: $("oddsOverlay"),
     itemDraftOverlay: $("itemDraftOverlay"),
     itemDraftGrid: $("itemDraftGrid"),
     itemBench: $("itemBench"),
     endTitle: $("endTitle"), endMsg: $("endMsg"), toast: $("toast"),
     runSummary: $("runSummary"),
-    fallbackNotice: $("fallbackNotice"),
-    loadStatus: $("loadStatus"),
     btnStart: $("btnStart"),
+    btnContinue: $("btnContinue"),
+    enemyLp: $("enemyLp"),
+    lpYouWrap: $("lpYouWrap"),
+    lpFoeWrap: $("lpFoeWrap"),
     btnFight: $("btnFight"),
     fightBar: $("fightBar"),
     btnSpeed: $("btnSpeed"),
@@ -1648,7 +3042,9 @@
     resultsTitle: $("resultsTitle"),
     resultsMsg: $("resultsMsg"),
     arena: $("arena"),
+    boardWrap: $("boardWrap"),
     hexStage: $("hexStage"),
+    holoLayer: $("holoLayer"),
     levelNum: $("levelNum"),
     xpText: $("xpText"),
     xpFill: $("xpFill"),
@@ -1673,6 +3069,14 @@
     btnLockShop: $("btnLockShop"),
     tokenStatsOverlay: $("tokenStatsOverlay"),
     tokenStatsBody: $("tokenStatsBody"),
+    guideOverlay: $("guideOverlay"),
+    guideBody: $("guideBody"),
+    guideTitle: $("guideTitle"),
+    guideFlip: $("guideFlip"),
+    btnGuideBuy: $("btnGuideBuy"),
+    btnGuideClose: $("btnGuideClose"),
+    btnGuidePrev: $("btnGuidePrev"),
+    btnGuideNext: $("btnGuideNext"),
   };
 
   function raceMeta(race) {
@@ -1704,12 +3108,8 @@
     return SHOP_ODDS[lv] || SHOP_ODDS[1];
   }
 
-  function bucketForMonsterLevel(level) {
-    const lv = Number(level) || 1;
-    if (lv <= 2) return 0;
-    if (lv <= 4) return 1;
-    if (lv <= 6) return 2;
-    return 3;
+  function bucketForCost(cost) {
+    return Math.max(0, Math.min(4, (Number(cost) || 1) - 1));
   }
 
   /** Unique monsters per Type (copies of same baseId don't stack). */
@@ -1890,8 +3290,32 @@
     if (!unit) return;
     const atk = effectiveAtk(unit);
     if (!state.strongestEver || atk > state.strongestEver.atk) {
-      state.strongestEver = { name: unit.name, atk: atk };
+      state.strongestEver = {
+        name: unit.name,
+        atk: atk,
+        imgSmall: unit.imgSmall || null,
+      };
     }
+  }
+
+  function playUiBlip() {
+    if (!state.soundOn) return;
+    try {
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!Ctx) return;
+      if (!state._audioCtx) state._audioCtx = new Ctx();
+      const ctx = state._audioCtx;
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.type = "square";
+      o.frequency.value = 660;
+      g.gain.value = 0.03;
+      o.connect(g);
+      g.connect(ctx.destination);
+      o.start();
+      g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.08);
+      o.stop(ctx.currentTime + 0.09);
+    } catch (_) {}
   }
 
   function allPlayerUnits() {
@@ -1933,18 +3357,20 @@
 
   function makeInstance(base, stars) {
     stars = stars || 1;
-    const mult = stars === 2 ? 1.6 : 1;
-    const atk = Math.round(base.atk * mult);
-    const def = Math.round(base.def * mult);
-    const maxHp = Math.max(500, def);
+    const enriched = enrichCardBase(base);
+    const atk = Number(enriched.atk) || 0;
+    const def = Number(enriched.def) || 0;
+    const maxHp = battleHpFromDef(def, stars);
     return {
       uid: uid(),
-      baseId: base.id,
-      name: base.name,
-      type: base.type,
-      attribute: base.attribute || "DARK",
-      level: base.level,
-      cost: base.cost != null ? base.cost : costFromLevel(base.level),
+      baseId: enriched.id,
+      name: enriched.name,
+      type: enriched.type,
+      attribute: enriched.attribute || "DARK",
+      level: enriched.level,
+      cost: enriched.cost,
+      role: enriched.role,
+      range: enriched.range,
       stars,
       atk,
       def,
@@ -1954,7 +3380,7 @@
       shield: 0,
       stunUntil: 0,
       hasteUntil: 0,
-      canRevive: String(base.type) === "Zombie",
+      canRevive: String(enriched.type) === "Zombie",
       revived: false,
       dead: false,
       side: null,
@@ -1963,6 +3389,9 @@
       atkCd: 0,
       moveCd: 0,
       items: [],
+      imgSmall: enriched.imgSmall || null,
+      imgCropped: enriched.imgCropped || null,
+      apiId: enriched.apiId || null,
     };
   }
 
@@ -1981,12 +3410,11 @@
       r -= odds[i];
       if (r <= 0) { bucket = i; break; }
     }
-    let pool = state.roster.filter((c) => bucketForMonsterLevel(c.level) === bucket);
+    let pool = state.roster.filter((c) => bucketForCost(c.cost) === bucket);
     if (!pool.length) {
-      // fallback: nearest non-empty bucket
-      for (let d = 1; d <= 3 && !pool.length; d++) {
+      for (let d = 1; d <= 4 && !pool.length; d++) {
         pool = state.roster.filter((c) => {
-          const b = bucketForMonsterLevel(c.level);
+          const b = bucketForCost(c.cost);
           return b === bucket - d || b === bucket + d;
         });
       }
@@ -2034,7 +3462,14 @@
   }
 
   function tryFuse(baseId) {
-    const locs = findCopies(baseId, 1);
+    // Prefer 2★→3★ first, then 1★→2★
+    if (fuseCopies(baseId, 2, 3)) return true;
+    if (fuseCopies(baseId, 1, 2)) return true;
+    return false;
+  }
+
+  function fuseCopies(baseId, fromStars, toStars) {
+    const locs = findCopies(baseId, fromStars);
     if (locs.length < 3) return false;
     const take = locs.slice(0, 3);
     const base = state.roster.find((r) => r.id === baseId);
@@ -2045,10 +3480,9 @@
       if (u && u.items) pooledItems.push.apply(pooledItems, u.items);
       removeLoc(l);
     });
-    const fused = makeInstance(base, 2);
+    const fused = makeInstance(base, toStars);
     fused.items = pooledItems.slice(0, MAX_ITEMS);
     pooledItems.slice(MAX_ITEMS).forEach((it) => state.itemBench.push(it));
-    // Prefer first emptied hex among take, else bench
     let placed = false;
     for (const l of take) {
       if (l.from === "hex" && !getCell(l.row, l.col)) {
@@ -2071,25 +3505,30 @@
       const bi = firstEmptyBench();
       if (bi !== null) state.bench[bi] = fused;
     }
-    toast(`Fusion! ${fused.name} ★★`);
-    logLine(`<span class="sys">⚡ ${escapeHtml(fused.name)} fused into ★★!</span>`);
+    toast("Fusion! " + fused.name + " " + starsLabel(toStars));
+    logLine('<span class="sys">⚡ ' + escapeHtml(fused.name) + " fused into " + starsLabel(toStars) + "!</span>");
     return true;
   }
 
+  /** Scaled ATK used for abilities / trait math (card ATK × star mult × bonuses). */
   function effectiveAtk(unit) {
     if (!unit) return 0;
     const b = traitBonusesFor(unit);
-    let base = unit.atk + itemAtkBonus(unit);
+    let base = (unit.atk + itemAtkBonus(unit)) * starMult(unit.stars);
     if (hasMegamorph(unit) && state.lp < state.enemyLp) base *= 2;
     const areaPct = areaAtkBonus(unit);
     return Math.round(base * (1 + b.atkPct + areaPct));
   }
 
   function effectiveMaxHp(unit) {
-    if (!unit) return 500;
+    if (!unit) return 600;
     const b = traitBonusesFor(unit);
     const def = Math.max(0, unit.def + itemDefBonus(unit));
-    return Math.max(500, Math.round(Math.max(500, def) * (1 + b.hpPct)));
+    return Math.max(600, Math.round(Math.max(600, def * 1.5) * starMult(unit.stars) * (1 + b.hpPct)));
+  }
+
+  function attackDamage(unit) {
+    return Math.max(1, Math.round(effectiveAtk(unit) / 4));
   }
 
   function escapeHtml(s) {
@@ -2153,14 +3592,52 @@
   }
 
   function fitHexSize() {
-    const stage = el.hexStage || el.arena;
-    if (!stage) return;
-    const aw = stage.clientWidth || 360;
-    const ah = stage.clientHeight || 420;
-    const fromW = (aw - 6) / 7.05;
-    const fromH = ah / (6.7 * 1.12);
-    const w = Math.max(26, Math.min(46, Math.floor(Math.min(fromW, fromH))));
+    const arena = el.arena;
+    if (!arena) return;
+    const style = getComputedStyle(arena);
+    const padX = (parseFloat(style.paddingLeft) || 0) + (parseFloat(style.paddingRight) || 0);
+    const padY = (parseFloat(style.paddingTop) || 0) + (parseFloat(style.paddingBottom) || 0);
+    const aw = Math.max(180, arena.clientWidth - padX);
+    const ah = Math.max(120, arena.clientHeight - padY);
+    const tiltRad = 35 * Math.PI / 180;
+    const cosT = Math.cos(tiltRad);
+
+    // Fill near-edge width tightly (7 columns) — prefer width fill over empty side gutters
+    let screenHex = aw / 6.55;
+    const flatRows = 1.12 * 2.95 * 2 + 0.04;
+    const projectedAtFill = screenHex * flatRows * cosT;
+    if (projectedAtFill > ah * 1.28) {
+      screenHex = (ah * 1.28) / (flatRows * cosT);
+    }
+    let scale = 1.55;
+    let w = Math.round(screenHex / scale);
+    w = Math.max(26, Math.min(56, w));
+    scale = screenHex / w;
+    scale = Math.max(1.35, Math.min(2.05, scale));
+
     document.documentElement.style.setProperty("--hex-w", w + "px");
+    document.documentElement.style.setProperty("--board-scale", scale.toFixed(3));
+    document.documentElement.style.setProperty("--hex-screen-w", (w * scale).toFixed(2) + "px");
+  }
+
+  function measureScreenHexW() {
+    const hexes = document.querySelectorAll("#playerBoard .hex");
+    let sum = 0;
+    let n = 0;
+    hexes.forEach((hex) => {
+      const r = hex.getBoundingClientRect();
+      if (r.width > 8) { sum += r.width; n++; }
+    });
+    if (n > 0) return sum / n;
+    const css = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--hex-screen-w"));
+    return css > 8 ? css : 48;
+  }
+
+  function sizeHoloToken(tok) {
+    if (!tok) return;
+    const hw = measureScreenHexW();
+    tok.style.width = (hw * 1.3).toFixed(1) + "px";
+    tok.style.height = (hw * 1.5).toFixed(1) + "px";
   }
 
   function layoutBoard(boardEl, side) {
@@ -2170,7 +3647,7 @@
     const totalW = HEX_COLS * sample.w * 0.92 + sample.w * 0.46;
     const boardW = (el.hexStage && el.hexStage.clientWidth) || (el.arena && el.arena.clientWidth) || boardEl.clientWidth || 360;
     const offsetX = Math.max(0, boardW - totalW) / 2;
-    boardEl.style.height = (sample.h * 3.2 + 4) + "px";
+    boardEl.style.height = (sample.h * 3.05 + 2) + "px";
 
     for (let r = 0; r < HEX_ROWS; r++) {
       for (let c = 0; c < HEX_COLS; c++) {
@@ -2185,7 +3662,12 @@
 
         const unit = getCell(globalRow, c);
         if (unit) {
-          hex.appendChild(createTokenEl(unit));
+          // Invisible hit target for drag; visible art is in the screen-space holo layer
+          const hit = createTokenEl(unit, { holo: false });
+          hit.classList.add("hex-hit-token");
+          hit.style.opacity = "0";
+          hit.style.pointerEvents = "auto";
+          hex.appendChild(hit);
         }
 
         hex.addEventListener("pointerdown", (e) => onHexPointerDown(e, globalRow, c));
@@ -2198,24 +3680,68 @@
     }
   }
 
-  function createTokenEl(unit) {
+  function cardArtSrc(card, kind) {
+    if (!card) return null;
+    if (kind === "cropped") return card.imgCropped || card.imgSmall || null;
+    return card.imgSmall || card.imgCropped || null;
+  }
+
+  function bindArtFallback(img, emoji) {
+    if (!img) return;
+    img.addEventListener("error", () => {
+      const fb = document.createElement("div");
+      fb.className = img.dataset.fallbackClass || "emoji";
+      fb.textContent = emoji || "🃏";
+      if (img.parentNode) img.parentNode.replaceChild(fb, img);
+    }, { once: true });
+  }
+
+  function createTokenEl(unit, opts) {
+    opts = opts || {};
+    const asHolo = opts.holo !== false; // board default holo
     const meta = raceMeta(unit.type);
     const attr = String(unit.attribute || "DARK").toUpperCase();
     const tok = document.createElement("div");
-    tok.className = "token attr-" + attr + (unit.stars === 2 ? " star2" : "");
+    tok.className = "token attr-" + attr +
+      (unit.stars === 2 ? " star2" : "") +
+      (unit.stars >= 3 ? " star3" : "") +
+      (asHolo ? " holo" : "");
     tok.dataset.uid = String(unit.uid);
     const hpPct = Math.max(0, Math.min(100, ((unit.hp || unit.maxHp) / (unit.maxHp || 1)) * 100));
     const manaPct = Math.max(0, Math.min(100, (unit.mana || 0)));
     const icons = unitItems(unit).map((it) => itemDef(it.defId).emoji).join("");
-    tok.innerHTML =
-      (icons ? '<div class="item-icons">' + icons + "</div>" : "") +
-      '<div class="ring"></div>' +
-      '<div class="emoji">' + meta.emoji + "</div>" +
-      '<div class="stars">' + (unit.stars === 2 ? "★★" : "★") + "</div>" +
-      '<div class="bars">' +
-        '<div class="hp-bar"><div class="hp-fill" style="width:' + hpPct + '%"></div></div>' +
-        '<div class="mana-bar"><div class="mana-fill" style="width:' + manaPct + '%"></div></div>' +
-      "</div>";
+    const src = cardArtSrc(unit, "cropped");
+    let face;
+    if (src) {
+      face = '<img class="holo-art" src="' + src + '" alt="" draggable="false" data-fallback-class="emoji" />';
+    } else {
+      face = '<div class="emoji">' + meta.emoji + "</div>";
+    }
+    if (asHolo) {
+      tok.innerHTML =
+        '<div class="holo-shadow"></div>' +
+        '<div class="holo-rig">' +
+          (icons ? '<div class="item-icons">' + icons + "</div>" : "") +
+          '<div class="bars">' +
+            '<div class="hp-bar"><div class="hp-fill" style="width:' + hpPct + '%"></div></div>' +
+            '<div class="mana-bar"><div class="mana-fill" style="width:' + manaPct + '%"></div></div>' +
+          "</div>" +
+          '<div class="stars">' + starsLabel(unit.stars) + "</div>" +
+          '<div class="holo-billboard">' + face + "</div>" +
+        "</div>";
+      const img = tok.querySelector("img.holo-art");
+      bindArtFallback(img, meta.emoji);
+    } else {
+      tok.innerHTML =
+        (icons ? '<div class="item-icons">' + icons + "</div>" : "") +
+        '<div class="ring"></div>' +
+        '<div class="emoji">' + meta.emoji + "</div>" +
+        '<div class="stars">' + starsLabel(unit.stars) + "</div>" +
+        '<div class="bars">' +
+          '<div class="hp-bar"><div class="hp-fill" style="width:' + hpPct + '%"></div></div>' +
+          '<div class="mana-bar"><div class="mana-fill" style="width:' + manaPct + '%"></div></div>' +
+        "</div>";
+    }
     if (state.selected && state.selected.from === "hex" &&
         state.selected.row === unit.row && state.selected.col === unit.col) {
       tok.classList.add("selected");
@@ -2223,36 +3749,236 @@
     return tok;
   }
 
+  function createBenchCardEl(card) {
+    const meta = raceMeta(card.type);
+    const wrap = document.createElement("div");
+    wrap.className = "bench-card token";
+    wrap.dataset.uid = String(card.uid || "");
+    const src = cardArtSrc(card, "small");
+    const short = card.name.length > 8 ? card.name.slice(0, 7) + "…" : card.name;
+    if (src) {
+      wrap.innerHTML =
+        '<img class="bench-art" src="' + src + '" alt="" draggable="false" data-fallback-class="bench-emoji" />' +
+        '<div class="bench-meta"><span class="n">' + escapeHtml(short) + "</span>" +
+        '<span class="s"><span class="atk">' + card.atk + '</span>/<span class="def">' + card.def + "</span></span></div>";
+      bindArtFallback(wrap.querySelector("img"), meta.emoji);
+    } else {
+      wrap.innerHTML =
+        '<div class="bench-emoji">' + meta.emoji + "</div>" +
+        '<div class="bench-meta"><span class="n">' + escapeHtml(short) + "</span>" +
+        '<span class="s"><span class="atk">' + card.atk + '</span>/<span class="def">' + card.def + "</span></span></div>";
+    }
+    return wrap;
+  }
+
+  function guideRosterSorted() {
+    return state.roster.slice().sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  function openCardView(card, opts) {
+    openGuide("monsters", card, opts);
+  }
+
+  function closeCardView() {
+    closeGuide();
+  }
+
   function showTokenStats(unit) {
-    if (!unit || !el.tokenStatsBody) return;
-    const meta = raceMeta(unit.type);
-    const attr = String(unit.attribute || "DARK").toUpperCase();
-    const items = unitItems(unit).map((it) => {
-      const d = itemDef(it.defId);
-      return d.emoji + " " + d.name;
+    if (!unit) return;
+    openGuide("monsters", unit, { stars: unit.stars });
+  }
+
+  function openGuide(tab, card, opts) {
+    opts = opts || {};
+    state.guideTab = tab || "monsters";
+    state.cardViewShopIndex = opts.shopIndex != null ? opts.shopIndex : null;
+    state.guideStars = opts.stars || (card && card.stars) || 1;
+    if (card) {
+      const list = guideRosterSorted();
+      const id = card.baseId || card.id;
+      let idx = list.findIndex((c) => c.id === id);
+      if (idx < 0) idx = list.findIndex((c) => c.name === card.name);
+      state.guideIndex = idx >= 0 ? idx : 0;
+      if (idx < 0 && card.name) {
+        // Ad-hoc card (e.g. toon pool) — stash as temporary view card
+        state.guideTempCard = enrichCardBase(card);
+      } else {
+        state.guideTempCard = null;
+      }
+    } else if (state.guideIndex == null) {
+      state.guideIndex = 0;
+    }
+    if (el.guideOverlay) el.guideOverlay.classList.add("open");
+    renderGuide();
+  }
+
+  function closeGuide() {
+    if (el.guideOverlay) el.guideOverlay.classList.remove("open");
+    state.cardViewShopIndex = null;
+    state.guideTempCard = null;
+  }
+
+  function currentGuideCard() {
+    if (state.guideTempCard) return state.guideTempCard;
+    const list = guideRosterSorted();
+    if (!list.length) return null;
+    const i = Math.max(0, Math.min(list.length - 1, state.guideIndex | 0));
+    return list[i];
+  }
+
+  function renderGuide() {
+    if (!el.guideOverlay || !el.guideBody) return;
+    const tab = state.guideTab || "monsters";
+    el.guideOverlay.querySelectorAll(".guide-tab").forEach((btn) => {
+      btn.classList.toggle("active", btn.getAttribute("data-tab") === tab);
     });
-    el.tokenStatsBody.innerHTML =
-      '<div class="ts-head"><span class="ts-emoji">' + meta.emoji + "</span>" +
-      "<div><strong>" + escapeHtml(unit.name) + "</strong>" +
-      '<div class="ts-sub">' + escapeHtml(unit.type) + " · " + attr +
-      " · " + (unit.stars === 2 ? "★★" : "★") + "</div></div></div>" +
-      '<div class="ts-stats">' +
-      "<div>ATK <b>" + unit.atk + "</b></div>" +
-      "<div>DEF <b>" + unit.def + "</b></div>" +
-      "<div>HP <b>" + Math.round(unit.hp || unit.maxHp || 0) + "/" + Math.round(unit.maxHp || 0) + "</b></div>" +
-      "<div>Cost <b>" + (unit.cost || 0) + "🪙</b></div>" +
+    if (el.guideFlip) el.guideFlip.classList.toggle("show", tab === "monsters" && !state.guideTempCard && state.roster.length > 1);
+    if (el.guideTitle) {
+      el.guideTitle.textContent = ({
+        monsters: "Monsters",
+        types: "Types",
+        items: "Items",
+        basics: "Basics",
+        duelists: "Duelists",
+      })[tab] || "Guide";
+    }
+    const canBuy = tab === "monsters" && state.cardViewShopIndex != null && state.phase === "shop";
+    if (el.btnGuideBuy) {
+      el.btnGuideBuy.style.display = canBuy ? "" : "none";
+      const card = currentGuideCard();
+      if (card) el.btnGuideBuy.textContent = "Buy · " + card.cost + "🪙";
+    }
+    if (tab === "monsters") el.guideBody.innerHTML = renderGuideMonsterHTML();
+    else if (tab === "types") el.guideBody.innerHTML = renderGuideTypesHTML();
+    else if (tab === "items") el.guideBody.innerHTML = renderGuideItemsHTML();
+    else if (tab === "basics") el.guideBody.innerHTML = renderGuideBasicsHTML();
+    else if (tab === "duelists") el.guideBody.innerHTML = renderGuideDuelistsHTML();
+    const img = el.guideBody.querySelector(".g-art img");
+    if (img) {
+      const card = currentGuideCard();
+      bindArtFallback(img, raceMeta(card && card.type).emoji);
+    }
+    el.guideBody.querySelectorAll(".g-fuse-card img").forEach((im) => {
+      const card = currentGuideCard();
+      bindArtFallback(im, raceMeta(card && card.type).emoji);
+    });
+  }
+
+  function renderGuideMonsterHTML() {
+    const card = currentGuideCard();
+    if (!card) {
+      return '<div class="binder-empty">No monsters loaded yet.</div>';
+    }
+    const meta = raceMeta(card.type);
+    const attr = String(card.attribute || "DARK").toUpperCase();
+    const cost = card.cost != null ? card.cost : costFromStats(card.atk, card.def);
+    const role = card.role || roleFor(card);
+    const range = card.range != null ? card.range : rangeFor(card);
+    const ability = abilityFor(card);
+    const stars = state.guideStars || 1;
+    const src = cardArtSrc(card, "cropped") || cardArtSrc(card, "small");
+    const art = src
+      ? '<img src="' + src + '" alt="" />'
+      : '<span class="emoji">' + meta.emoji + "</span>";
+    const fuse = [1, 2, 3].map((s) => {
+      const hp = battleHpFromDef(card.def, s);
+      const dmg = battleDmgFromAtk(card.atk, s);
+      const active = s === Math.min(3, Math.max(1, stars)) ? " active" : "";
+      const fArt = src
+        ? '<img src="' + src + '" alt="" />'
+        : '<div style="font-size:1.4rem;padding:12px 0">' + meta.emoji + "</div>";
+      return (
+        '<div class="g-fuse-card' + active + '">' + fArt +
+        '<div class="fs">' + starsLabel(s) + "</div>" +
+        '<div class="fh">HP ' + hp + "<br>DMG " + dmg + "</div></div>"
+      );
+    }).join('<div class="g-fuse-arrow">→</div>');
+    return (
+      '<div class="g-hero">' +
+        '<div class="g-art">' + art + "</div>" +
+        '<div class="g-meta">' +
+          '<p class="g-name">' + escapeHtml(card.name) + "</p>" +
+          '<span class="g-cost c' + cost + '">' + cost + "</span>" +
+          '<span class="g-stars">' + starsLabel(stars) + "</span>" +
+          '<div class="g-pills">' +
+            '<span class="g-pill">' + meta.emoji + " " + escapeHtml(card.type) + "</span>" +
+            '<span class="g-pill">' + escapeHtml(attr) + "</span>" +
+            '<span class="g-pill role">' + role + "</span>" +
+            '<span class="g-pill range">Range ' + range + "</span>" +
+          "</div>" +
+        "</div>" +
       "</div>" +
-      (items.length ? '<div class="ts-items">' + items.map(escapeHtml).join(" · ") + "</div>" : "");
-    el.tokenStatsOverlay.classList.add("open");
+      '<div class="g-section"><h3>Fusion chain</h3><div class="g-fusion">' + fuse + "</div></div>" +
+      '<div class="g-section"><h3>Ability</h3><div class="g-ability">' +
+        '<span class="am">Mana ' + ability.mana + "</span>" +
+        '<div class="an">' + escapeHtml(ability.name) + "</div>" +
+        '<p class="ad">' + escapeHtml(ability.desc) + "</p>" +
+      "</div></div>" +
+      '<div class="g-raw">' +
+        '<div class="atk"><small>Card ATK</small>' + card.atk + "</div>" +
+        '<div class="def"><small>Card DEF</small>' + card.def + "</div>" +
+      "</div>"
+    );
+  }
+
+  function renderGuideTypesHTML() {
+    const keys = Object.keys(TRAIT_INFO).filter((k) => k !== "_other");
+    const rows = keys.map((t) => {
+      const info = TRAIT_INFO[t];
+      return (
+        '<div class="g-list-card"><h4>' + info.emoji + " " + escapeHtml(t) + "</h4>" +
+        "<ul>" + info.lines.map((l) => "<li>" + escapeHtml(l) + "</li>").join("") + "</ul></div>"
+      );
+    }).join("");
+    const other = TRAIT_INFO._other;
+    return '<div class="g-list">' + rows +
+      '<div class="g-list-card"><h4>' + other.emoji + " Other Types</h4><ul>" +
+      other.lines.map((l) => "<li>" + escapeHtml(l) + "</li>").join("") +
+      "</ul></div></div>";
+  }
+
+  function renderGuideItemsHTML() {
+    return '<div class="g-list">' + ITEM_DEFS.map((it) =>
+      '<div class="g-list-card"><h4>' + it.emoji + " " + escapeHtml(it.name) + "</h4>" +
+      "<p>" + escapeHtml(it.desc) + "</p></div>"
+    ).join("") + "</div>";
+  }
+
+  function renderGuideBasicsHTML() {
+    return (
+      '<div class="g-basics"><ol>' +
+      "<li>Cost = ATK+DEF tier: under 2000→1, 2000s→2, 3000s→3, 4000s→4, 5000+→5. Borders: gray / green / blue / purple / gold.</li>" +
+      "<li>Battle HP = DEF×1.5 (min 600). Attack damage = ATK÷4. ★★ ×1.8, ★★★ ×3.2 to HP and damage.</li>" +
+      "<li>Roles: high DEF = Tank (melee). High ATK = Attacker (melee, or range 2 for Spellcaster / Thunder / Machine). Else Fighter.</li>" +
+      "<li>Buy 3 copies to fuse ★★, then 3 ★★ into ★★★. Place on hexes, then FIGHT.</li>" +
+      "<li>Each duel is multi-round at 4000 LP. Win/lose the duel for ±1 Star Chip. Reach 10 ★ for the Castle; 0 chips ends the run.</li>" +
+      "<li>Your build carries between rounds and duels. Progress auto-saves every round.</li>" +
+      "<li>Shop odds favor cheap units early; 4- and 5-cost monsters are rare until level 7+.</li>" +
+      "</ol></div>"
+    );
+  }
+
+  function renderGuideDuelistsHTML() {
+    return '<div class="g-list">' + LADDER.map((d, i) =>
+      '<div class="g-list-card"><h4>' + (i + 1) + ". " + escapeHtml(d.name) + "</h4>" +
+      "<p><strong>" + escapeHtml(d.theme) + "</strong> · " + escapeHtml((AREAS[d.area] && AREAS[d.area].name) || d.area) +
+      (d.boss ? " · Final boss" : "") + "</p>" +
+      "<p style='margin-top:4px;opacity:0.9'>\"" + escapeHtml(d.taunt || "") + "\"</p></div>"
+    ).join("") + "</div>";
   }
 
   function cardHTML(card) {
     const meta = raceMeta(card.type);
-    const attr = String(card.attribute || "DARK").toUpperCase();
+    const cost = card.cost != null ? card.cost : costFromStats(card.atk, card.def);
+    const src = cardArtSrc(card, "small");
+    const art = src
+      ? '<div class="art-wrap"><img class="card-art" src="' + src + '" alt="" draggable="false" data-fallback-class="emoji" /></div>'
+      : '<div class="art-wrap"><div class="emoji">' + meta.emoji + "</div></div>";
+    const starCls = card.stars === 2 ? " star2" : (card.stars >= 3 ? " star3" : "");
     return (
-      '<div class="card attr-' + attr + (card.stars === 2 ? " star2" : "") + '">' +
-      '<span class="cost-badge">' + card.cost + "</span>" +
-      '<div class="emoji">' + meta.emoji + "</div>" +
+      '<div class="card cost-' + cost + starCls + '">' +
+      '<span class="cost-badge">' + cost + "</span>" +
+      art +
       '<div class="name">' + escapeHtml(card.name) + "</div>" +
       '<div class="stats"><span class="atk">' + card.atk + '</span><span class="type-ico">' +
       meta.emoji + '</span><span class="def">' + card.def + "</span></div>" +
@@ -2273,6 +3999,10 @@
       const s = Math.max(0.72, Math.min(1, sx, sy));
       node.style.transform = "scale(" + s.toFixed(3) + ")";
     });
+    el.shop.querySelectorAll("img.card-art").forEach((img) => {
+      const metaEmoji = img.closest(".card") && img.closest(".card").querySelector(".type-ico");
+      bindArtFallback(img, metaEmoji ? metaEmoji.textContent : "🃏");
+    });
   }
 
   function renderShop() {
@@ -2282,7 +4012,7 @@
       wrap.className = "zone" + (card ? " filled" : "");
       if (card) {
         wrap.innerHTML = cardHTML(card);
-        wrap.addEventListener("click", () => buyCard(i));
+        wrap.addEventListener("click", () => openCardView(card, { shopIndex: i }));
       }
       el.shop.appendChild(wrap);
     });
@@ -2301,12 +4031,28 @@
         slot.classList.add("valid-target");
       }
       if (card) {
-        slot.appendChild(createTokenEl(Object.assign({}, card, { row: null, col: null, hp: card.hp || card.maxHp, maxHp: card.maxHp })));
+        slot.appendChild(createBenchCardEl(card));
       }
       slot.addEventListener("click", () => onBenchTap(i));
       slot.addEventListener("pointerdown", (e) => onBenchPointerDown(e, i));
       el.bench.appendChild(slot);
     });
+  }
+
+  function pulsePlaceGlow(row, col) {
+    const board = row < HEX_ROWS ? el.enemyBoard : el.playerBoard;
+    const hex = board && board.querySelector('.hex[data-row="' + row + '"][data-col="' + col + '"]');
+    if (!hex) return;
+    hex.classList.remove("place-glow");
+    void hex.offsetWidth;
+    hex.classList.add("place-glow");
+    setTimeout(() => hex.classList.remove("place-glow"), 520);
+  }
+
+  function markBenchPlace(unit, row, col) {
+    if (!unit) return;
+    state.justPlacedUid = unit.uid;
+    state.placeGlowHex = { row: row, col: col };
   }
 
   function renderBoards() {
@@ -2332,6 +4078,17 @@
         }
       });
     }
+    const glow = state.placeGlowHex;
+    if (glow) {
+      state.placeGlowHex = null;
+      pulsePlaceGlow(glow.row, glow.col);
+    }
+    // Wait for tilt/scale layout to settle, then size screen-space holos from projected hexes
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      syncHoloLayer();
+      // Second pass: WebKit sometimes reports pre-transform rects on the first measure
+      requestAnimationFrame(() => syncHoloLayer());
+    }));
   }
 
   function renderTraits() {
@@ -2374,18 +4131,21 @@
 
   function showOddsPopup() {
     const odds = shopOddsForLevel(state.level);
-    const labels = ["Level 1–2", "Level 3–4", "Level 5–6", "Level 7–8+"];
+    const labels = ["1-cost", "2-cost", "3-cost", "4-cost", "5-cost"];
+    const colors = ["#9aa3ad", "#3ecf6a", "#3a8aef", "#a64dff", "#f0c040"];
     $("oddsTitle").textContent = "Shop Odds · Lv " + state.level;
     $("oddsBody").innerHTML = labels.map((lab, i) =>
       "<div style='display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line);font-weight:700'>" +
-      "<span>" + lab + "</span><span style='color:var(--gold)'>" + odds[i] + "%</span></div>"
+      "<span style='color:" + colors[i] + "'>" + lab + "</span><span style='color:var(--gold)'>" +
+      (odds[i] || 0) + "%</span></div>"
     ).join("") +
-      "<p style='margin:12px 0 0;font-size:0.82rem;color:var(--muted)'>Higher player levels roll stronger monsters more often.</p>";
+      "<p style='margin:12px 0 0;font-size:0.82rem;color:var(--muted)'>Cost = ATK+DEF tier. 4- and 5-cost monsters are rare until level 7+.</p>";
     el.oddsOverlay.classList.add("open");
   }
 
   function renderHUD() {
     el.lp.textContent = state.lp;
+    if (el.enemyLp) el.enemyLp.textContent = state.enemyLp;
     el.gold.textContent = state.gold;
     el.round.textContent = state.round;
     renderStarChips();
@@ -2402,7 +4162,6 @@
       el.xpFill.style.width = Math.min(100, (state.xp / Math.max(1, need)) * 100) + "%";
     }
     el.btnBuyXp.disabled = state.phase !== "shop" || state.gold < 4 || state.level >= 9;
-    if (el.fallbackNotice) el.fallbackNotice.classList.toggle("show", !!state.usedFallback);
     const canSell = !!(state.selected && state.selected.from === "bench" && state.bench[state.selected.index]);
     el.sellBar.classList.toggle("show", canSell);
     if (canSell) {
@@ -2471,10 +4230,17 @@
 
   function renderDuelist() {
     const d = currentDuelist();
-    if (el.duelistRound) el.duelistRound.textContent = "R" + state.round;
+    if (el.duelistRound) el.duelistRound.textContent = "R" + (state.duelRound || 1);
     if (el.duelistName) {
-      el.duelistName.textContent = d.name;
-      el.duelistName.title = d.name + (d.theme ? " · " + d.theme : "");
+      const name = d.name || "";
+      el.duelistName.textContent = name;
+      el.duelistName.title = name + (d.theme ? " · " + d.theme : "");
+      // Shrink so long names (e.g. Maximillion Pegasus) never clip on iPhone
+      let fs = 0.78;
+      if (name.length > 18) fs = 0.55;
+      else if (name.length > 14) fs = 0.62;
+      else if (name.length > 11) fs = 0.7;
+      el.duelistName.style.fontSize = fs + "rem";
     }
   }
 
@@ -2538,7 +4304,7 @@
     }
 
     if (state.selected && state.selected.from === "bench" && state.selected.index === index) {
-      showTokenStats(card);
+      openCardView(card);
       return;
     }
     state.selected = { from: "bench", index };
@@ -2569,11 +4335,13 @@
         unit.side = null;
         card.side = "player";
         setCell(row, col, card);
+        markBenchPlace(card, row, col);
       } else if (!unit) {
         if (playerCount() >= boardCap()) { toast("Max " + boardCap() + " on board (level up!)"); return; }
         state.bench[state.selected.index] = null;
         card.side = "player";
         setCell(row, col, card);
+        markBenchPlace(card, row, col);
       }
       state.selected = null;
       render();
@@ -2725,6 +4493,7 @@
         }
         unit.side = "player";
         setCell(row, col, unit);
+        markBenchPlace(unit, row, col);
       } else {
         // move/swap hex to hex
         if (occ && !(occ.row === src.row && occ.col === src.col)) {
@@ -2801,10 +4570,15 @@
   }
 
   function cycleSpeed() {
-    state.fightSpeed = state.fightSpeed === 1 ? 2 : 1;
+    const order = [1, 2, 3];
+    const i = order.indexOf(state.fightSpeed);
+    state.fightSpeed = order[(i + 1) % order.length];
+    writeMeta({ fightSpeed: state.fightSpeed });
     const spd = state.fightSpeed + "x";
     if (el.btnSpeed) el.btnSpeed.textContent = spd;
     if (el.btnSpeedMenu) el.btnSpeedMenu.textContent = "Speed " + spd;
+    const bs = $("btnSettingsSpeed");
+    if (bs) bs.textContent = spd;
   }
 
   /* —— Enemy placement —— */
@@ -2838,7 +4612,13 @@
   function placeEnemy() {
     clearEnemy();
     const duelist = currentDuelist();
-    const count = Math.min(boardCap() + 1, Math.min(7, 1 + Math.floor(state.round * 0.7) + (duelist.boss ? 1 : 0)));
+    const dr = Math.max(1, state.duelRound | 0);
+    const di = Math.max(0, state.duelIndex | 0);
+    // Weevil (0) easiest; later ladder slots + duel rounds add units/stars
+    const count = Math.min(
+      7,
+      1 + Math.floor(dr * 0.9) + Math.floor(di * 0.4) + (duelist.boss ? 1 : 0)
+    );
     const pool = themedPool(duelist);
     const sorted = [...pool].sort((a, b) => b.atk - a.atk);
     const slots = [];
@@ -2851,25 +4631,44 @@
         const tmp = slots[i]; slots[i] = slots[j]; slots[j] = tmp;
       }
     }
-    const scale = (state.round - 1) * 90 + (duelist.boss ? 200 : 0);
+    const scale = (dr - 1) * 80 + di * 110 + (duelist.boss ? 280 : 0);
     for (let i = 0; i < count; i++) {
-      let base = (state.round >= 4 && Math.random() < 0.4)
+      let base = (dr >= 3 && Math.random() < 0.35 + di * 0.04)
         ? sorted[Math.min(i, sorted.length - 1)]
         : pool[Math.floor(Math.random() * pool.length)];
       let stars = 1;
-      if (state.round >= 3 && Math.random() < 0.12 + state.round * 0.04) stars = 2;
+      if (dr >= 2 && Math.random() < 0.1 + dr * 0.08 + di * 0.03) stars = 2;
+      if (dr >= 5 && Math.random() < 0.08 + di * 0.02) stars = 3;
       if (duelist.boss && i === 0 && sorted.length) {
         base = sorted[0];
-        stars = state.round >= 8 ? 2 : 1;
+        stars = dr >= 4 ? 2 : 1;
+        if (dr >= 7) stars = 3;
+      }
+      // Prefer signature / theme monsters early in the enemy list
+      if (i < 2 && sorted.length) {
+        const sig = sorted[Math.min(i, sorted.length - 1)];
+        if (sig && Math.random() < 0.55 + di * 0.04) base = sig;
       }
       const mon = makeInstance(base, stars);
       mon.atk += scale;
-      mon.def += Math.floor(scale * 0.5);
-      mon.maxHp = Math.max(500, mon.def);
+      mon.def += Math.floor(scale * 0.55);
+      mon.maxHp = battleHpFromDef(mon.def, stars);
       mon.hp = mon.maxHp;
       mon.side = "enemy";
       setCell(slots[i].row, slots[i].col, mon);
     }
+  }
+
+  function unitEffectiveCost(u) {
+    if (!u) return 0;
+    const c = Number(u.cost) || costFromStats(u.atk, u.def);
+    const s = Math.max(1, Number(u.stars) || 1);
+    return c * s;
+  }
+
+  function fightLpDamage(survivorUnits, duelRound) {
+    const costSum = (survivorUnits || []).reduce((n, u) => n + unitEffectiveCost(u), 0);
+    return (2 + costSum + Math.max(1, duelRound | 0) * 2) * 100;
   }
 
   /* —— Combat (TFT-style) —— */
@@ -2910,15 +4709,51 @@
   }
 
   function hexCenterInArena(row, col) {
+    // Screen-space center relative to board-wrap (overlay host outside perspective).
     const board = row < HEX_ROWS ? el.enemyBoard : el.playerBoard;
-    const hex = board.querySelector('.hex[data-row="' + row + '"][data-col="' + col + '"]');
-    if (!hex || !el.arena) return { x: 0, y: 0 };
-    const a = el.arena.getBoundingClientRect();
+    const hex = board && board.querySelector('.hex[data-row="' + row + '"][data-col="' + col + '"]');
+    const host = el.boardWrap || el.arena;
+    if (!hex || !host) return { x: 0, y: 0 };
+    const a = host.getBoundingClientRect();
     const h = hex.getBoundingClientRect();
     return {
       x: h.left - a.left + h.width / 2,
-      y: h.top - a.top + h.height / 2,
+      y: h.top - a.top + h.height * 0.62,
     };
+  }
+
+  function syncHoloLayer() {
+    if (!el.holoLayer) return;
+    el.holoLayer.innerHTML = "";
+    if (state.phase === "fight" || state.phase === "menu") return;
+    const hw = measureScreenHexW();
+    document.documentElement.style.setProperty("--hex-screen-w", hw.toFixed(2) + "px");
+    allUnits().forEach((u) => {
+      if (!u || u.dead) return;
+      const pos = hexCenterInArena(u.row, u.col);
+      const ground = document.createElement("div");
+      ground.className = "holo-ground";
+      ground.style.left = pos.x + "px";
+      ground.style.top = pos.y + "px";
+      ground.style.width = (hw * 0.9).toFixed(1) + "px";
+      ground.style.height = (hw * 0.4).toFixed(1) + "px";
+      ground.style.marginLeft = (-hw * 0.45).toFixed(1) + "px";
+      ground.style.marginTop = (-hw * 0.2).toFixed(1) + "px";
+      el.holoLayer.appendChild(ground);
+      const tok = createTokenEl(u, { holo: true });
+      sizeHoloToken(tok);
+      tok.style.left = pos.x + "px";
+      tok.style.top = pos.y + "px";
+      if (state.selected && state.selected.from === "hex" &&
+          state.selected.row === u.row && state.selected.col === u.col) {
+        tok.classList.add("selected");
+      }
+      if (state.justPlacedUid === u.uid) {
+        tok.classList.add("just-placed");
+        state.justPlacedUid = null;
+      }
+      el.holoLayer.appendChild(tok);
+    });
   }
 
   function clearCombatLayer() {
@@ -2928,21 +4763,26 @@
 
   function mountCombatTokens() {
     clearCombatLayer();
-    // Hide hex tokens during fight; combat layer owns visuals
+    if (el.holoLayer) el.holoLayer.innerHTML = "";
+    const hw = measureScreenHexW();
+    document.documentElement.style.setProperty("--hex-screen-w", hw.toFixed(2) + "px");
+    // Combat layer owns visuals during fight (screen-space, outside perspective)
     el.arena.querySelectorAll(".hex .token").forEach((t) => { t.style.visibility = "hidden"; });
     allUnits().forEach((u) => {
       if (u.dead) return;
       const wrap = document.createElement("div");
       wrap.className = "combat-token";
       wrap.dataset.uid = String(u.uid);
-      const tok = createTokenEl(u);
+      const tok = createTokenEl(u, { holo: true });
+      sizeHoloToken(tok);
       wrap.appendChild(tok);
       el.combatLayer.appendChild(wrap);
       const pos = hexCenterInArena(u.row, u.col);
-      const half = (tok.offsetWidth || 40) / 2;
+      const halfW = (parseFloat(tok.style.width) || hw * 1.3) / 2;
+      const halfH = (parseFloat(tok.style.height) || hw * 1.5) / 2;
       state.combatVisuals[u.uid] = {
-        wrap, tok, x: pos.x, y: pos.y, half,
-        lungeX: 0, lungeY: 0, lungeT: 0,
+        wrap, tok, x: pos.x, y: pos.y, half: halfW, halfW, halfH,
+        lungeX: 0, lungeY: 0, lungeT: 0, lean: 0,
       };
       applyCombatTransform(u.uid);
       syncCombatBars(u);
@@ -2952,10 +4792,10 @@
   function applyCombatTransform(uid) {
     const v = state.combatVisuals[uid];
     if (!v) return;
-    const half = v.half || 20;
+    // Anchor at hex center; token CSS counter-rotates upright from bottom center
     v.wrap.style.transform =
-      "translate(" + (v.x - half) + "px," + (v.y - half) + "px) translate(" +
-      v.lungeX.toFixed(1) + "px," + v.lungeY.toFixed(1) + "px)";
+      "translate(" + v.x.toFixed(1) + "px," + v.y.toFixed(1) + "px) " +
+      "translate(" + v.lungeX.toFixed(1) + "px," + v.lungeY.toFixed(1) + "px)";
   }
 
   function syncCombatBars(unit) {
@@ -2993,10 +4833,29 @@
 
   function flashHit(unit) {
     const v = state.combatVisuals[unit.uid];
-    if (!v) return;
+    if (!v || !v.tok) return;
     v.tok.classList.remove("hit");
     void v.tok.offsetWidth;
     v.tok.classList.add("hit");
+  }
+
+  function spawnHoloShards(v) {
+    if (!v || !el.combatLayer) return;
+    const n = 12;
+    for (let i = 0; i < n; i++) {
+      const shard = document.createElement("div");
+      shard.className = "holo-shard";
+      const ang = (Math.PI * 2 * i) / n + Math.random() * 0.4;
+      const dist = 18 + Math.random() * 36;
+      shard.style.left = v.x + "px";
+      shard.style.top = (v.y - 28) + "px";
+      shard.style.setProperty("--sx", (Math.cos(ang) * dist).toFixed(1) + "px");
+      shard.style.setProperty("--sy", (Math.sin(ang) * dist - 10).toFixed(1) + "px");
+      shard.style.width = (5 + Math.random() * 5).toFixed(0) + "px";
+      shard.style.height = (5 + Math.random() * 5).toFixed(0) + "px";
+      el.combatLayer.appendChild(shard);
+      setTimeout(() => shard.remove(), 560 / state.fightSpeed);
+    }
   }
 
   function startLunge(attacker, target) {
@@ -3010,6 +4869,12 @@
     va.lungeX = (dx / len) * dist;
     va.lungeY = (dy / len) * dist;
     va.lungeT = 180 / state.fightSpeed;
+    va.lean = 26;
+    if (va.tok) {
+      va.tok.classList.remove("attacking");
+      void va.tok.offsetWidth;
+      va.tok.classList.add("attacking");
+    }
     applyCombatTransform(attacker.uid);
   }
 
@@ -3034,6 +4899,11 @@
     opts = opts || {};
     if (!target || target.dead || rawDmg <= 0) return 0;
     let dmg = Math.max(1, Math.round(rawDmg));
+    // Soft-cap bursts so early 1v1 fights read for 8–15s (abilities still chunk hard)
+    if (!opts.noCap && target.maxHp > 0) {
+      const cap = Math.max(120, Math.round(target.maxHp * 0.42));
+      if (dmg > cap) dmg = cap;
+    }
     if (target.shield > 0) {
       const absorbed = Math.min(target.shield, dmg);
       target.shield -= absorbed;
@@ -3092,12 +4962,7 @@
       }
     }
 
-    if (unit.side === "player") {
-      returnItemsToBench(unit);
-    }
-    if (unit.side === "enemy") {
-      state.enemyLp = Math.max(0, state.enemyLp - 200 * (unit.level || 1));
-    }
+    // Items stay on the unit — board is restored from pre-fight snapshot after combat.
 
     unit.dead = true;
     unit.hp = 0;
@@ -3105,10 +4970,16 @@
     const v = state.combatVisuals[unit.uid];
     if (v) {
       v.wrap.classList.add("dying");
+      if (v.tok) {
+        v.tok.classList.add("shattering");
+        const rig = v.tok.querySelector(".holo-rig");
+        if (rig) rig.style.animation = "none";
+      }
+      spawnHoloShards(v);
       setTimeout(() => {
         if (v.wrap.parentNode) v.wrap.remove();
         delete state.combatVisuals[unit.uid];
-      }, 450 / state.fightSpeed);
+      }, 560 / state.fightSpeed);
     }
     if (killer) {
       logLine('<span class="' + (killer.side === "player" ? "win" : "dmg") + '">' +
@@ -3198,8 +5069,7 @@
 
   function basicAttack(unit, target) {
     startLunge(unit, target);
-    const dmg = Math.max(1, Math.round(effectiveAtk(unit) / 4));
-    dealDamage(unit, target, dmg);
+    dealDamage(unit, target, attackDamage(unit));
     const manaGain = (traitBonusesFor(unit).manaOnHit || 10) + itemManaBonus(unit);
     gainMana(unit, manaGain);
     if (!unit.dead && unit.mana >= 100) {
@@ -3224,13 +5094,47 @@
           v.lungeX = 0;
           v.lungeY = 0;
           v.lungeT = 0;
+          v.lean = 0;
         } else if (v.lungeT < 90 / state.fightSpeed) {
-          // snap back halfway through
           v.lungeX *= 0.7;
           v.lungeY *= 0.7;
+          v.lean *= 0.65;
         }
       }
       applyCombatTransform(uidNum);
+    });
+  }
+
+  function snapshotPlayerArmy() {
+    const list = [];
+    for (let r = HEX_ROWS; r < HEX_ROWS * 2; r++) {
+      for (let c = 0; c < HEX_COLS; c++) {
+        const u = getCell(r, c);
+        if (u && u.side === "player") {
+          list.push({ row: r, col: c, unit: cloneUnit(u) });
+        }
+      }
+    }
+    return list;
+  }
+
+  function restorePlayerArmy(snap) {
+    for (let r = HEX_ROWS; r < HEX_ROWS * 2; r++) {
+      for (let c = 0; c < HEX_COLS; c++) setCell(r, c, null);
+    }
+    (snap || []).forEach((entry) => {
+      const u = cloneUnit(entry.unit);
+      u.maxHp = effectiveMaxHp(u);
+      u.hp = u.maxHp;
+      u.mana = 0;
+      u.shield = 0;
+      u.stunUntil = 0;
+      u.hasteUntil = 0;
+      u.dead = false;
+      u.side = "player";
+      u.row = entry.row;
+      u.col = entry.col;
+      setCell(entry.row, entry.col, u);
     });
   }
 
@@ -3240,7 +5144,7 @@
     state.selected = null;
     state.selectedItem = null;
     state.fightSpeed = 1;
-    state.enemyLp = 8000;
+    state.preFightArmy = snapshotPlayerArmy();
     placeEnemy();
     allUnits().forEach((u) => {
       const tb = traitBonusesFor(u);
@@ -3252,23 +5156,27 @@
       u.hasteUntil = 0;
       u.dead = false;
       if (u.type === "Zombie") { u.canRevive = true; u.revived = false; }
-      u.atkCd = Math.random() * 200;
-      u.moveCd = Math.random() * 100;
+      // Stagger first swings so the fight opens with movement, not an instant nuke
+      u.atkCd = 1100 + Math.random() * 700;
+      u.moveCd = 200 + Math.random() * 300;
     });
     const d = currentDuelist();
-    logLine('<span class="sys">—— Duel vs ' + escapeHtml(d.name) + " ——</span>");
+    logLine('<span class="sys">—— Round ' + state.duelRound + " vs " +
+      escapeHtml(d.name) + " ——</span>");
     render();
     if (el.btnFight) el.btnFight.style.display = "none";
     if (el.boardCount) el.boardCount.style.visibility = "hidden";
-    if (el.duelFlash) {
+    if (el.duelFlash && state.duelRound === 1) {
       el.duelFlash.classList.remove("show");
       void el.duelFlash.offsetWidth;
       el.duelFlash.classList.add("show");
+      await sleep(850 / state.fightSpeed);
+      el.duelFlash.classList.remove("show");
     }
-    await sleep(850 / state.fightSpeed);
-    if (el.duelFlash) el.duelFlash.classList.remove("show");
     requestAnimationFrame(() => { mountCombatTokens(); });
     await sleep(80);
+    mountCombatTokens();
+    await sleep(400 / state.fightSpeed);
     mountCombatTokens();
     await runCombatLoop();
     finishFight();
@@ -3282,14 +5190,16 @@
     return new Promise((resolve) => {
       let last = performance.now();
       const combatStart = last;
+      let sideClearedAt = 0;
 
       function tick(now) {
         if (state.phase !== "fight") { resolve(); return; }
         const rawDt = Math.min(50, now - last);
         last = now;
         const dt = rawDt * state.fightSpeed;
+        const elapsed = (now - combatStart) * state.fightSpeed;
 
-        if (now - combatStart > 60000) {
+        if (elapsed > COMBAT_MAX_MS) {
           logLine('<span class="sys">Time up — combat ends</span>');
           resolve();
           return;
@@ -3299,7 +5209,12 @@
         const enemies = allUnits("enemy").filter((u) => !u.dead);
         if (!players.length || !enemies.length) {
           updateCombatVisuals(dt);
-          resolve();
+          if (!sideClearedAt) sideClearedAt = now;
+          if ((now - sideClearedAt) * state.fightSpeed >= COMBAT_END_HOLD_MS) {
+            resolve();
+            return;
+          }
+          state.combatTimer = requestAnimationFrame(tick);
           return;
         }
 
@@ -3319,7 +5234,8 @@
           u.atkCd -= dt;
           u.moveCd -= dt;
 
-          if (dist <= 1) {
+          const range = u.range || 1;
+          if (dist <= range) {
             if (u.atkCd <= 0) {
               if (u.mana >= 100) {
                 castAbilityFixed(u, target);
@@ -3359,111 +5275,142 @@
       state.combatTimer = null;
     }
 
-    const survivors = allUnits("enemy").filter((u) => !u.dead);
-    let lpDmg = 0;
-    survivors.forEach((e) => {
-      lpDmg += 200 * (e.level || 1);
-    });
+    const enemySurvivors = allUnits("enemy").filter((u) => !u.dead);
+    const playerSurvivors = allUnits("player").filter((u) => !u.dead);
+    const playerWonRound = enemySurvivors.length === 0 && playerSurvivors.length > 0;
+    const playerTakesHit = !playerWonRound && enemySurvivors.length > 0;
+    // Mutual wipe still chips the duelist (board clear)
+    const foeTakesHit = playerWonRound || enemySurvivors.length === 0;
 
-    const playerAlive = allUnits("player").some((u) => !u.dead);
-    const victory = survivors.length === 0 && playerAlive;
-
-    if (lpDmg > 0) {
-      state.lp = Math.max(0, state.lp - lpDmg);
-      logLine('<span class="dmg">Survivors deal ' + lpDmg + " LP damage</span>");
-      el.lp.classList.add("shake");
-      setTimeout(() => el.lp.classList.remove("shake"), 400);
-    } else if (victory) {
-      logLine('<span class="win">Board wiped — no LP damage!</span>');
+    let playerLpDmg = 0;
+    let foeLpDmg = 0;
+    if (playerTakesHit) {
+      playerLpDmg = fightLpDamage(enemySurvivors, state.duelRound);
+      state.lp = Math.max(0, state.lp - playerLpDmg);
+      logLine('<span class="dmg">You take ' + playerLpDmg + " LP (" +
+        enemySurvivors.length + " survivors)</span>");
+      if (el.lpYouWrap) {
+        el.lpYouWrap.classList.remove("shake");
+        void el.lpYouWrap.offsetWidth;
+        el.lpYouWrap.classList.add("shake");
+      }
+    }
+    if (foeTakesHit) {
+      foeLpDmg = fightLpDamage(playerSurvivors, state.duelRound);
+      state.enemyLp = Math.max(0, state.enemyLp - foeLpDmg);
+      logLine('<span class="win">' + escapeHtml(currentDuelist().name) + " takes " +
+        foeLpDmg + " LP</span>");
+      if (el.lpFoeWrap) {
+        el.lpFoeWrap.classList.remove("shake");
+        void el.lpFoeWrap.offsetWidth;
+        el.lpFoeWrap.classList.add("shake");
+      }
     }
 
-    let chipDelta = 0;
-    if (victory) {
+    if (playerWonRound) {
       state.winStreak += 1;
       state.lossStreak = 0;
-      state.starChips += 1;
-      chipDelta = 1;
-      // Clearing Panik with <10 chips opens the castle gate
-      if (state.duelIndex === 6 && state.starChips < 10) {
-        state.starChips = 10;
-        logLine('<span class="sys">★ Star Chips fill the gate — Pegasus Castle unlocks!</span>');
-      }
-      logLine('<span class="win">★ Star Chip +1 (' + state.starChips + "/10)</span>");
-    } else {
+    } else if (playerTakesHit) {
       state.lossStreak += 1;
       state.winStreak = 0;
-      state.starChips = Math.max(0, state.starChips - 1);
-      chipDelta = -1;
-      logLine('<span class="dmg">★ Star Chip −1 (' + state.starChips + "/10)</span>");
     }
 
-    const survivorsP = allUnits("player").filter((u) => !u.dead).map((u) => {
-      setCell(u.row, u.col, null);
-      u.maxHp = Math.max(500, u.def);
-      u.hp = u.maxHp;
-      u.mana = 0;
-      u.shield = 0;
-      u.stunUntil = 0;
-      u.hasteUntil = 0;
-      u.dead = false;
-      u.side = "player";
-      return u;
-    });
     clearEnemy();
     clearCombatLayer();
     el.arena.querySelectorAll(".hex .token").forEach((t) => { t.style.visibility = ""; });
+    restorePlayerArmy(state.preFightArmy);
+    state.preFightArmy = null;
 
-    const homeSlots = [];
-    for (let r = HEX_ROWS; r < HEX_ROWS * 2; r++) {
-      for (let c = 0; c < HEX_COLS; c++) homeSlots.push({ row: r, col: c });
-    }
-    homeSlots.sort((a, b) => b.row - a.row || a.col - b.col);
-    survivorsP.forEach((u, i) => {
-      const slot = homeSlots[i];
-      if (slot) setCell(slot.row, slot.col, u);
-    });
+    state.phase = "shop";
+    renderBoards();
 
     const duelist = currentDuelist();
-    const beatBoss = victory && duelist.boss;
+    const duelOver = state.lp <= 0 || state.enemyLp <= 0;
+    const duelVictory = state.enemyLp <= 0 && state.lp > 0;
+    const duelDefeat = state.lp <= 0;
+    let chipDelta = 0;
+    if (duelOver) {
+      if (duelVictory) {
+        state.starChips += 1;
+        chipDelta = 1;
+        if (state.duelIndex === 6 && state.starChips < 10) {
+          state.starChips = 10;
+          logLine('<span class="sys">★ Star Chips fill the gate — Pegasus Castle unlocks!</span>');
+        }
+        logLine('<span class="win">★ Star Chip +1 (' + state.starChips + "/10)</span>");
+      } else if (duelDefeat) {
+        state.starChips = Math.max(0, state.starChips - 1);
+        chipDelta = -1;
+        logLine('<span class="dmg">★ Star Chip −1 (' + state.starChips + "/10)</span>");
+      }
+    }
+
     const streak = streakGoldBonus();
     const baseGold = 4 + Math.min(state.round, 6);
     const interest = Math.min(5, Math.floor(state.gold / 10));
     const previewGold = baseGold + interest + streak;
+    const beatBoss = duelVictory && !!duelist.boss;
 
     state.pendingResult = {
-      victory,
-      lpDmg,
+      victory: playerWonRound,
+      duelVictory,
+      duelDefeat,
+      duelOver,
+      playerLpDmg,
+      foeLpDmg,
+      lpDmg: playerLpDmg,
       chipDelta,
       previewGold,
       streak,
-      gameOver: state.lp <= 0 || state.starChips <= 0,
+      gameOver: (duelDefeat && state.starChips <= 0) || beatBoss,
       beatBoss,
       completedRound: state.round,
+      completedDuelRound: state.duelRound,
       completedDuel: state.duelIndex,
     };
 
-    el.resultsBanner.classList.toggle("defeat", !state.pendingResult.victory && !beatBoss);
+    el.resultsBanner.classList.toggle("defeat", duelDefeat || (!duelOver && playerTakesHit));
+    const dealtLine = "Dealt " + foeLpDmg + " LP";
+    const lostLine = "Lost " + playerLpDmg + " LP";
+    const dmgLine = dealtLine + "  ·  " + lostLine;
     if (beatBoss) {
       el.resultsTitle.textContent = "Champion!";
-      el.resultsMsg.textContent = "You defeated " + duelist.name + "!";
+      el.resultsMsg.textContent = "You defeated " + duelist.name + "!  ·  " + dmgLine;
+    } else if (duelVictory) {
+      el.resultsTitle.textContent = "Duel Won!";
+      el.resultsMsg.textContent = "Beat " + duelist.name + " in " + state.duelRound +
+        " round" + (state.duelRound === 1 ? "" : "s") + "  ·  " + dmgLine;
+    } else if (duelDefeat) {
+      el.resultsTitle.textContent = "Duel Lost";
+      el.resultsMsg.textContent = dmgLine + "  ·  0 LP remaining";
     } else {
-      el.resultsTitle.textContent = state.pendingResult.victory ? "Victory!" : "Defeat";
-      el.resultsMsg.textContent = victory
-        ? ("Defeated " + duelist.name)
-        : (lpDmg > 0 ? ("−" + lpDmg + " Life Points") : "Your monsters fell");
+      el.resultsTitle.textContent = playerWonRound ? "Round Won!" : "Round Lost";
+      el.resultsMsg.textContent = dmgLine;
     }
     if (el.resultsRewards) {
       const chips = [];
-      chips.push('<span class="reward-chip">🪙 +' + previewGold + " gold</span>");
-      if (streak) chips.push('<span class="reward-chip">🔥 Streak +' + streak + "</span>");
-      if (chipDelta > 0) chips.push('<span class="reward-chip">★ Star Chip +1</span>');
-      if (chipDelta < 0) chips.push('<span class="reward-chip loss">★ Star Chip −1</span>');
+      if (!duelOver) {
+        chips.push('<span class="reward-chip">🪙 +' + previewGold + " gold next</span>");
+        if (streak) chips.push('<span class="reward-chip">🔥 Streak +' + streak + "</span>");
+      } else {
+        if (chipDelta > 0) chips.push('<span class="reward-chip">★ Star Chip +1</span>');
+        if (chipDelta < 0) chips.push('<span class="reward-chip loss">★ Star Chip −1</span>');
+        if (duelVictory && !beatBoss) {
+          chips.push('<span class="reward-chip">🪙 +' + previewGold + " gold</span>");
+        }
+      }
       el.resultsRewards.innerHTML = chips.join("");
     }
     el.resultsBanner.classList.add("show");
     el.fightBar.classList.remove("show");
     el.btnFight.style.display = "none";
-    renderStarChips();
+    renderHUD();
+    saveRun();
+    if (state.resultsHoldTimer) clearTimeout(state.resultsHoldTimer);
+    state.resultsHoldTimer = setTimeout(() => {
+      state.resultsHoldTimer = null;
+      dismissResults();
+    }, RESULTS_HOLD_MS);
   }
 
   function fillRunSummary(won) {
@@ -3476,7 +5423,8 @@
       : "None";
     el.runSummary.innerHTML =
       "<div><span class='k'>Result:</span> <span class='v'>" + (won ? "Victory" : "Defeat") + "</span></div>" +
-      "<div><span class='k'>Duels survived:</span> <span class='v'>" + state.round + "</span></div>" +
+      "<div><span class='k'>Duels reached:</span> <span class='v'>" + (state.duelIndex + 1) + "/" + LADDER.length + "</span></div>" +
+      "<div><span class='k'>Rounds fought:</span> <span class='v'>" + state.round + "</span></div>" +
       "<div><span class='k'>Star Chips:</span> <span class='v'>" + state.starChips + "/10</span></div>" +
       "<div><span class='k'>Strongest monster:</span> <span class='v'>" + strong + "</span></div>" +
       "<div><span class='k'>Items used:</span> <span class='v'>" + items + "</span></div>" +
@@ -3485,10 +5433,30 @@
 
   function showEndScreen(won, msg) {
     state.phase = "end";
+    clearSavedRun();
     hideMap();
     el.endTitle.textContent = won ? "You Win!" : "Defeat";
     el.endMsg.textContent = msg;
     fillRunSummary(won);
+    const meta = readMeta();
+    const patch = {
+      bestStarChips: Math.max(meta.bestStarChips | 0, state.starChips | 0),
+    };
+    if (won) {
+      patch.wins = (meta.wins | 0) + 1;
+      patch.pegasusBeaten = true;
+    }
+    if (state.strongestEver) {
+      const fav = meta.favoriteMonster;
+      if (!fav || state.strongestEver.atk > (fav.atk | 0)) {
+        patch.favoriteMonster = {
+          name: state.strongestEver.name,
+          atk: state.strongestEver.atk,
+          imgSmall: state.strongestEver.imgSmall || null,
+        };
+      }
+    }
+    writeMeta(patch);
     el.endOverlay.classList.add("open");
     render();
   }
@@ -3610,12 +5578,26 @@
     hideMap();
     state.phase = "shop";
     state.fightSpeed = 1;
+    state.lp = DUEL_START_LP;
+    state.enemyLp = DUEL_START_LP;
+    state.duelRound = 1;
     if (!state.shop || !state.shop.length) rollShop();
     toast(d.name + ': "' + (d.taunt || "Let's duel!") + '"');
     logLine('<span class="sys">🗺 ' + escapeHtml(currentArea().name) + " — vs " +
-      escapeHtml(d.name) + "</span>");
+      escapeHtml(d.name) + " · " + DUEL_START_LP + " LP</span>");
     render();
+    saveRun();
     requestAnimationFrame(() => renderBoards());
+  }
+
+  function advanceAfterRound() {
+    grantIncome();
+    state.round += 1;
+    state.duelRound += 1;
+    rollShop();
+    state.phase = "shop";
+    render();
+    saveRun();
   }
 
   function advanceAfterDuel(won) {
@@ -3624,32 +5606,48 @@
       state.duelIndex = Math.min(LADDER.length - 1, state.duelIndex + 1);
     }
     state.round += 1;
+    state.duelRound = 1;
     rollShop();
     showMap();
+    saveRun();
   }
 
   function dismissResults() {
+    if (state.resultsHoldTimer) {
+      clearTimeout(state.resultsHoldTimer);
+      state.resultsHoldTimer = null;
+    }
     el.resultsBanner.classList.remove("show");
     const res = state.pendingResult;
     state.pendingResult = null;
     if (!res) return;
 
     if (res.beatBoss) {
+      clearSavedRun();
       showEndScreen(true, "You defeated Maximillion Pegasus and conquered Duelist Kingdom!");
       return;
     }
 
-    if (res.gameOver || state.lp <= 0 || state.starChips <= 0) {
-      const why = state.starChips <= 0
-        ? "You ran out of Star Chips."
-        : "Your Life Points hit zero.";
-      showEndScreen(false, "You survived " + res.completedRound + " duel" +
-        (res.completedRound === 1 ? "" : "s") + ". " + why);
+    if (res.duelDefeat && state.starChips <= 0) {
+      clearSavedRun();
+      showEndScreen(false, "You ran out of Star Chips after " +
+        (res.completedDuel + 1) + " duel" + (res.completedDuel === 0 ? "" : "s") + ".");
       return;
     }
 
     const afterRound = res.completedRound;
-    const cont = () => advanceAfterDuel(!!res.victory);
+    if (res.duelOver) {
+      const cont = () => advanceAfterDuel(!!res.duelVictory);
+      if (ITEM_DRAFT_ROUNDS.indexOf(afterRound) !== -1) {
+        openItemDraft(cont);
+        return;
+      }
+      cont();
+      return;
+    }
+
+    // Mid-duel: keep fighting the same duelist
+    const cont = () => advanceAfterRound();
     if (ITEM_DRAFT_ROUNDS.indexOf(afterRound) !== -1) {
       openItemDraft(cont);
       return;
@@ -3671,16 +5669,24 @@
     if (typeof raw.atk !== "number" || raw.atk < 0) return null;
     if (typeof raw.def !== "number" || raw.def < 0) return null;
     if (typeof raw.level !== "number" || raw.level < 1) return null;
-    const id = "api_" + (raw.id != null ? raw.id : String(raw.name).toLowerCase().replace(/\W+/g, "_"));
+    const apiId = raw.id != null ? raw.id : null;
+    const id = "api_" + (apiId != null ? apiId : String(raw.name).toLowerCase().replace(/\W+/g, "_"));
+    const imgSmall = apiId != null ? ("images/small/" + apiId + ".jpg") : null;
+    const imgCropped = apiId != null ? ("images/cropped/" + apiId + ".jpg") : null;
     return {
       id,
+      apiId,
       name: raw.name,
       type: raw.race || "Warrior",
       attribute: String(raw.attribute || "DARK").toUpperCase(),
       level: raw.level,
       atk: raw.atk,
       def: raw.def,
-      cost: costFromLevel(raw.level),
+      cost: costFromStats(raw.atk, raw.def),
+      role: roleFor({ atk: raw.atk, def: raw.def, type: raw.race || "Warrior" }),
+      range: rangeFor({ atk: raw.atk, def: raw.def, type: raw.race || "Warrior" }),
+      imgSmall,
+      imgCropped,
     };
   }
 
@@ -3710,13 +5716,15 @@
 
   async function loadClassicRoster() {
     const cached = readCache();
-    if (cached) return { cards: cached, fromCache: true };
+    if (cached) {
+      return { cards: cached.map(enrichCardBase), fromCache: true };
+    }
     const byId = new Map();
     for (const setName of API_SETS) {
       const rows = await fetchSet(setName);
       rows.forEach((raw) => {
         const card = normalizeApiCard(raw);
-        if (card && !byId.has(card.id)) byId.set(card.id, card);
+        if (card && !byId.has(card.id)) byId.set(card.id, enrichCardBase(card));
       });
     }
     const cards = Array.from(byId.values());
@@ -3725,21 +5733,173 @@
     return { cards, fromCache: false };
   }
 
-  function setModeUI(mode) {
-    state.mode = mode;
-    $("modeClassic").classList.toggle("active", mode === "classic");
-    $("modeOriginal").classList.toggle("active", mode === "original");
+  function findSignatureCard(duelist) {
+    if (!duelist || !state.roster.length) return null;
+    const patterns = duelist.sig || duelist.prefer || [];
+    for (let i = 0; i < patterns.length; i++) {
+      const re = patterns[i];
+      const matches = state.roster.filter((c) => re.test(c.name));
+      if (matches.length) {
+        matches.sort((a, b) => b.atk - a.atk);
+        return matches[0];
+      }
+    }
+    if (duelist.types && duelist.types.length) {
+      const typed = state.roster.filter((c) => duelist.types.indexOf(c.type) !== -1);
+      if (typed.length) {
+        typed.sort((a, b) => b.atk - a.atk);
+        return typed[0];
+      }
+    }
+    return state.roster.slice().sort((a, b) => b.atk - a.atk)[0] || null;
   }
 
-  function beginDuel(roster, usedFallback) {
-    state.roster = roster;
-    state.usedFallback = !!usedFallback;
-    state.lp = 8000;
-    state.enemyLp = 8000;
+  function nextOpponentForHome() {
+    const meta = readMeta();
+    if (state.homeMode === "castle" && meta.pegasusBeaten) {
+      return LADDER[7] || LADDER[0]; // Kaiba — castle path
+    }
+    return LADDER[0];
+  }
+
+  function setHomeTab(tab) {
+    state.homeTab = tab;
+    if (el.homeMain) el.homeMain.style.visibility = tab === "duel" ? "visible" : "hidden";
+    if (el.panelRecords) el.panelRecords.classList.toggle("open", tab === "records");
+    if (el.panelBinder) el.panelBinder.classList.toggle("open", tab === "binder");
+    const nr = $("navRecords");
+    const nb = $("navBinder");
+    const nd = $("navDuel");
+    if (nr) nr.classList.toggle("active", tab === "records");
+    if (nb) nb.classList.toggle("active", tab === "binder");
+    if (nd) nd.style.outline = tab === "duel" ? "3px solid #ffe566" : "";
+    if (tab === "records") renderRecords();
+    if (tab === "binder") renderBinder();
+  }
+
+  function renderRecords() {
+    if (!el.recordsGrid) return;
+    const meta = readMeta();
+    const fav = meta.favoriteMonster;
+    const favLabel = fav
+      ? escapeHtml(fav.name) + " (" + (fav.atk | 0) + " ATK)"
+      : "—";
+    el.recordsGrid.innerHTML =
+      '<div class="record-card"><div class="rk">Best run</div><div class="rv">★ ' +
+      (meta.bestStarChips | 0) + " Star Chips</div></div>" +
+      '<div class="record-card"><div class="rk">Wins</div><div class="rv">' +
+      (meta.wins | 0) + "</div></div>" +
+      '<div class="record-card"><div class="rk">Favorite monster</div><div class="rv" style="font-size:1rem">' +
+      favLabel + "</div></div>";
+  }
+
+  function renderBinder() {
+    if (!el.binderGrid) return;
+    const q = ((el.binderSearch && el.binderSearch.value) || "").trim().toLowerCase();
+    let cards = state.roster.slice();
+    if (q) {
+      cards = cards.filter((c) =>
+        c.name.toLowerCase().indexOf(q) !== -1 ||
+        String(c.type || "").toLowerCase().indexOf(q) !== -1 ||
+        String(c.attribute || "").toLowerCase().indexOf(q) !== -1
+      );
+    }
+    cards.sort((a, b) => a.name.localeCompare(b.name));
+    if (!state.cardsReady) {
+      el.binderGrid.innerHTML = '<div class="binder-empty">Load cards from the home screen first.</div>';
+      return;
+    }
+    if (!cards.length) {
+      el.binderGrid.innerHTML = '<div class="binder-empty">No monsters match.</div>';
+      return;
+    }
+    el.binderGrid.innerHTML = cards.map((c) => {
+      const src = cardArtSrc(c, "small");
+      const meta = raceMeta(c.type);
+      const art = src
+        ? '<img src="' + src + '" alt="" loading="lazy" />'
+        : '<span style="font-size:1.6rem">' + meta.emoji + "</span>";
+      return (
+        '<button type="button" class="binder-card" data-id="' + escapeHtml(c.id) + '">' +
+        '<div class="ba">' + art + "</div>" +
+        '<div class="bm"><div class="bn">' + escapeHtml(c.name) + "</div>" +
+        '<div class="bs"><span class="atk">' + c.atk + '</span> / <span class="def">' + c.def + "</span></div></div>" +
+        "</button>"
+      );
+    }).join("");
+    el.binderGrid.querySelectorAll(".binder-card").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const card = state.roster.find((c) => c.id === btn.getAttribute("data-id"));
+        if (card) openCardView(card);
+      });
+      const img = btn.querySelector("img");
+      if (img) {
+        const card = state.roster.find((c) => c.id === btn.getAttribute("data-id"));
+        bindArtFallback(img, raceMeta(card && card.type).emoji);
+      }
+    });
+  }
+
+  function renderHome() {
+    const meta = readMeta();
+    state.homeMode = meta.lastMode === "castle" && meta.pegasusBeaten ? meta.lastMode : "kingdom";
+    if (el.homeChipCount) el.homeChipCount.textContent = String(meta.bestStarChips | 0);
+    if (el.homeBest) el.homeBest.textContent = "Best: " + (meta.bestStarChips | 0) + " Star Chips";
+    const mk = $("modeKingdom");
+    const mc = $("modeCastle");
+    if (mk) mk.classList.toggle("selected", state.homeMode === "kingdom");
+    if (mc) {
+      mc.classList.toggle("selected", state.homeMode === "castle");
+      mc.classList.toggle("locked", !meta.pegasusBeaten);
+      const sub = mc.querySelector(".mode-sub");
+      const lock = mc.querySelector(".lock");
+      if (meta.pegasusBeaten) {
+        if (lock) lock.style.display = "none";
+        if (sub) sub.textContent = "Castle gauntlet";
+      } else {
+        if (lock) lock.style.display = "";
+        if (sub) sub.textContent = "Beat Pegasus to unlock";
+      }
+    }
+    const foe = nextOpponentForHome();
+    if (el.homeFoeName) el.homeFoeName.textContent = foe.name;
+    if (el.homeSigArt) {
+      const sig = findSignatureCard(foe);
+      const emoji = raceMeta(sig ? sig.type : (foe.types && foe.types[0])).emoji;
+      const src = sig ? (cardArtSrc(sig, "cropped") || cardArtSrc(sig, "small")) : null;
+      if (src) {
+        el.homeSigArt.innerHTML = '<img src="' + src + '" alt="" />';
+        bindArtFallback(el.homeSigArt.querySelector("img"), emoji);
+      } else {
+        el.homeSigArt.innerHTML = '<span class="emoji-fallback">' + emoji + "</span>";
+      }
+    }
+    if (el.homeLoadError) {
+      el.homeLoadError.classList.toggle("show", !!state.cardsError);
+    }
+    if (el.btnContinue) {
+      el.btnContinue.classList.toggle("show", hasSavedRun());
+    }
+    if (el.btnStart) {
+      el.btnStart.disabled = !state.cardsReady && !state.cardsError ? true : false;
+      if (!state.cardsReady && !state.cardsError) el.btnStart.textContent = "Loading…";
+      else el.btnStart.textContent = hasSavedRun() ? "▶ New Run" : "▶ Duel!";
+    }
+    setHomeTab(state.homeTab === "records" || state.homeTab === "binder" ? state.homeTab : "duel");
+  }
+
+  function beginDuel() {
+    if (!state.cardsReady || !state.roster.length) return;
+    clearSavedRun();
+    const meta = readMeta();
+    const castleRun = state.homeMode === "castle" && meta.pegasusBeaten;
+    state.lp = DUEL_START_LP;
+    state.enemyLp = DUEL_START_LP;
     state.gold = 10;
     state.round = 1;
-    state.duelIndex = 0;
-    state.starChips = 2;
+    state.duelRound = 1;
+    state.duelIndex = castleRun ? 7 : 0;
+    state.starChips = castleRun ? 10 : 2;
     state.level = 1;
     state.xp = 0;
     state.winStreak = 0;
@@ -3752,6 +5912,7 @@
     state.itemsPicked = [];
     state.strongestEver = null;
     state.awaitingItemDraft = false;
+    state.preFightArmy = null;
     state.grid = {};
     state.selected = null;
     el.log.innerHTML = "";
@@ -3761,40 +5922,91 @@
     el.traitOverlay.classList.remove("open");
     el.oddsOverlay.classList.remove("open");
     el.itemDraftOverlay.classList.remove("open");
-    el.startOverlay.classList.remove("open");
+    if (el.settingsOverlay) el.settingsOverlay.classList.remove("open");
+    if (el.homeScreen) el.homeScreen.classList.remove("open");
     el.app.classList.add("visible");
     rollShop();
-    const modeLabel = state.mode === "classic" && !usedFallback ? "Classic" : "Original";
-    logLine('<span class="sys">Duelist Kingdom (' + modeLabel + ") — 2 ★ Star Chips · 8000 LP</span>");
+    const label = castleRun ? "Pegasus's Castle" : "Duelist Kingdom";
+    logLine('<span class="sys">' + label + " — ★ " + state.starChips +
+      " Star Chips · " + DUEL_START_LP + " LP per duel</span>");
     render();
     showMap();
+    saveRun();
+  }
+
+  async function continueRun() {
+    playUiBlip();
+    if (!state.cardsReady) {
+      const ok = await ensureCardsLoaded(true);
+      if (!ok) return;
+    }
+    const data = readSavedRun();
+    if (!data || !applySavedRun(data)) {
+      toast("No saved run");
+      renderHome();
+      return;
+    }
+    el.log.innerHTML = "";
+    el.runSummary.innerHTML = "";
+    el.endOverlay.classList.remove("open");
+    el.resultsBanner.classList.remove("show");
+    el.traitOverlay.classList.remove("open");
+    el.oddsOverlay.classList.remove("open");
+    el.itemDraftOverlay.classList.remove("open");
+    if (el.settingsOverlay) el.settingsOverlay.classList.remove("open");
+    if (el.homeScreen) el.homeScreen.classList.remove("open");
+    el.app.classList.add("visible");
+    if (!state.shop || !state.shop.length) rollShop();
+    logLine('<span class="sys">Continued run — Round ' + state.duelRound +
+      " vs " + escapeHtml(currentDuelist().name) + "</span>");
+    render();
+    if (state.phase === "map") showMap();
+    else {
+      hideMap();
+      requestAnimationFrame(() => renderBoards());
+    }
+  }
+
+  async function ensureCardsLoaded(force) {
+    if (state.cardsReady && !force) return true;
+    state.cardsError = false;
+    if (el.homeLoadError) el.homeLoadError.classList.remove("show");
+    if (el.btnStart) {
+      el.btnStart.disabled = true;
+      el.btnStart.textContent = "Loading…";
+    }
+    try {
+      const { cards } = await loadClassicRoster();
+      state.roster = cards;
+      state.cardsReady = true;
+      state.cardsError = false;
+      renderHome();
+      return true;
+    } catch (err) {
+      console.warn("Classic load failed", err);
+      state.cardsReady = false;
+      state.cardsError = true;
+      state.roster = [];
+      if (el.btnStart) {
+        el.btnStart.disabled = false;
+        el.btnStart.textContent = "▶ Duel!";
+      }
+      if (el.homeLoadError) el.homeLoadError.classList.add("show");
+      return false;
+    }
   }
 
   async function onStart() {
-    el.btnStart.disabled = true;
-    el.loadStatus.className = "load-status";
-    el.loadStatus.textContent = state.mode === "classic" ? "Loading classic cards…" : "";
-    try {
-      if (state.mode === "original") {
-        beginDuel(ORIGINAL_ROSTER.slice(), false);
-        el.loadStatus.textContent = "";
-        return;
-      }
-      const { cards, fromCache } = await loadClassicRoster();
-      el.loadStatus.className = "load-status ok";
-      el.loadStatus.textContent = fromCache
-        ? "Loaded " + cards.length + " classic monsters (cached)."
-        : "Loaded " + cards.length + " classic monsters.";
-      beginDuel(cards, false);
-    } catch (err) {
-      console.warn("Classic load failed", err);
-      el.loadStatus.className = "load-status error";
-      el.loadStatus.textContent = "Classic API failed — using original roster.";
-      beginDuel(ORIGINAL_ROSTER.slice(), true);
-      toast("Using original roster");
-    } finally {
-      el.btnStart.disabled = false;
+    playUiBlip();
+    if (state.cardsError || !state.cardsReady) {
+      const ok = await ensureCardsLoaded(true);
+      if (!ok) return;
     }
+    if (!state.cardsReady) return;
+    if (hasSavedRun() && !window.confirm("Start a new run? Your saved progress will be replaced.")) {
+      return;
+    }
+    beginDuel();
   }
 
   function showStartScreen() {
@@ -3803,32 +6015,122 @@
       state.combatTimer = null;
     }
     state.phase = "menu";
+    state.homeTab = "duel";
     hideMap();
     el.app.classList.remove("visible");
     el.endOverlay.classList.remove("open");
     el.resultsBanner.classList.remove("show");
-    el.startOverlay.classList.add("open");
-    el.loadStatus.className = "load-status";
-    el.loadStatus.textContent = "";
-    el.btnStart.disabled = false;
+    if (el.settingsOverlay) el.settingsOverlay.classList.remove("open");
+    if (el.homeScreen) el.homeScreen.classList.add("open");
+    renderHome();
+    ensureCardsLoaded(false);
+  }
+
+  function openSettings() {
+    const meta = readMeta();
+    state.soundOn = meta.soundOn !== false;
+    state.fightSpeed = meta.fightSpeed || state.fightSpeed || 1;
+    const bs = $("btnToggleSound");
+    const bd = $("btnSettingsSpeed");
+    if (bs) bs.textContent = state.soundOn ? "On" : "Off";
+    if (bd) bd.textContent = state.fightSpeed + "x";
+    if (el.settingsOverlay) el.settingsOverlay.classList.add("open");
+  }
+
+  function closeSettings() {
+    if (el.settingsOverlay) el.settingsOverlay.classList.remove("open");
   }
 
   // Wire UI
-  function setModeUIBoth(mode) {
-    setModeUI(mode);
-    const mc = $("menuModeClassic");
-    const mo = $("menuModeOriginal");
-    if (mc) mc.classList.toggle("active", mode === "classic");
-    if (mo) mo.classList.toggle("active", mode === "original");
-  }
-  $("modeClassic").addEventListener("click", () => setModeUIBoth("classic"));
-  $("modeOriginal").addEventListener("click", () => setModeUIBoth("original"));
-  const mmc = $("menuModeClassic");
-  const mmo = $("menuModeOriginal");
-  if (mmc) mmc.addEventListener("click", () => setModeUIBoth("classic"));
-  if (mmo) mmo.addEventListener("click", () => setModeUIBoth("original"));
   el.btnStart.addEventListener("click", () => { onStart(); });
-  $("btnStartHow").addEventListener("click", () => el.howOverlay.classList.add("open"));
+  if (el.btnContinue) {
+    el.btnContinue.addEventListener("click", () => { continueRun(); });
+  }
+  if (el.homeLoadError) {
+    el.homeLoadError.addEventListener("click", () => { ensureCardsLoaded(true); });
+  }
+  if ($("btnHomeHow")) $("btnHomeHow").addEventListener("click", () => {
+    playUiBlip();
+    el.howOverlay.classList.add("open");
+  });
+  if ($("btnHomeSettings")) $("btnHomeSettings").addEventListener("click", () => {
+    playUiBlip();
+    openSettings();
+  });
+  if ($("btnCloseSettings")) $("btnCloseSettings").addEventListener("click", closeSettings);
+  if (el.settingsOverlay) {
+    el.settingsOverlay.addEventListener("click", (e) => {
+      if (e.target === el.settingsOverlay) closeSettings();
+    });
+  }
+  if ($("btnToggleSound")) {
+    $("btnToggleSound").addEventListener("click", () => {
+      state.soundOn = !state.soundOn;
+      writeMeta({ soundOn: state.soundOn });
+      $("btnToggleSound").textContent = state.soundOn ? "On" : "Off";
+      playUiBlip();
+    });
+  }
+  if ($("btnSettingsSpeed")) {
+    $("btnSettingsSpeed").addEventListener("click", () => {
+      const order = [1, 2, 3];
+      const i = order.indexOf(state.fightSpeed);
+      state.fightSpeed = order[(i + 1) % order.length];
+      writeMeta({ fightSpeed: state.fightSpeed });
+      $("btnSettingsSpeed").textContent = state.fightSpeed + "x";
+      const spd = state.fightSpeed + "x";
+      if (el.btnSpeed) el.btnSpeed.textContent = spd;
+      if (el.btnSpeedMenu) el.btnSpeedMenu.textContent = "Speed " + spd;
+      playUiBlip();
+    });
+  }
+  if ($("btnResetProgress")) {
+    $("btnResetProgress").addEventListener("click", () => {
+      if (!window.confirm("Reset Star Chip records, wins, and unlocks?")) return;
+      try { localStorage.removeItem(META_KEY); } catch (_) {}
+      state.homeMode = "kingdom";
+      writeMeta(Object.assign({}, DEFAULT_META));
+      closeSettings();
+      renderHome();
+      toast("Progress reset");
+    });
+  }
+  if ($("modeKingdom")) {
+    $("modeKingdom").addEventListener("click", () => {
+      state.homeMode = "kingdom";
+      writeMeta({ lastMode: "kingdom" });
+      playUiBlip();
+      renderHome();
+    });
+  }
+  if ($("modeCastle")) {
+    $("modeCastle").addEventListener("click", () => {
+      const meta = readMeta();
+      if (!meta.pegasusBeaten) {
+        toast("Beat Pegasus once to unlock");
+        return;
+      }
+      state.homeMode = "castle";
+      writeMeta({ lastMode: "castle" });
+      playUiBlip();
+      renderHome();
+    });
+  }
+  if ($("navRecords")) $("navRecords").addEventListener("click", () => {
+    playUiBlip();
+    setHomeTab("records");
+  });
+  if ($("navBinder")) $("navBinder").addEventListener("click", () => {
+    playUiBlip();
+    setHomeTab("binder");
+  });
+  if ($("navDuel")) $("navDuel").addEventListener("click", () => {
+    playUiBlip();
+    setHomeTab("duel");
+  });
+  if (el.binderSearch) {
+    el.binderSearch.addEventListener("input", () => { renderBinder(); });
+  }
   $("btnHow").addEventListener("click", () => { closeMenu(); el.howOverlay.classList.add("open"); });
   $("btnCloseHow").addEventListener("click", () => el.howOverlay.classList.remove("open"));
   el.howOverlay.addEventListener("click", (e) => {
@@ -3854,6 +6156,44 @@
       if (e.target === el.tokenStatsOverlay) el.tokenStatsOverlay.classList.remove("open");
     });
   }
+  if (el.btnGuideClose) el.btnGuideClose.addEventListener("click", closeGuide);
+  if (el.btnGuideBuy) {
+    el.btnGuideBuy.addEventListener("click", () => {
+      const idx = state.cardViewShopIndex;
+      closeGuide();
+      if (idx != null) buyCard(idx);
+    });
+  }
+  if (el.btnGuidePrev) {
+    el.btnGuidePrev.addEventListener("click", () => {
+      const list = guideRosterSorted();
+      if (!list.length) return;
+      state.guideTempCard = null;
+      state.cardViewShopIndex = null;
+      state.guideStars = 1;
+      state.guideIndex = ((state.guideIndex | 0) - 1 + list.length) % list.length;
+      renderGuide();
+    });
+  }
+  if (el.btnGuideNext) {
+    el.btnGuideNext.addEventListener("click", () => {
+      const list = guideRosterSorted();
+      if (!list.length) return;
+      state.guideTempCard = null;
+      state.cardViewShopIndex = null;
+      state.guideStars = 1;
+      state.guideIndex = ((state.guideIndex | 0) + 1) % list.length;
+      renderGuide();
+    });
+  }
+  if (el.guideOverlay) {
+    el.guideOverlay.querySelectorAll(".guide-tab").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        state.guideTab = btn.getAttribute("data-tab") || "monsters";
+        renderGuide();
+      });
+    });
+  }
   $("btnResultsOk").addEventListener("click", dismissResults);
   $("btnSell").addEventListener("click", sellSelected);
   $("btnRestart").addEventListener("click", showStartScreen);
@@ -3873,7 +6213,8 @@
     if (state.phase === "shop" || state.phase === "fight") renderBoards();
   });
 
-  setModeUIBoth("classic");
+  // Boot home
+  showStartScreen();
 })();
   </script>
 </body>
