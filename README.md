@@ -17,6 +17,7 @@ Open `index.html` in a browser (or serve the folder locally). No build step or f
 - **3 copies** of the same monster fuse into a stronger ★★ card
 - **2+ of the same Type** grant an ATK type bonus
 - Tokens use Type emoji + Attribute color rings (no card images)
-- **FIGHT**: units chase the nearest foe; HP = DEF (min 500); damage = ATK ÷ 4
-- Surviving enemies deal LP damage (200 × Level each)
+- **FIGHT**: units slide toward foes, lunge to attack, and cast Type abilities at full mana
+- HP = DEF (min 500); basic damage = ATK ÷ 4; blue mana bar; 1x/2x speed control
+- Surviving enemies deal LP damage (200 × Level each); results banner after each fight
 - Earn gold after each round — **0 LP** ends the duel 
