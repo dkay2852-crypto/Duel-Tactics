@@ -29,18 +29,18 @@
       --safe-l: env(safe-area-inset-left, 0px);
       --safe-r: env(safe-area-inset-right, 0px);
       --tap: 44px;
-      --hex-w: 48px;
-      --hex-h: calc(var(--hex-w) * 1.12);
-      --top-h: 52px;
-      --trait-h: 40px;
-      --bench-h: 52px;
+      --hex-w: 44px;
+      --hex-h: calc(var(--hex-w) * 1.15);
+      --top-h: 48px;
+      --trait-h: 36px;
+      --bench-h: 44px;
       --fight-h: 52px;
       --econ-h: 44px;
-      --shop-h: 108px;
-      --board-tilt: 35deg;
-      --board-scale: 1.45;
-      /* Screen-space hex width after tilt scale (set by fitHexSize) */
-      --hex-screen-w: calc(var(--hex-w) * var(--board-scale));
+      --shop-h: 112px;
+      --board-scale: 1;
+      --hex-screen-w: var(--hex-w);
+      --tok-h: calc(var(--hex-w) * 1.2);
+      --tok-w: calc(var(--tok-h) * 0.75);
     }
 
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -84,11 +84,11 @@
       margin: 0 auto;
       padding:
         calc(4px + var(--safe-t))
-        calc(8px + var(--safe-r))
-        calc(60px + var(--safe-b))
-        calc(8px + var(--safe-l));
+        calc(6px + var(--safe-r))
+        calc(10px + var(--safe-b))
+        calc(6px + var(--safe-l));
       flex-direction: column;
-      gap: 4px;
+      gap: 3px;
       overflow: hidden;
       overscroll-behavior: none;
     }
@@ -246,10 +246,12 @@
       background: linear-gradient(160deg, rgba(200, 150, 40, 0.5), rgba(60, 40, 10, 0.95));
     }
 
-    /* Board wrap owns overlays OUTSIDE the perspective tree (WebKit/iOS Safari). */
+    /* Flat TFT board — no 3D tilt */
     .board-wrap {
-      flex: 1 1 auto;
-      min-height: 0;
+      flex: 0 0 50%;
+      height: 50%;
+      max-height: 50%;
+      min-height: 180px;
       position: relative;
       display: flex;
       flex-direction: column;
@@ -260,17 +262,13 @@
       position: relative;
       display: flex;
       flex-direction: column;
-      perspective: 900px;
-      perspective-origin: 50% 40%;
-      -webkit-perspective: 900px;
       background:
-        radial-gradient(ellipse at 50% 30%, rgba(40, 70, 50, 0.35), transparent 55%),
-        linear-gradient(180deg, rgba(20, 36, 28, 0.95), rgba(12, 24, 36, 0.95));
-      border: 1px solid #2a5040;
-      border-radius: 14px;
-      /* Tight pad so hexes fill; overlays sit above in board-wrap */
-      padding: 4px 0 2px;
-      overflow: visible;
+        radial-gradient(ellipse at 50% 0%, rgba(40, 70, 90, 0.35), transparent 55%),
+        linear-gradient(180deg, #0e1a26 0%, #0a141e 100%);
+      border: 1px solid #2a4050;
+      border-radius: 12px;
+      padding: 2px;
+      overflow: hidden;
     }
     .hex-stage {
       flex: 1 1 auto;
@@ -280,34 +278,22 @@
       justify-content: center;
       position: relative;
       width: 100%;
-      transform: rotateX(var(--board-tilt)) scale(var(--board-scale));
-      -webkit-transform: rotateX(var(--board-tilt)) scale(var(--board-scale));
-      transform-style: preserve-3d;
-      -webkit-transform-style: preserve-3d;
-      transform-origin: 50% 50%;
-      will-change: transform;
+      transform: none;
+      transform-style: flat;
     }
     .hex-board {
       position: relative;
       width: 100%;
       flex: 0 0 auto;
-      transform-style: preserve-3d;
-      -webkit-transform-style: preserve-3d;
       overflow: visible;
     }
     .hex-board + .hex-board { margin-top: 0; }
-    /* Flat screen-space layers — siblings of .arena, never inside preserve-3d */
     .holo-layer, .combat-layer {
       position: absolute;
       inset: 0;
       pointer-events: none;
       z-index: 12;
       overflow: visible;
-      transform: translateZ(0);
-      -webkit-transform: translateZ(0);
-      transform-style: flat;
-      -webkit-transform-style: flat;
-      isolation: isolate;
     }
     .holo-layer { z-index: 11; }
     .combat-layer { z-index: 13; }
@@ -321,29 +307,37 @@
       z-index: 2;
     }
     .combat-token .token { cursor: default; }
-    .combat-token.dying .token.holo { animation: none; }
-    .combat-token.dying .holo-rig { animation: none; }
-    .combat-token.dying .holo-billboard { animation: holoShatter 0.55s steps(6, end) forwards; }
-    .holo-shard {
-      position: absolute;
-      width: 7px;
-      height: 7px;
-      border-radius: 1px;
-      pointer-events: none;
-      z-index: 8;
-      background: linear-gradient(135deg, #c8f0ff, #5ec8ff);
-      box-shadow: 0 0 6px rgba(100, 200, 255, 0.8);
-      animation: shardFly 0.55s ease-out forwards;
+    .combat-token.dying .token.holo {
+      animation: tokenDustOut 0.55s ease forwards;
+      filter: grayscale(1) brightness(0.7);
     }
+    .combat-token.hop .token.holo {
+      animation: tokHop 0.32s cubic-bezier(0.2, 0.9, 0.3, 1);
+    }
+    .dust-puff {
+      position: absolute;
+      width: 28px; height: 28px;
+      margin-left: -14px; margin-top: -14px;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9;
+      background: radial-gradient(circle, rgba(200,200,210,0.85) 0%, rgba(120,120,130,0.35) 45%, transparent 70%);
+      animation: dustPuff 0.55s ease-out forwards;
+    }
+    .holo-shard { display: none; }
     .combat-token .ability-tag {
-      position: absolute; left: 50%; top: -12px; transform: translateX(-50%);
-      white-space: nowrap; font-size: 0.5rem; font-weight: 800; color: #fff;
+      position: absolute; left: 50%; top: -14px; transform: translateX(-50%);
+      white-space: nowrap; font-size: 0.55rem; font-weight: 800; color: #fff;
       background: rgba(80, 40, 160, 0.85); border: 1px solid #c8a0ff;
-      border-radius: 6px; padding: 1px 4px; z-index: 5;
+      border-radius: 6px; padding: 1px 5px; z-index: 5;
       animation: abilityPop 0.9s ease forwards; pointer-events: none;
     }
     .combat-token .shield-ring {
-      position: absolute; inset: -3px; border-radius: 50%;
+      position: absolute; left: 50%; top: 50%;
+      width: calc(var(--tok-w) + 8px); height: calc(var(--tok-h) + 8px);
+      margin-left: calc((var(--tok-w) + 8px) / -2);
+      margin-top: calc((var(--tok-h) + 8px) / -2 - 8px);
+      border-radius: 10px;
       border: 2px solid rgba(100, 180, 255, 0.85);
       box-shadow: 0 0 8px rgba(80, 160, 255, 0.55);
       pointer-events: none; z-index: 3;
@@ -356,38 +350,42 @@
       background: transparent;
       border: none;
       display: flex;
-      align-items: center;
+      align-items: flex-end;
       justify-content: center;
       cursor: pointer;
       touch-action: manipulation;
-      transition: filter 0.12s;
-      transform-style: preserve-3d;
       overflow: visible;
+      z-index: 1;
     }
     .hex::before {
       content: "";
       position: absolute;
       inset: 0;
       clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-      background:
-        linear-gradient(160deg, rgba(60, 100, 80, 0.55), rgba(20, 40, 35, 0.85)),
-        rgba(30, 55, 48, 0.9);
       pointer-events: none;
       z-index: 0;
+      border: none;
     }
-    .hex.enemy-hex::before {
-      background: linear-gradient(160deg, rgba(90, 50, 60, 0.4), rgba(35, 20, 30, 0.7));
+    /* Alternating two-tone checkerboard */
+    .hex.player-hex.tone-a::before {
+      background: linear-gradient(160deg, #2a5a7a 0%, #1a3a52 100%);
     }
-    .hex.player-hex::before {
-      background: linear-gradient(160deg, rgba(40, 80, 100, 0.4), rgba(20, 35, 50, 0.7));
+    .hex.player-hex.tone-b::before {
+      background: linear-gradient(160deg, #1e4864 0%, #142e42 100%);
     }
-    .hex.valid-target { filter: brightness(1.35); }
+    .hex.enemy-hex.tone-a::before {
+      background: linear-gradient(160deg, #6a3040 0%, #3a1824 100%);
+    }
+    .hex.enemy-hex.tone-b::before {
+      background: linear-gradient(160deg, #502030 0%, #2a1018 100%);
+    }
     .hex.valid-target::before {
       box-shadow: inset 0 0 0 2px var(--gold);
-      background: linear-gradient(160deg, rgba(200, 160, 60, 0.45), rgba(80, 60, 20, 0.6));
+      filter: brightness(1.25);
     }
     .hex.drop-hover::before {
-      background: linear-gradient(160deg, rgba(62, 199, 194, 0.55), rgba(20, 60, 70, 0.7));
+      box-shadow: inset 0 0 0 3px #7af0ff, 0 0 16px rgba(90, 220, 255, 0.8);
+      filter: brightness(1.55) saturate(1.2);
     }
     .hex.place-glow::before {
       animation: placeGlow 0.5s ease;
@@ -401,117 +399,102 @@
     .token {
       position: relative;
       z-index: 2;
-      width: calc(var(--hex-w) * 0.86);
-      height: calc(var(--hex-w) * 0.86);
-      border-radius: 50%;
-      background: #1a2430;
+      width: var(--tok-w);
+      height: var(--tok-h);
+      border-radius: 8px;
+      background: #0a1520;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.45);
+      justify-content: flex-end;
+      box-shadow: none;
       cursor: grab;
       touch-action: none;
       user-select: none;
-      animation: tokenPop 0.22s ease both;
+      overflow: visible;
     }
     .token:active { cursor: grabbing; }
-    .token.selected { outline: 2px solid var(--cyan); outline-offset: 1px; }
+    .token.selected { outline: 2px solid var(--cyan); outline-offset: 2px; }
     .token.dragging { opacity: 0.85; z-index: 100; pointer-events: none; }
-    .token .ring {
-      position: absolute; inset: 0; border-radius: 50%;
-      border: 2px solid #888; pointer-events: none;
-    }
-    .token.attr-DARK .ring { border-color: #7a4aaa; }
-    .token.attr-LIGHT .ring { border-color: #e0c040; }
-    .token.attr-EARTH .ring { border-color: #a87840; }
-    .token.attr-WATER .ring { border-color: #4090d0; }
-    .token.attr-FIRE .ring { border-color: #e05030; }
-    .token.attr-WIND .ring { border-color: #50b050; }
-    .token.attr-DIVINE .ring { border-color: #f0d060; }
-    .token .emoji { font-size: calc(var(--hex-w) * 0.38); line-height: 1; z-index: 1; }
+    .token .ring { display: none; }
+    .token .emoji { font-size: calc(var(--tok-w) * 0.45); line-height: 1; z-index: 1; }
     .token .stars {
-      font-size: calc(var(--hex-w) * 0.18);
-      color: var(--gold); line-height: 1; z-index: 1; letter-spacing: -1px;
+      position: absolute;
+      top: -11px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.55rem;
+      color: var(--gold);
+      line-height: 1;
+      z-index: 6;
+      letter-spacing: -1px;
+      text-shadow: 0 1px 2px #000;
+      pointer-events: none;
     }
     .token .bars {
-      position: absolute; left: 10%; right: 10%; bottom: 2px; z-index: 5;
-      display: flex; flex-direction: column; gap: 1px;
-    }
-    .token .hp-bar, .token .mana-bar {
-      height: 2px; background: rgba(0,0,0,0.55); border-radius: 2px; overflow: hidden;
-    }
-    .token .hp-fill {
-      height: 100%; width: 100%;
-      background: linear-gradient(90deg, #e85050, #5ecf8a); border-radius: 2px;
-    }
-    .token .mana-fill {
-      height: 100%; width: 0%;
-      background: linear-gradient(90deg, #2060e0, #50c8ff); border-radius: 2px;
-    }
-    .token.star2 { box-shadow: 0 0 8px rgba(232, 184, 74, 0.55), 0 2px 6px rgba(0,0,0,0.45); }
-    .token.hit .holo-billboard { animation: holoHitFlash 0.3s ease; }
-    .token.hit .holo-art { animation: holoHitFlash 0.3s ease; }
-    .token.stunned { filter: grayscale(0.4) brightness(1.15); }
-    .token .item-icons {
       position: absolute;
-      top: -1px;
-      right: -2px;
-      left: auto;
-      transform: none;
+      left: 8%; right: 8%;
+      top: -4px;
+      z-index: 5;
       display: flex;
       flex-direction: column;
       gap: 0;
-      z-index: 6;
-      font-size: 0.42rem;
-      line-height: 1;
-      pointer-events: none;
-      max-height: 40%;
+    }
+    .token .hp-bar {
+      height: 3px;
+      background: rgba(0,0,0,0.65);
+      border-radius: 2px;
       overflow: hidden;
     }
-    /* Hologram billboards live in screen-space layers (not inside the tilted stage) */
+    .token .mana-bar { display: none; }
+    .token .hp-fill {
+      height: 100%; width: 100%;
+      background: #5ecf8a;
+      border-radius: 2px;
+    }
+    .token.side-enemy .hp-fill { background: #e85a6b; }
+    .token.hit .holo-billboard,
+    .token.hit .portrait-frame {
+      animation: whiteImpact 0.22s ease;
+    }
+    .token.stunned { filter: grayscale(0.4) brightness(1.15); }
+    .token .item-icons {
+      position: absolute;
+      top: 2px; right: 2px;
+      display: flex; flex-direction: column;
+      z-index: 6; font-size: 0.4rem; line-height: 1;
+      pointer-events: none;
+    }
+
+    /* Portrait tokens (shop board + combat) */
     .hex .token.holo { display: none; }
     .token.holo {
-      /* ~1.3× hex wide, 1.5× tall in screen space (hex-screen-w includes board scale) */
-      width: calc(var(--hex-screen-w) * 1.3);
-      height: calc(var(--hex-screen-w) * 1.5);
+      width: var(--tok-w);
+      height: var(--tok-h);
       border-radius: 0;
       background: transparent;
       box-shadow: none;
       display: block;
       position: absolute;
-      left: 0;
-      top: 0;
-      transform: translate(-50%, -100%);
+      left: 0; top: 0;
+      transform: translate(-50%, -88%);
       transform-origin: bottom center;
-      animation: holoRise 0.45s cubic-bezier(0.2, 0.85, 0.3, 1) both;
+      animation: tokRise 0.35s cubic-bezier(0.2, 0.85, 0.3, 1) both;
       overflow: visible;
       pointer-events: none;
     }
-    .token.holo.star2, .token.holo.star3 { box-shadow: none; }
     .token.holo .holo-shadow {
       position: absolute;
-      left: 8%;
-      right: 8%;
-      bottom: -8%;
-      height: 14%;
+      left: 10%; right: 10%;
+      bottom: -6%;
+      height: 12%;
       border-radius: 50%;
-      background: radial-gradient(ellipse at center, rgba(0,0,0,0.65) 0%, transparent 70%);
+      background: radial-gradient(ellipse at center, rgba(0,0,0,0.7) 0%, transparent 72%);
       pointer-events: none;
       z-index: 0;
       transform: scaleY(0.55);
     }
-    .holo-ground {
-      position: absolute;
-      width: calc(var(--hex-screen-w) * 0.9);
-      height: calc(var(--hex-screen-w) * 0.4);
-      margin-left: calc(var(--hex-screen-w) * -0.45);
-      margin-top: calc(var(--hex-screen-w) * -0.2);
-      border-radius: 50%;
-      background: radial-gradient(ellipse at center, rgba(40, 140, 220, 0.35) 0%, rgba(0,0,0,0.45) 40%, transparent 70%);
-      pointer-events: none;
-      z-index: 10;
-    }
+    .holo-ground { display: none; }
     .token.holo .holo-rig {
       position: relative;
       z-index: 2;
@@ -521,26 +504,19 @@
       flex-direction: column;
       align-items: center;
       justify-content: flex-end;
-      gap: 2px;
-      transform-origin: bottom center;
-      animation: holoBob 2.6s ease-in-out 0.45s infinite;
     }
-    .token.holo .holo-billboard {
+    .token.holo .holo-billboard,
+    .token.holo .portrait-frame {
       position: relative;
       z-index: 2;
       width: 100%;
-      flex: 1 1 auto;
-      min-height: 0;
-      border-radius: 8px;
+      height: 100%;
+      border-radius: 7px;
       overflow: hidden;
       background: #0a1520;
-      border: 3px solid rgba(140, 210, 255, 0.85);
-      box-shadow:
-        0 0 16px rgba(80, 180, 255, 0.65),
-        0 0 4px rgba(180, 230, 255, 0.9),
-        0 6px 10px rgba(0, 0, 0, 0.45),
-        inset 0 0 14px rgba(60, 160, 255, 0.22);
-      transform-origin: 50% 100%;
+      border: 2.5px solid #8ec8f0;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.55);
+      aspect-ratio: 3 / 4;
     }
     .token.holo.attr-DARK .holo-billboard { border-color: #b07aff; }
     .token.holo.attr-LIGHT .holo-billboard { border-color: #ffe066; }
@@ -552,93 +528,99 @@
     .token.holo .holo-art {
       width: 100%;
       height: 100%;
-      object-fit: cover;
-      object-position: center 22%;
+      object-fit: cover !important;
+      object-position: center 20%;
       display: block;
     }
     .token.holo .holo-billboard .emoji {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 100%;
-      height: 100%;
-      font-size: calc(var(--hex-screen-w) * 0.5);
+      display: flex; align-items: center; justify-content: center;
+      width: 100%; height: 100%;
+      font-size: calc(var(--tok-w) * 0.5);
       background: linear-gradient(160deg, #1a3048, #0c1828);
     }
     .token.holo .stars {
-      position: relative;
-      left: auto; right: auto; bottom: auto;
-      order: 0;
-      flex: 0 0 auto;
-      text-align: center;
-      font-size: calc(var(--hex-screen-w) * 0.2);
-      line-height: 1;
-      text-shadow: 0 1px 3px #000, 0 0 6px rgba(255, 220, 80, 0.55);
-      z-index: 3;
-      letter-spacing: -1px;
+      top: -12px;
+      font-size: 0.58rem;
     }
     .token.holo .bars {
-      position: relative;
-      top: auto;
-      bottom: auto;
-      left: auto;
-      right: auto;
-      width: 92%;
-      order: -1;
-      flex: 0 0 auto;
-      gap: 2px;
+      top: -5px;
+      width: 88%;
+      left: 6%; right: 6%;
     }
-    .token.holo .hp-bar, .token.holo .mana-bar {
-      height: 5px;
-      border-radius: 3px;
-      opacity: 1;
-      visibility: visible;
-      background: rgba(0, 0, 0, 0.65);
+    .token.holo .hp-bar {
+      height: 3px;
+      border-radius: 2px;
+      background: rgba(0,0,0,0.7);
     }
-    .token.holo .bars { z-index: 6; }
+    .token.holo .mana-bar { display: none !important; }
+    .token.holo.side-player .hp-fill { background: #5ecf8a; }
+    .token.holo.side-enemy .hp-fill { background: #e85a6b; }
     .token.holo.attacking .holo-rig {
-      animation: holoLean 0.28s ease;
-    }
-    .combat-token.hop .holo-rig {
-      animation: holoHop 0.3s ease;
+      animation: tokLunge 0.28s ease;
     }
     .token.holo.selected {
       outline: 2px solid var(--cyan);
       outline-offset: 2px;
     }
     .token.holo.just-placed {
-      animation: holoRise 0.5s cubic-bezier(0.2, 0.85, 0.3, 1) both;
-      filter: drop-shadow(0 0 14px rgba(90, 210, 255, 0.95));
+      animation: tokRise 0.45s cubic-bezier(0.2, 0.85, 0.3, 1) both;
+      filter: drop-shadow(0 0 12px rgba(90, 210, 255, 0.9));
     }
     .hex-hit-token {
       width: 70% !important;
       height: 70% !important;
-      border-radius: 50%;
+      opacity: 0 !important;
     }
     .ghost-token {
-      position: fixed; z-index: 200; pointer-events: none; opacity: 0.9;
-      transform: translate(-50%, -50%) scale(1.05);
-    }
-    .ghost-token.holo {
-      transform: translate(-50%, -90%) scale(1.05);
+      position: fixed; z-index: 200; pointer-events: none; opacity: 0.92;
+      transform: translate(-50%, -80%) scale(1.05);
       transform-origin: bottom center;
+    }
+
+    @keyframes tokRise {
+      0% { opacity: 0; transform: translate(-50%, -88%) scale(0.7); }
+      100% { opacity: 1; transform: translate(-50%, -88%) scale(1); }
+    }
+    @keyframes tokHop {
+      0% { transform: translateY(0); }
+      40% { transform: translateY(-12px); }
+      100% { transform: translateY(0); }
+    }
+    @keyframes tokLunge {
+      0% { transform: translateY(0); }
+      35% { transform: translateY(6px) scaleY(0.96); filter: brightness(1.25); }
+      100% { transform: translateY(0); }
+    }
+    @keyframes whiteImpact {
+      0%, 100% { filter: brightness(1); }
+      30% { filter: brightness(6) saturate(0); }
+    }
+    @keyframes tokenDustOut {
+      0% { opacity: 1; filter: grayscale(0.2); transform: translate(-50%, -88%) scale(1); }
+      40% { filter: grayscale(1) brightness(0.8); }
+      100% { opacity: 0; filter: grayscale(1); transform: translate(-50%, -88%) scale(0.35); }
+    }
+    @keyframes dustPuff {
+      0% { opacity: 0.9; transform: scale(0.4); }
+      100% { opacity: 0; transform: scale(1.8); }
     }
 
     .bench-wrap {
       flex: 0 0 auto;
       display: flex;
       flex-direction: column;
-      gap: 3px;
-      min-height: var(--bench-h);
+      gap: 2px;
+      min-height: 0;
     }
     .bench-row {
       display: grid;
       grid-template-columns: repeat(9, 1fr);
-      gap: 3px;
-      min-height: 48px;
+      gap: 2px;
+      min-height: 40px;
+      max-height: 42px;
     }
     .bench-slot {
-      min-height: 48px;
+      min-height: 40px;
       min-width: 0;
       border-radius: 8px;
       border: 1.5px dashed var(--line);
@@ -658,10 +640,10 @@
     .bench-slot .bench-card {
       width: 100%;
       height: 100%;
-      min-height: 46px;
+      min-height: 38px;
       display: flex;
       flex-direction: column;
-      border-radius: 6px;
+      border-radius: 5px;
       overflow: hidden;
       background: #142433;
       border: 1px solid var(--gold-dim);
@@ -707,12 +689,22 @@
     }
     .bench-slot .bench-meta .s .atk { color: #ff8a8a; }
     .bench-slot .bench-meta .s .def { color: #8ab8ff; }
-    .item-bench {
-      display: flex; flex-wrap: nowrap; gap: 4px;
-      overflow-x: auto; -webkit-overflow-scrolling: touch;
-      min-height: 0; max-height: 36px; align-items: center;
+    .item-bench { display: none !important; }
+    .action-items {
+      display: flex; gap: 6px; flex: 0 0 auto; align-items: center;
     }
-    .item-bench:empty { display: none; }
+    .action-item-slot {
+      width: 44px; height: 44px; border-radius: 10px;
+      border: 1.5px dashed #6a5080;
+      background: rgba(40, 28, 60, 0.55);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.15rem; cursor: pointer; touch-action: manipulation;
+    }
+    .action-item-slot.filled {
+      border-style: solid; border-color: #a080d0;
+      background: linear-gradient(160deg, rgba(70, 45, 100, 0.85), rgba(24, 16, 40, 0.95));
+    }
+    .action-item-slot.selected { outline: 2px solid var(--cyan); }
     .item-bench .hint {
       font-size: 12px;
       color: var(--muted);
@@ -737,7 +729,7 @@
       flex: 0 0 auto;
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
       min-height: var(--fight-h);
     }
     .board-count {
@@ -967,12 +959,12 @@
     }
     .card .stats {
       display: flex; justify-content: space-between; align-items: center;
-      font-size: 14px; font-weight: 800;
-      background: rgba(0,0,0,0.18); border-radius: 3px; padding: 3px 4px; margin-top: auto;
+      font-size: 13px; font-weight: 800;
+      background: rgba(0,0,0,0.22); border-radius: 3px; padding: 3px 4px; margin-top: auto;
       line-height: 1.1;
     }
-    .card .atk { color: #ff8a8a; font-size: 14px; }
-    .card .def { color: #8ab8ff; font-size: 14px; }
+    .card .atk { color: #ff8a8a; font-size: 13px; }
+    .card .def { color: #8ab8ff; font-size: 13px; }
     .card .type-ico { font-size: 12px; opacity: 0.85; }
     .card .cost-badge {
       position: absolute; top: 1px; right: 1px; background: var(--gold); color: #1a1408;
@@ -2186,8 +2178,9 @@
     .combat-fx.heal { color: #6aef9a; text-shadow: 0 2px 0 #084020; }
     .combat-fx.big { font-size: 1.65rem; }
     @keyframes floatDmg {
-      0% { opacity: 1; transform: translate(-50%, -50%) scale(0.8); }
-      100% { opacity: 0; transform: translate(-50%, -120%) scale(1.15); }
+      0% { opacity: 0; transform: translate(-50%, -40%) scale(0.4); }
+      18% { opacity: 1; transform: translate(-50%, -55%) scale(1.25); }
+      100% { opacity: 0; transform: translate(-50%, -130%) scale(1); }
     }
 
     .results-banner {
@@ -2227,6 +2220,154 @@
       z-index: 4;
     }
     .arena { z-index: 1; }
+
+
+    /* Full-screen Equip Spell pick */
+    #itemDraftOverlay .modal {
+      width: min(420px, 100%);
+      max-height: 92dvh;
+      background:
+        radial-gradient(ellipse at 50% 0%, rgba(120, 80, 180, 0.35), transparent 50%),
+        linear-gradient(165deg, #1a2848, #0c1428);
+      border: 2px solid #c8a060;
+      padding: 16px 14px 18px;
+    }
+    .item-draft-host {
+      display: flex; align-items: center; gap: 10px;
+      margin: 0 0 12px; padding: 8px 10px;
+      border-radius: 12px; background: rgba(0,0,0,0.28);
+      border: 1px solid rgba(232,184,74,0.35);
+    }
+    .item-draft-host .host-art {
+      width: 56px; height: 72px; border-radius: 8px; object-fit: cover;
+      border: 2px solid var(--gold); background: #142030; flex: 0 0 auto;
+      background-size: cover; background-position: center 20%;
+    }
+    .item-draft-host .host-art.emoji {
+      display: grid; place-items: center; font-size: 1.6rem;
+    }
+    .item-draft-host .host-copy { min-width: 0; }
+    .item-draft-host .host-name {
+      font-family: "Bungee", cursive; font-size: 0.85rem; color: var(--gold);
+      margin: 0 0 2px;
+    }
+    .item-draft-host .host-line {
+      margin: 0; font-size: 12px; color: var(--fog); font-weight: 700; line-height: 1.3;
+    }
+    .item-draft-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin: 8px 0 0; }
+    .item-draft-card {
+      text-align: left; padding: 14px; border-radius: 14px; border: 2px solid #8a70b0;
+      background: linear-gradient(160deg, rgba(60, 40, 90, 0.95), rgba(18, 14, 32, 0.98));
+      color: var(--fog); font-family: inherit; cursor: pointer; touch-action: manipulation; min-height: 76px;
+    }
+
+    /* Polymerization swirl */
+    .poly-overlay {
+      position: fixed; inset: 0; z-index: 70;
+      display: none; align-items: center; justify-content: center;
+      background: rgba(4, 8, 16, 0.72);
+      pointer-events: none;
+    }
+    .poly-overlay.show { display: flex; }
+    .poly-swirl {
+      width: min(280px, 78vw); text-align: center;
+      animation: polyPop 2s ease forwards;
+    }
+    .poly-swirl .poly-ring {
+      width: 120px; height: 120px; margin: 0 auto 10px;
+      border-radius: 50%;
+      border: 3px solid transparent;
+      border-top-color: #f0d060;
+      border-right-color: #8af0ff;
+      animation: polySpin 1.2s linear infinite;
+      box-shadow: 0 0 24px rgba(240, 200, 80, 0.45);
+    }
+    .poly-swirl .poly-title {
+      font-family: "Bungee", cursive; font-size: 1.15rem; color: #ffe566;
+      text-shadow: 0 2px 0 #5a3a00;
+      margin: 0 0 6px;
+    }
+    .poly-swirl .poly-stars {
+      font-size: 1.4rem; color: var(--gold); letter-spacing: 2px;
+    }
+    .poly-swirl .poly-art {
+      width: 72px; height: 96px; object-fit: cover; border-radius: 8px;
+      border: 2px solid #f0d060; margin: 8px auto 0; display: block;
+      background: #142030;
+    }
+    @keyframes polySpin { to { transform: rotate(360deg); } }
+    @keyframes polyPop {
+      0% { opacity: 0; transform: scale(0.6); }
+      15% { opacity: 1; transform: scale(1.08); }
+      80% { opacity: 1; transform: scale(1); }
+      100% { opacity: 0; transform: scale(1.05); }
+    }
+
+    .victory-flash {
+      position: absolute; inset: 0; z-index: 20;
+      display: none; align-items: center; justify-content: center;
+      pointer-events: none;
+      background: radial-gradient(circle at 50% 45%, rgba(240,200,80,0.22), transparent 55%);
+    }
+    .victory-flash.show { display: flex; animation: duelPop 1s ease forwards; }
+    .victory-flash span {
+      font-family: "Bungee", cursive;
+      font-size: clamp(2rem, 12vw, 3rem);
+      color: #ffe566;
+      text-shadow: 0 0 18px rgba(232,184,74,0.9), 0 4px 0 #8a4010;
+    }
+    .fly-coin {
+      position: fixed; z-index: 80; pointer-events: none;
+      font-size: 1.2rem; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5));
+      transition: transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.7s ease;
+    }
+
+    .shop-peek {
+      position: fixed; z-index: 65; left: 50%; bottom: calc(120px + var(--safe-b));
+      transform: translateX(-50%) scale(0.92);
+      width: min(300px, 86vw);
+      background: linear-gradient(165deg, #1a3048, #0e1e2c);
+      border: 2px solid var(--gold); border-radius: 14px;
+      padding: 12px 14px; opacity: 0; pointer-events: none;
+      transition: opacity 0.15s, transform 0.15s;
+      box-shadow: 0 12px 32px rgba(0,0,0,0.5);
+    }
+    .shop-peek.show { opacity: 1; pointer-events: auto; transform: translateX(-50%) scale(1); }
+    .shop-peek h4 { margin: 0 0 4px; font-family: "Bungee", cursive; font-size: 0.95rem; color: var(--gold); }
+    .shop-peek .peek-stats { font-weight: 800; font-size: 13px; margin: 0 0 6px; }
+    .shop-peek .peek-stats .atk { color: #ff8a8a; }
+    .shop-peek .peek-stats .def { color: #8ab8ff; }
+    .shop-peek .peek-ability { margin: 0; font-size: 12px; color: var(--fog); line-height: 1.35; font-weight: 700; }
+    .shop-peek .peek-type { margin: 0 0 4px; font-size: 12px; color: var(--muted); font-weight: 700; }
+
+    .g-fuse-card {
+      position: relative;
+      overflow: hidden;
+    }
+    .g-fuse-card img {
+      width: 100%;
+      height: 72px;
+      object-fit: cover;
+      object-position: center 18%;
+      display: block;
+      background: #142030;
+    }
+    .g-fuse-card .star-badge {
+      position: absolute; top: 4px; right: 4px;
+      background: rgba(0,0,0,0.7); border-radius: 6px;
+      padding: 1px 5px; font-size: 0.65rem; color: var(--gold); font-weight: 800;
+    }
+
+    .results-banner {
+      animation: none;
+    }
+    .results-banner.show {
+      animation: bannerPop 0.35s cubic-bezier(0.2, 0.9, 0.3, 1) both;
+    }
+    @keyframes bannerPop {
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(0.7); }
+      100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    }
 
   </style>
 </head>
@@ -2326,15 +2467,15 @@
           <div class="hex-board" id="playerBoard"></div>
         </div>
         <div class="duel-flash" id="duelFlash" aria-hidden="true"><span>DUEL!</span></div>
+        <div class="victory-flash" id="victoryFlash" aria-hidden="true"><span>Victory!</span></div>
       </div>
-      <!-- Screen-space overlays OUTSIDE perspective (fixes flat/tiny holos on iOS Safari) -->
       <div class="holo-layer" id="holoLayer"></div>
       <div class="combat-layer" id="combatLayer"></div>
     </div>
 
     <div class="bench-wrap">
       <div class="bench-row" id="bench"></div>
-      <div class="item-bench" id="itemBench"></div>
+      <div class="item-bench" id="itemBench" hidden></div>
       <div class="sell-bar" id="sellBar">
         <button type="button" class="btn btn-danger" id="btnSell">Sell · 1🪙</button>
       </div>
@@ -2346,6 +2487,10 @@
       <div class="fight-bar" id="fightBar">
         <button type="button" class="btn-fight" id="btnFightBusy" disabled>FIGHTING…</button>
         <button type="button" class="btn-speed" id="btnSpeed">1x</button>
+      </div>
+      <div class="action-items" id="actionItems" aria-label="Equip slots">
+        <button type="button" class="action-item-slot" data-slot="0" id="actionItem0" aria-label="Item slot 1"></button>
+        <button type="button" class="action-item-slot" data-slot="1" id="actionItem1" aria-label="Item slot 2"></button>
       </div>
     </div>
 
@@ -2404,7 +2549,13 @@
   <div class="overlay" id="itemDraftOverlay">
     <div class="modal">
       <h2>Equip Spell</h2>
-      <p style="margin-top:0">Choose 1 of 3 items for your item bench.</p>
+      <div class="item-draft-host" id="itemDraftHost">
+        <div class="host-art emoji" id="itemDraftHostArt">🧙</div>
+        <div class="host-copy">
+          <p class="host-name" id="itemDraftHostName">Duelist Kingdom</p>
+          <p class="host-line" id="itemDraftHostLine">Choose 1 of 3 Equip Spells for your duel.</p>
+        </div>
+      </div>
       <div class="item-draft-grid" id="itemDraftGrid"></div>
     </div>
   </div>
@@ -2502,6 +2653,22 @@
     <div class="map-taunt" id="mapTaunt"></div>
     <div class="map-chips" id="mapChipsLabel"></div>
     <button type="button" class="btn btn-primary map-cta" id="btnMapDuel">Enter Duel</button>
+  </div>
+
+  <div class="poly-overlay" id="polyOverlay" aria-hidden="true">
+    <div class="poly-swirl">
+      <div class="poly-ring"></div>
+      <p class="poly-title">Polymerization</p>
+      <div class="poly-stars" id="polyStars">★★</div>
+      <img class="poly-art" id="polyArt" alt="" hidden />
+    </div>
+  </div>
+
+  <div class="shop-peek" id="shopPeek" role="dialog" aria-label="Card preview">
+    <h4 id="shopPeekName">Monster</h4>
+    <p class="peek-type" id="shopPeekType"></p>
+    <p class="peek-stats"><span class="atk" id="shopPeekAtk">0</span> / <span class="def" id="shopPeekDef">0</span></p>
+    <p class="peek-ability" id="shopPeekAbility"></p>
   </div>
 
   <div class="toast" id="toast"></div>
@@ -2998,6 +3165,7 @@
     justPlacedUid: null,
     placeGlowHex: null, // { row, col } hex to pulse after bench→board place
     resultsHoldTimer: null,
+    shopPeekTimer: null,
   };
 
   const $ = (id) => document.getElementById(id);
@@ -3038,6 +3206,10 @@
     btnSpeed: $("btnSpeed"),
     btnSpeedMenu: $("btnSpeedMenu"),
     combatLayer: $("combatLayer"),
+    victoryFlash: $("victoryFlash"),
+    polyOverlay: $("polyOverlay"),
+    shopPeek: $("shopPeek"),
+    actionItems: $("actionItems"),
     resultsBanner: $("resultsBanner"),
     resultsTitle: $("resultsTitle"),
     resultsMsg: $("resultsMsg"),
@@ -3507,7 +3679,29 @@
     }
     toast("Fusion! " + fused.name + " " + starsLabel(toStars));
     logLine('<span class="sys">⚡ ' + escapeHtml(fused.name) + " fused into " + starsLabel(toStars) + "!</span>");
+    playPolymerization(fused, toStars);
     return true;
+  }
+
+  function playPolymerization(fused, stars) {
+    const overlay = el.polyOverlay || $("polyOverlay");
+    if (!overlay) return;
+    const starEl = $("polyStars");
+    const art = $("polyArt");
+    if (starEl) starEl.textContent = starsLabel(stars);
+    if (art) {
+      const src = cardArtSrc(fused, "cropped") || cardArtSrc(fused, "small");
+      if (src) {
+        art.src = src;
+        art.hidden = false;
+      } else {
+        art.hidden = true;
+      }
+    }
+    overlay.classList.remove("show");
+    void overlay.offsetWidth;
+    overlay.classList.add("show");
+    setTimeout(() => overlay.classList.remove("show"), 2000);
   }
 
   /** Scaled ATK used for abilities / trait math (card ATK × star mult × bonuses). */
@@ -3583,10 +3777,10 @@
   }
 
   function hexPixel(boardEl, localRow, col) {
-    const w = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--hex-w")) || 48;
-    const h = w * 1.12;
+    const w = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--hex-w")) || 44;
+    const h = w * 1.15;
     const odd = localRow & 1;
-    const x = col * w * 0.92 + (odd ? w * 0.46 : 0) + 4;
+    const x = col * w * 0.86 + (odd ? w * 0.43 : 0);
     const y = localRow * h * 0.78;
     return { x, y, w, h };
   }
@@ -3599,25 +3793,20 @@
     const padY = (parseFloat(style.paddingTop) || 0) + (parseFloat(style.paddingBottom) || 0);
     const aw = Math.max(180, arena.clientWidth - padX);
     const ah = Math.max(120, arena.clientHeight - padY);
-    const tiltRad = 35 * Math.PI / 180;
-    const cosT = Math.cos(tiltRad);
 
-    // Fill near-edge width tightly (7 columns) — prefer width fill over empty side gutters
-    let screenHex = aw / 6.55;
-    const flatRows = 1.12 * 2.95 * 2 + 0.04;
-    const projectedAtFill = screenHex * flatRows * cosT;
-    if (projectedAtFill > ah * 1.28) {
-      screenHex = (ah * 1.28) / (flatRows * cosT);
-    }
-    let scale = 1.55;
-    let w = Math.round(screenHex / scale);
-    w = Math.max(26, Math.min(56, w));
-    scale = screenHex / w;
-    scale = Math.max(1.35, Math.min(2.05, scale));
+    // Flat pointy-top grid: 7 cols × 8 rows (4+4) fill the board area
+    let w = aw / 7.05;
+    const rowPitch = 1.15 * 0.78;
+    const needH = rowPitch * 7.2 * w;
+    if (needH > ah * 0.98) w = (ah * 0.98) / (rowPitch * 7.2);
+    w = Math.max(28, Math.min(52, Math.round(w)));
 
     document.documentElement.style.setProperty("--hex-w", w + "px");
-    document.documentElement.style.setProperty("--board-scale", scale.toFixed(3));
-    document.documentElement.style.setProperty("--hex-screen-w", (w * scale).toFixed(2) + "px");
+    document.documentElement.style.setProperty("--board-scale", "1");
+    document.documentElement.style.setProperty("--hex-screen-w", w + "px");
+    const th = w * 1.15 * 1.2;
+    document.documentElement.style.setProperty("--tok-h", th.toFixed(1) + "px");
+    document.documentElement.style.setProperty("--tok-w", (th * 0.75).toFixed(1) + "px");
   }
 
   function measureScreenHexW() {
@@ -3636,24 +3825,28 @@
   function sizeHoloToken(tok) {
     if (!tok) return;
     const hw = measureScreenHexW();
-    tok.style.width = (hw * 1.3).toFixed(1) + "px";
-    tok.style.height = (hw * 1.5).toFixed(1) + "px";
+    const hexH = hw * 1.15;
+    const th = hexH * 1.2; // ~1.2× hex tall so heads overlap the hex behind
+    const tw = th * 0.75; // 3:4 portrait, never stretched
+    tok.style.width = tw.toFixed(1) + "px";
+    tok.style.height = th.toFixed(1) + "px";
   }
 
   function layoutBoard(boardEl, side) {
     boardEl.innerHTML = "";
     const isEnemy = side === "enemy";
     const sample = hexPixel(boardEl, 0, 0);
-    const totalW = HEX_COLS * sample.w * 0.92 + sample.w * 0.46;
+    const totalW = HEX_COLS * sample.w * 0.86 + sample.w * 0.43;
     const boardW = (el.hexStage && el.hexStage.clientWidth) || (el.arena && el.arena.clientWidth) || boardEl.clientWidth || 360;
     const offsetX = Math.max(0, boardW - totalW) / 2;
-    boardEl.style.height = (sample.h * 3.05 + 2) + "px";
+    boardEl.style.height = (sample.h * 3.15 + 2) + "px";
 
     for (let r = 0; r < HEX_ROWS; r++) {
       for (let c = 0; c < HEX_COLS; c++) {
         const globalRow = isEnemy ? r : r + HEX_ROWS;
         const hex = document.createElement("div");
-        hex.className = "hex " + (isEnemy ? "enemy-hex" : "player-hex");
+        const tone = ((r + c) & 1) ? "tone-b" : "tone-a";
+        hex.className = "hex " + (isEnemy ? "enemy-hex" : "player-hex") + " " + tone;
         hex.dataset.row = String(globalRow);
         hex.dataset.col = String(c);
         const pos = hexPixel(boardEl, r, c);
@@ -3698,17 +3891,17 @@
 
   function createTokenEl(unit, opts) {
     opts = opts || {};
-    const asHolo = opts.holo !== false; // board default holo
+    const asHolo = opts.holo !== false;
     const meta = raceMeta(unit.type);
     const attr = String(unit.attribute || "DARK").toUpperCase();
+    const sideCls = unit.side === "enemy" ? "side-enemy" : "side-player";
     const tok = document.createElement("div");
-    tok.className = "token attr-" + attr +
+    tok.className = "token attr-" + attr + " " + sideCls +
       (unit.stars === 2 ? " star2" : "") +
       (unit.stars >= 3 ? " star3" : "") +
       (asHolo ? " holo" : "");
     tok.dataset.uid = String(unit.uid);
     const hpPct = Math.max(0, Math.min(100, ((unit.hp || unit.maxHp) / (unit.maxHp || 1)) * 100));
-    const manaPct = Math.max(0, Math.min(100, (unit.mana || 0)));
     const icons = unitItems(unit).map((it) => itemDef(it.defId).emoji).join("");
     const src = cardArtSrc(unit, "cropped");
     let face;
@@ -3722,25 +3915,16 @@
         '<div class="holo-shadow"></div>' +
         '<div class="holo-rig">' +
           (icons ? '<div class="item-icons">' + icons + "</div>" : "") +
-          '<div class="bars">' +
-            '<div class="hp-bar"><div class="hp-fill" style="width:' + hpPct + '%"></div></div>' +
-            '<div class="mana-bar"><div class="mana-fill" style="width:' + manaPct + '%"></div></div>' +
-          "</div>" +
           '<div class="stars">' + starsLabel(unit.stars) + "</div>" +
+          '<div class="bars"><div class="hp-bar"><div class="hp-fill" style="width:' + hpPct + '%"></div></div></div>' +
           '<div class="holo-billboard">' + face + "</div>" +
         "</div>";
-      const img = tok.querySelector("img.holo-art");
-      bindArtFallback(img, meta.emoji);
+      bindArtFallback(tok.querySelector("img.holo-art"), meta.emoji);
     } else {
       tok.innerHTML =
-        (icons ? '<div class="item-icons">' + icons + "</div>" : "") +
-        '<div class="ring"></div>' +
-        '<div class="emoji">' + meta.emoji + "</div>" +
         '<div class="stars">' + starsLabel(unit.stars) + "</div>" +
-        '<div class="bars">' +
-          '<div class="hp-bar"><div class="hp-fill" style="width:' + hpPct + '%"></div></div>' +
-          '<div class="mana-bar"><div class="mana-fill" style="width:' + manaPct + '%"></div></div>' +
-        "</div>";
+        '<div class="bars"><div class="hp-bar"><div class="hp-fill" style="width:' + hpPct + '%"></div></div></div>' +
+        '<div class="emoji">' + meta.emoji + "</div>";
     }
     if (state.selected && state.selected.from === "hex" &&
         state.selected.row === unit.row && state.selected.col === unit.col) {
@@ -3885,10 +4069,11 @@
       const dmg = battleDmgFromAtk(card.atk, s);
       const active = s === Math.min(3, Math.max(1, stars)) ? " active" : "";
       const fArt = src
-        ? '<img src="' + src + '" alt="" />'
-        : '<div style="font-size:1.4rem;padding:12px 0">' + meta.emoji + "</div>";
+        ? '<img src="' + src + '" alt="" loading="lazy" />'
+        : '<div style="font-size:1.4rem;padding:12px 0;text-align:center">' + meta.emoji + "</div>";
       return (
         '<div class="g-fuse-card' + active + '">' + fArt +
+        '<span class="star-badge">' + starsLabel(s) + "</span>" +
         '<div class="fs">' + starsLabel(s) + "</div>" +
         '<div class="fh">HP ' + hp + "<br>DMG " + dmg + "</div></div>"
       );
@@ -4005,14 +4190,65 @@
     });
   }
 
+  function hideShopPeek() {
+    if (el.shopPeek) el.shopPeek.classList.remove("show");
+    if (state.shopPeekTimer) {
+      clearTimeout(state.shopPeekTimer);
+      state.shopPeekTimer = null;
+    }
+  }
+
+  function showShopPeek(card) {
+    if (!el.shopPeek || !card) return;
+    const meta = raceMeta(card.type);
+    const ab = abilityFor(card);
+    $("shopPeekName").textContent = card.name;
+    $("shopPeekType").textContent = meta.emoji + " " + card.type + " · " + (card.attribute || "");
+    $("shopPeekAtk").textContent = String(card.atk);
+    $("shopPeekDef").textContent = String(card.def);
+    $("shopPeekAbility").textContent = ab
+      ? (ab.name + " — " + ab.desc)
+      : (card.role || "Fighter") + " · Range " + (card.range || 1);
+    el.shopPeek.classList.add("show");
+  }
+
   function renderShop() {
     el.shop.innerHTML = "";
+    hideShopPeek();
     state.shop.forEach((card, i) => {
       const wrap = document.createElement("div");
       wrap.className = "zone" + (card ? " filled" : "");
       if (card) {
         wrap.innerHTML = cardHTML(card);
-        wrap.addEventListener("click", () => openCardView(card, { shopIndex: i }));
+        let pressTimer = null;
+        let longPressed = false;
+        const clearPress = () => {
+          if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; }
+        };
+        wrap.addEventListener("pointerdown", (e) => {
+          if (state.phase !== "shop") return;
+          longPressed = false;
+          clearPress();
+          pressTimer = setTimeout(() => {
+            longPressed = true;
+            showShopPeek(card);
+            try { wrap.setPointerCapture(e.pointerId); } catch (err) {}
+          }, 380);
+        });
+        wrap.addEventListener("pointerup", () => clearPress());
+        wrap.addEventListener("pointerleave", () => clearPress());
+        wrap.addEventListener("pointercancel", () => clearPress());
+        wrap.addEventListener("click", (e) => {
+          if (longPressed) {
+            e.preventDefault();
+            e.stopPropagation();
+            longPressed = false;
+            setTimeout(hideShopPeek, 1800);
+            return;
+          }
+          hideShopPeek();
+          buyCard(i);
+        });
       }
       el.shop.appendChild(wrap);
     });
@@ -4185,30 +4421,40 @@
     el.shopBlock.classList.toggle("dimmed", state.phase === "fight");
     const econ = $("econRow");
     if (econ) econ.classList.toggle("dimmed", state.phase === "fight");
+    // Clear a stuck banner only when shop is idle (no pending result)
+    if (state.phase === "shop" && !state.pendingResult && el.resultsBanner &&
+        el.resultsBanner.classList.contains("show")) {
+      clearResultsBanner();
+    }
   }
 
   function renderItemBench() {
-    el.itemBench.innerHTML = "";
-    if (!state.itemBench.length) {
-      const hint = document.createElement("span");
-      hint.className = "hint";
-      hint.textContent = "Items appear after rounds 2, 5, 9, 13";
-      el.itemBench.appendChild(hint);
-      return;
-    }
-    state.itemBench.forEach((it, i) => {
-      const d = itemDef(it.defId);
-      const chip = document.createElement("button");
-      chip.type = "button";
-      chip.className = "item-chip" + (state.selectedItem === i ? " selected" : "");
-      chip.innerHTML = '<span class="iemoji">' + d.emoji + "</span><span>" + escapeHtml(d.name) + "</span>";
-      chip.addEventListener("click", () => {
+    // Keep hidden legacy bench in sync (unused visually)
+    if (el.itemBench) el.itemBench.innerHTML = "";
+    const slots = [$("actionItem0"), $("actionItem1")];
+    slots.forEach((slot, i) => {
+      if (!slot) return;
+      const it = state.itemBench[i];
+      slot.classList.toggle("filled", !!it);
+      slot.classList.toggle("selected", state.selectedItem === i && !!it);
+      if (it) {
+        const d = itemDef(it.defId);
+        slot.textContent = d.emoji;
+        slot.title = d.name + " — " + d.desc;
+      } else {
+        slot.textContent = "";
+        slot.title = i === 0 ? "Equip slot" : "Equip slot";
+      }
+      slot.onclick = () => {
+        if (!it || state.phase !== "shop") return;
         state.selected = null;
         state.selectedItem = state.selectedItem === i ? null : i;
         render();
-      });
-      el.itemBench.appendChild(chip);
+      };
     });
+    if (el.actionItems) {
+      el.actionItems.style.visibility = state.phase === "fight" ? "hidden" : "visible";
+    }
   }
 
   function tryEquipOnUnit(unit) {
@@ -4718,7 +4964,7 @@
     const h = hex.getBoundingClientRect();
     return {
       x: h.left - a.left + h.width / 2,
-      y: h.top - a.top + h.height * 0.62,
+      y: h.top - a.top + h.height * 0.72,
     };
   }
 
@@ -4839,22 +5085,17 @@
     v.tok.classList.add("hit");
   }
 
-  function spawnHoloShards(v) {
+  function spawnHoloShards(v) { spawnDustPuff(v); }
+
+  function spawnDustPuff(v) {
     if (!v || !el.combatLayer) return;
-    const n = 12;
-    for (let i = 0; i < n; i++) {
-      const shard = document.createElement("div");
-      shard.className = "holo-shard";
-      const ang = (Math.PI * 2 * i) / n + Math.random() * 0.4;
-      const dist = 18 + Math.random() * 36;
-      shard.style.left = v.x + "px";
-      shard.style.top = (v.y - 28) + "px";
-      shard.style.setProperty("--sx", (Math.cos(ang) * dist).toFixed(1) + "px");
-      shard.style.setProperty("--sy", (Math.sin(ang) * dist - 10).toFixed(1) + "px");
-      shard.style.width = (5 + Math.random() * 5).toFixed(0) + "px";
-      shard.style.height = (5 + Math.random() * 5).toFixed(0) + "px";
-      el.combatLayer.appendChild(shard);
-      setTimeout(() => shard.remove(), 560 / state.fightSpeed);
+    for (let i = 0; i < 3; i++) {
+      const puff = document.createElement("div");
+      puff.className = "dust-puff";
+      puff.style.left = (v.x + (Math.random() - 0.5) * 16) + "px";
+      puff.style.top = (v.y - 20 + (Math.random() - 0.5) * 12) + "px";
+      el.combatLayer.appendChild(puff);
+      setTimeout(() => puff.remove(), 560 / state.fightSpeed);
     }
   }
 
@@ -4868,7 +5109,7 @@
     const dist = Math.min(28, len * 0.45);
     va.lungeX = (dx / len) * dist;
     va.lungeY = (dy / len) * dist;
-    va.lungeT = 180 / state.fightSpeed;
+    va.lungeT = 220 / state.fightSpeed;
     va.lean = 26;
     if (va.tok) {
       va.tok.classList.remove("attacking");
@@ -4971,11 +5212,10 @@
     if (v) {
       v.wrap.classList.add("dying");
       if (v.tok) {
-        v.tok.classList.add("shattering");
         const rig = v.tok.querySelector(".holo-rig");
         if (rig) rig.style.animation = "none";
       }
-      spawnHoloShards(v);
+      spawnDustPuff(v);
       setTimeout(() => {
         if (v.wrap.parentNode) v.wrap.remove();
         delete state.combatVisuals[unit.uid];
@@ -5384,7 +5624,7 @@
       el.resultsTitle.textContent = "Duel Lost";
       el.resultsMsg.textContent = dmgLine + "  ·  0 LP remaining";
     } else {
-      el.resultsTitle.textContent = playerWonRound ? "Round Won!" : "Round Lost";
+      el.resultsTitle.textContent = playerWonRound ? "Victory!" : "Round Lost";
       el.resultsMsg.textContent = dmgLine;
     }
     if (el.resultsRewards) {
@@ -5401,16 +5641,55 @@
       }
       el.resultsRewards.innerHTML = chips.join("");
     }
+    if (playerWonRound) {
+      showVictoryFlash();
+      flyGoldCoins(Math.min(6, 3 + (streak || 0)));
+    }
+    clearResultsBanner();
     el.resultsBanner.classList.add("show");
     el.fightBar.classList.remove("show");
     el.btnFight.style.display = "none";
     renderHUD();
     saveRun();
-    if (state.resultsHoldTimer) clearTimeout(state.resultsHoldTimer);
     state.resultsHoldTimer = setTimeout(() => {
       state.resultsHoldTimer = null;
-      dismissResults();
+      if (el.resultsBanner && el.resultsBanner.classList.contains("show")) {
+        dismissResults();
+      }
     }, RESULTS_HOLD_MS);
+  }
+
+  function showVictoryFlash() {
+    if (!el.victoryFlash) return;
+    el.victoryFlash.classList.remove("show");
+    void el.victoryFlash.offsetWidth;
+    el.victoryFlash.classList.add("show");
+    setTimeout(() => el.victoryFlash.classList.remove("show"), 1000);
+  }
+
+  function flyGoldCoins(n) {
+    const goldEl = $("gold");
+    const board = el.boardWrap || el.arena;
+    if (!goldEl || !board) return;
+    const from = board.getBoundingClientRect();
+    const to = goldEl.getBoundingClientRect();
+    for (let i = 0; i < n; i++) {
+      const coin = document.createElement("div");
+      coin.className = "fly-coin";
+      coin.textContent = "🪙";
+      const sx = from.left + from.width * (0.35 + Math.random() * 0.3);
+      const sy = from.top + from.height * (0.4 + Math.random() * 0.25);
+      coin.style.left = sx + "px";
+      coin.style.top = sy + "px";
+      document.body.appendChild(coin);
+      const dx = to.left + to.width / 2 - sx;
+      const dy = to.top + to.height / 2 - sy;
+      requestAnimationFrame(() => {
+        coin.style.transform = "translate(" + dx.toFixed(1) + "px," + dy.toFixed(1) + "px) scale(0.6)";
+        coin.style.opacity = "0";
+      });
+      setTimeout(() => coin.remove(), 750);
+    }
   }
 
   function fillRunSummary(won) {
@@ -5468,6 +5747,34 @@
     while (picks.length < 3 && pool.length) {
       const i = Math.floor(Math.random() * pool.length);
       picks.push(pool.splice(i, 1)[0]);
+    }
+    const host = currentDuelist();
+    const hostName = $("itemDraftHostName");
+    const hostLine = $("itemDraftHostLine");
+    const hostArt = $("itemDraftHostArt");
+    if (hostName) hostName.textContent = host.name;
+    if (hostLine) {
+      hostLine.textContent = (host.taunt || "Choose your Equip Spell wisely.") +
+        " Pick 1 of 3.";
+    }
+    if (hostArt) {
+      let src = null;
+      const poolHost = themedPool(host);
+      if (poolHost && poolHost.length) {
+        const top = poolHost.slice().sort((a, b) => b.atk - a.atk)[0];
+        src = cardArtSrc(top, "cropped") || cardArtSrc(top, "small");
+      }
+      if (src) {
+        hostArt.className = "host-art";
+        hostArt.textContent = "";
+        hostArt.style.backgroundImage = "url('" + src.replace(/'/g, "%27") + "')";
+        hostArt.style.backgroundSize = "cover";
+        hostArt.style.backgroundPosition = "center 20%";
+      } else {
+        hostArt.className = "host-art emoji";
+        hostArt.style.backgroundImage = "";
+        hostArt.textContent = "🧙";
+      }
     }
     el.itemDraftGrid.innerHTML = "";
     picks.forEach((def) => {
@@ -5577,6 +5884,7 @@
     }
     hideMap();
     state.phase = "shop";
+    clearResultsBanner();
     state.fightSpeed = 1;
     state.lp = DUEL_START_LP;
     state.enemyLp = DUEL_START_LP;
@@ -5596,6 +5904,7 @@
     state.duelRound += 1;
     rollShop();
     state.phase = "shop";
+    clearResultsBanner();
     render();
     saveRun();
   }
@@ -5612,12 +5921,16 @@
     saveRun();
   }
 
-  function dismissResults() {
+  function clearResultsBanner() {
     if (state.resultsHoldTimer) {
       clearTimeout(state.resultsHoldTimer);
       state.resultsHoldTimer = null;
     }
-    el.resultsBanner.classList.remove("show");
+    if (el.resultsBanner) el.resultsBanner.classList.remove("show");
+  }
+
+  function dismissResults() {
+    clearResultsBanner();
     const res = state.pendingResult;
     state.pendingResult = null;
     if (!res) return;
