@@ -27,6 +27,8 @@
       --safe-b: env(safe-area-inset-bottom, 0px);
       --safe-t: env(safe-area-inset-top, 0px);
       --tap: 48px;
+      --hex-w: clamp(40px, 12.5vw, 52px);
+      --hex-h: calc(var(--hex-w) * 1.12);
     }
 
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -47,7 +49,7 @@
       position: fixed;
       inset: 0;
       pointer-events: none;
-      opacity: 0.07;
+      opacity: 0.06;
       background-image:
         repeating-linear-gradient(0deg, transparent, transparent 27px, #fff 27px, #fff 28px),
         repeating-linear-gradient(90deg, transparent, transparent 27px, #fff 27px, #fff 28px);
@@ -57,7 +59,7 @@
     .app {
       max-width: 480px;
       margin: 0 auto;
-      padding: calc(10px + var(--safe-t)) 12px calc(16px + var(--safe-b));
+      padding: calc(8px + var(--safe-t)) 10px calc(14px + var(--safe-b));
       position: relative;
       z-index: 1;
       display: none;
@@ -69,20 +71,18 @@
       grid-template-columns: 1fr auto;
       gap: 8px;
       align-items: start;
-      margin-bottom: 10px;
-      animation: fadeDown 0.5s ease both;
+      margin-bottom: 8px;
     }
 
     .brand {
       font-family: "Bungee", cursive;
-      font-size: clamp(1.55rem, 6.5vw, 1.9rem);
+      font-size: clamp(1.4rem, 6vw, 1.75rem);
       line-height: 1.05;
       letter-spacing: 0.02em;
       color: var(--gold);
       text-shadow: 0 2px 0 #6a4a10, 0 0 24px rgba(232, 184, 74, 0.25);
       margin: 0;
     }
-
     .brand span {
       display: block;
       font-size: 0.55em;
@@ -111,7 +111,6 @@
       font-weight: 700;
       font-size: 0.92rem;
     }
-
     .pill .label { color: var(--muted); font-size: 0.72rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; }
     .pill.lp .val { color: var(--rose); }
     .pill.gold .val { color: var(--gold); }
@@ -126,9 +125,9 @@
       padding: 8px 12px;
       font-size: 0.8rem;
       font-weight: 700;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
     }
-    .notice.show { display: block; animation: fadeDown 0.35s ease both; }
+    .notice.show { display: block; }
 
     .btn {
       appearance: none;
@@ -140,7 +139,7 @@
       padding: 12px 18px;
       border-radius: 14px;
       cursor: pointer;
-      transition: transform 0.12s ease, filter 0.12s ease, box-shadow 0.12s ease;
+      transition: transform 0.12s ease, filter 0.12s ease;
       touch-action: manipulation;
       user-select: none;
     }
@@ -149,7 +148,7 @@
     .btn-primary {
       background: linear-gradient(180deg, #f0c45a, #c99220);
       color: #1a1408;
-      box-shadow: 0 4px 0 #7a5a10, 0 8px 20px rgba(232, 184, 74, 0.25);
+      box-shadow: 0 4px 0 #7a5a10;
     }
     .btn-secondary {
       background: linear-gradient(180deg, #2a4a60, #1a3347);
@@ -171,22 +170,37 @@
       font-size: 0.9rem;
     }
     .btn-wide { width: 100%; }
+    .btn-fight {
+      width: 100%;
+      min-height: 56px;
+      font-size: 1.25rem;
+      letter-spacing: 0.12em;
+      background: linear-gradient(180deg, #ff5a6a, #c02038);
+      color: #fff;
+      border: none;
+      border-radius: 16px;
+      box-shadow: 0 5px 0 #6a1020, 0 10px 24px rgba(200, 40, 60, 0.35);
+      margin: 8px 0 10px;
+      font-family: "Bungee", cursive;
+    }
+    .btn-fight:disabled {
+      opacity: 0.35;
+      box-shadow: 0 5px 0 #3a1820;
+    }
 
-    .actions {
+    .shop-actions {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 8px;
-      margin: 10px 0;
+      margin: 8px 0;
     }
-    .actions .btn-primary { grid-column: 1 / -1; }
 
     section.block {
-      background: rgba(13, 26, 40, 0.85);
+      background: rgba(13, 26, 40, 0.88);
       border: 1px solid var(--line);
       border-radius: 16px;
-      padding: 12px;
-      margin-bottom: 10px;
-      animation: riseIn 0.45s ease both;
+      padding: 10px;
+      margin-bottom: 8px;
     }
 
     .block-head {
@@ -204,44 +218,264 @@
       color: var(--muted);
       font-weight: 700;
     }
-    .hint { font-size: 0.75rem; color: var(--muted); }
+    .hint { font-size: 0.72rem; color: var(--muted); }
 
-    .zones {
+    /* —— Hex arena —— */
+    .arena {
+      background:
+        radial-gradient(ellipse at 50% 30%, rgba(40, 70, 50, 0.35), transparent 55%),
+        linear-gradient(180deg, rgba(20, 36, 28, 0.95), rgba(12, 24, 36, 0.95));
+      border: 1px solid #2a5040;
+      border-radius: 16px;
+      padding: 8px 4px 10px;
+      margin-bottom: 8px;
+      overflow: hidden;
+    }
+    .arena-label {
+      text-align: center;
+      font-size: 0.68rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 700;
+      margin: 2px 0 4px;
+    }
+    .arena-label.enemy { color: #e87888; }
+    .arena-label.player { color: var(--cyan); }
+
+    .hex-board {
+      position: relative;
+      width: 100%;
+      margin: 0 auto;
+      /* 7 cols + half offset; height for 4 rows */
+      height: calc(var(--hex-h) * 3.25 + 8px);
+    }
+
+    .hex {
+      position: absolute;
+      width: var(--hex-w);
+      height: var(--hex-h);
+      clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+      background: rgba(30, 55, 48, 0.85);
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      touch-action: none;
+      transition: filter 0.12s, transform 0.12s;
+    }
+    .hex::before {
+      content: "";
+      position: absolute;
+      inset: 2px;
+      clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+      background: linear-gradient(160deg, rgba(60, 100, 80, 0.45), rgba(20, 40, 35, 0.7));
+      pointer-events: none;
+    }
+    .hex.enemy-hex::before {
+      background: linear-gradient(160deg, rgba(90, 50, 60, 0.4), rgba(35, 20, 30, 0.7));
+    }
+    .hex.player-hex::before {
+      background: linear-gradient(160deg, rgba(40, 80, 100, 0.4), rgba(20, 35, 50, 0.7));
+    }
+    .hex.valid-target {
+      filter: brightness(1.35);
+    }
+    .hex.valid-target::before {
+      box-shadow: inset 0 0 0 2px var(--gold);
+      background: linear-gradient(160deg, rgba(200, 160, 60, 0.45), rgba(80, 60, 20, 0.6));
+    }
+    .hex.drop-hover::before {
+      background: linear-gradient(160deg, rgba(62, 199, 194, 0.55), rgba(20, 60, 70, 0.7));
+    }
+
+    .midline {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin: 4px 0;
+      color: var(--rose);
+      font-family: "Bungee", cursive;
+      font-size: 0.85rem;
+      letter-spacing: 0.1em;
+    }
+    .midline::before, .midline::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--line), transparent);
+    }
+
+    /* Tokens on hex / bench */
+    .token {
+      position: relative;
+      z-index: 2;
+      width: calc(var(--hex-w) * 0.82);
+      height: calc(var(--hex-w) * 0.82);
+      border-radius: 50%;
+      background: #1a2430;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.45);
+      cursor: grab;
+      touch-action: none;
+      user-select: none;
+      animation: tokenPop 0.22s ease both;
+    }
+    .token:active { cursor: grabbing; }
+    .token.selected {
+      outline: 3px solid var(--cyan);
+      outline-offset: 1px;
+    }
+    .token.dragging {
+      opacity: 0.85;
+      z-index: 100;
+      transform: scale(1.08);
+      pointer-events: none;
+    }
+    .token .ring {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      border: 3px solid #888;
+      pointer-events: none;
+    }
+    .token.attr-DARK .ring { border-color: #7a4aaa; }
+    .token.attr-LIGHT .ring { border-color: #e0c040; }
+    .token.attr-EARTH .ring { border-color: #a87840; }
+    .token.attr-WATER .ring { border-color: #4090d0; }
+    .token.attr-FIRE .ring { border-color: #e05030; }
+    .token.attr-WIND .ring { border-color: #50b050; }
+    .token.attr-DIVINE .ring { border-color: #f0d060; }
+
+    .token .emoji { font-size: 1.05rem; line-height: 1; z-index: 1; }
+    .token .tname {
+      font-size: 0.42rem;
+      font-weight: 800;
+      line-height: 1.05;
+      text-align: center;
+      max-width: 90%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      z-index: 1;
+      color: #fff;
+      text-shadow: 0 1px 2px #000;
+      padding: 0 2px;
+    }
+    .token .stars {
+      font-size: 0.4rem;
+      color: var(--gold);
+      line-height: 1;
+      z-index: 1;
+      letter-spacing: -1px;
+    }
+    .token .hp-bar {
+      position: absolute;
+      left: 10%;
+      right: 10%;
+      bottom: 3px;
+      height: 4px;
+      background: rgba(0,0,0,0.55);
+      border-radius: 2px;
+      overflow: hidden;
+      z-index: 2;
+    }
+    .token .hp-fill {
+      height: 100%;
+      width: 100%;
+      background: linear-gradient(90deg, #e85050, #5ecf8a);
+      border-radius: 2px;
+      transition: width 0.15s linear;
+    }
+    .token.star2 {
+      box-shadow: 0 0 10px rgba(232, 184, 74, 0.55), 0 2px 6px rgba(0,0,0,0.45);
+    }
+    .token.hit { animation: tokenHit 0.25s ease; }
+
+    .ghost-token {
+      position: fixed;
+      z-index: 200;
+      pointer-events: none;
+      opacity: 0.9;
+      transform: translate(-50%, -50%) scale(1.1);
+    }
+
+    .bonuses {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 6px;
+      min-height: 24px;
+    }
+    .bonus-tag {
+      background: rgba(62, 199, 194, 0.15);
+      border: 1px solid rgba(62, 199, 194, 0.4);
+      color: var(--cyan);
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 4px 8px;
+      border-radius: 8px;
+    }
+
+    /* Bench as horizontal hex-like slots */
+    .bench-row {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
+      min-height: 72px;
+    }
+    .bench-slot {
+      min-height: 72px;
+      border-radius: 12px;
+      border: 1.5px dashed var(--line);
+      background: rgba(20, 40, 55, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      touch-action: none;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .bench-slot.filled {
+      border-style: solid;
+      border-color: var(--gold-dim);
+    }
+    .bench-slot.selected {
+      border-color: var(--cyan);
+      box-shadow: 0 0 0 2px rgba(62, 199, 194, 0.35);
+    }
+    .bench-slot.valid-target {
+      border-color: var(--gold);
+      background: rgba(232, 184, 74, 0.12);
+    }
+    .bench-slot .token {
+      width: 58px;
+      height: 58px;
+    }
+    .bench-slot .token .emoji { font-size: 1.2rem; }
+    .bench-slot .token .tname { font-size: 0.5rem; }
+
+    /* Shop cards (unchanged style, slightly tighter) */
+    .shop-row {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
       gap: 5px;
-      min-height: 108px;
     }
-
     .zone {
       background: linear-gradient(160deg, rgba(30, 60, 80, 0.5), rgba(12, 28, 40, 0.7));
       border: 1.5px dashed var(--line);
       border-radius: 10px;
-      min-height: 108px;
-      position: relative;
+      min-height: 110px;
       display: flex;
       align-items: stretch;
       justify-content: center;
-      transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
     }
-    .zone.filled {
-      border-style: solid;
-      border-color: var(--gold-dim);
-      background: transparent;
-    }
-    .zone.selected {
-      border-color: var(--cyan);
-      box-shadow: 0 0 0 2px rgba(62, 199, 194, 0.35);
-    }
-    .zone.empty-label {
-      writing-mode: vertical-rl;
-      text-orientation: mixed;
-      font-size: 0.62rem;
-      color: var(--muted);
-      letter-spacing: 0.08em;
-      opacity: 0.55;
-      align-self: center;
-    }
+    .zone.filled { border-style: solid; border-color: var(--gold-dim); background: transparent; }
 
     .card {
       width: 100%;
@@ -255,340 +489,132 @@
       cursor: pointer;
       position: relative;
       overflow: hidden;
-      animation: cardPop 0.28s ease both;
       box-shadow: 0 3px 8px rgba(0,0,0,0.35);
-      min-height: 100px;
+      min-height: 108px;
       background: linear-gradient(165deg, #fff8ee 0%, #e8dcc8 100%);
     }
     .card.star2 {
       box-shadow: 0 0 12px rgba(232, 184, 74, 0.45), 0 3px 8px rgba(0,0,0,0.35);
     }
-    .card.shop-card { min-height: 118px; }
-    .card.selected {
-      outline: 3px solid var(--cyan);
-      outline-offset: 1px;
-    }
-
-    /* Attribute face colors */
-    .card.attr-DARK {
-      background: linear-gradient(165deg, #d8cce8 0%, #9a7ab8 55%, #5a3a78 100%);
-      border-color: #3a2060;
-      color: #140820;
-    }
-    .card.attr-LIGHT {
-      background: linear-gradient(165deg, #fffef5 0%, #f5e8a8 50%, #e0c860 100%);
-      border-color: #a89030;
-      color: #2a2410;
-    }
-    .card.attr-EARTH {
-      background: linear-gradient(165deg, #f0e0c8 0%, #c4a070 55%, #8a6840 100%);
-      border-color: #5a4020;
-      color: #1e1408;
-    }
-    .card.attr-WATER {
-      background: linear-gradient(165deg, #e0f0ff 0%, #78b0e0 55%, #3070b0 100%);
-      border-color: #184878;
-      color: #081828;
-    }
-    .card.attr-FIRE {
-      background: linear-gradient(165deg, #ffe8d8 0%, #e87850 55%, #b03828 100%);
-      border-color: #801818;
-      color: #200808;
-    }
-    .card.attr-WIND {
-      background: linear-gradient(165deg, #e8f8e0 0%, #88c868 55%, #408838 100%);
-      border-color: #204818;
-      color: #0c1c08;
-    }
-    .card.attr-DIVINE {
-      background: linear-gradient(165deg, #fff6d0 0%, #e8c040 45%, #c89820 100%);
-      border-color: #806010;
-      color: #201808;
-    }
-
-    .card .emoji {
-      font-size: 1.35rem;
-      text-align: center;
-      line-height: 1.1;
-      filter: drop-shadow(0 1px 0 rgba(0,0,0,0.15));
-    }
-    .card .name {
-      font-size: 0.58rem;
-      font-weight: 800;
-      text-align: center;
-      line-height: 1.15;
-      min-height: 1.7em;
-    }
+    .card.attr-DARK { background: linear-gradient(165deg, #d8cce8, #5a3a78); border-color: #3a2060; color: #140820; }
+    .card.attr-LIGHT { background: linear-gradient(165deg, #fffef5, #e0c860); border-color: #a89030; color: #2a2410; }
+    .card.attr-EARTH { background: linear-gradient(165deg, #f0e0c8, #8a6840); border-color: #5a4020; color: #1e1408; }
+    .card.attr-WATER { background: linear-gradient(165deg, #e0f0ff, #3070b0); border-color: #184878; color: #081828; }
+    .card.attr-FIRE { background: linear-gradient(165deg, #ffe8d8, #b03828); border-color: #801818; color: #200808; }
+    .card.attr-WIND { background: linear-gradient(165deg, #e8f8e0, #408838); border-color: #204818; color: #0c1c08; }
+    .card.attr-DIVINE { background: linear-gradient(165deg, #fff6d0, #c89820); border-color: #806010; color: #201808; }
+    .card .emoji { font-size: 1.25rem; text-align: center; line-height: 1.1; }
+    .card .name { font-size: 0.55rem; font-weight: 800; text-align: center; line-height: 1.15; min-height: 1.7em; }
     .card .stats {
-      display: flex;
-      justify-content: space-between;
-      font-size: 0.62rem;
-      font-weight: 800;
-      background: rgba(0,0,0,0.1);
-      border-radius: 4px;
-      padding: 2px 3px;
-      margin-top: auto;
+      display: flex; justify-content: space-between; font-size: 0.6rem; font-weight: 800;
+      background: rgba(0,0,0,0.1); border-radius: 4px; padding: 2px 3px; margin-top: auto;
     }
     .card .atk { color: #8a1010; }
     .card .def { color: #103868; }
     .card .cost-badge {
-      position: absolute;
-      top: 2px;
-      right: 2px;
-      background: var(--gold);
-      color: #1a1408;
-      font-size: 0.62rem;
-      font-weight: 800;
-      border-radius: 6px;
-      padding: 2px 5px;
-      line-height: 1.2;
+      position: absolute; top: 2px; right: 2px; background: var(--gold); color: #1a1408;
+      font-size: 0.62rem; font-weight: 800; border-radius: 6px; padding: 2px 5px;
     }
-    .card .stars {
-      text-align: center;
-      font-size: 0.48rem;
-      letter-spacing: -0.5px;
-      color: #8a6810;
-      line-height: 1;
-    }
-    .type-chip {
-      font-size: 0.5rem;
-      text-align: center;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      opacity: 0.9;
-    }
-    .attr-chip {
-      font-size: 0.48rem;
-      text-align: center;
-      font-weight: 800;
-      letter-spacing: 0.06em;
-      opacity: 0.75;
+    .card .stars { text-align: center; font-size: 0.45rem; color: #8a6810; letter-spacing: -0.5px; }
+    .type-chip, .attr-chip {
+      font-size: 0.48rem; text-align: center; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
     }
 
-    .shop-row {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 5px;
-    }
-
-    .bonuses {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-top: 8px;
-      min-height: 28px;
-    }
-    .bonus-tag {
-      background: rgba(62, 199, 194, 0.15);
-      border: 1px solid rgba(62, 199, 194, 0.4);
-      color: var(--cyan);
-      font-size: 0.72rem;
-      font-weight: 700;
-      padding: 4px 8px;
-      border-radius: 8px;
-      animation: fadeDown 0.3s ease both;
-    }
+    .sell-bar { display: none; margin-top: 8px; }
+    .sell-bar.show { display: block; }
 
     .log {
-      max-height: 120px;
+      max-height: 100px;
       overflow-y: auto;
-      font-size: 0.78rem;
+      font-size: 0.76rem;
       line-height: 1.35;
-      color: var(--fog);
       background: rgba(0,0,0,0.25);
       border-radius: 10px;
       padding: 8px 10px;
-      -webkit-overflow-scrolling: touch;
     }
     .log p { margin: 0 0 4px; }
     .log .dmg { color: var(--rose); font-weight: 700; }
     .log .win { color: var(--mint); }
     .log .sys { color: var(--gold); }
 
-    .battle-strip {
-      display: none;
-      margin-bottom: 10px;
-    }
-    .battle-strip.active { display: block; animation: riseIn 0.35s ease; }
-    .vs-row {
-      display: grid;
-      grid-template-columns: 1fr auto 1fr;
-      gap: 6px;
-      align-items: center;
-      margin-bottom: 8px;
-    }
-    .vs-label {
-      font-family: "Bungee", cursive;
-      color: var(--rose);
-      font-size: 1.1rem;
-    }
-    .mini-zones {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 3px;
-    }
-    .mini-zones .zone { min-height: 72px; }
-    .mini-zones .card { min-height: 68px; }
-    .mini-zones .card .name { font-size: 0.5rem; }
-    .mini-zones .card .emoji { font-size: 1.05rem; }
-
     .overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(4, 10, 16, 0.78);
-      backdrop-filter: blur(4px);
-      z-index: 50;
-      display: flex;
-      align-items: flex-end;
-      justify-content: center;
-      padding: 16px;
-      padding-bottom: calc(16px + var(--safe-b));
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.25s ease;
+      position: fixed; inset: 0; background: rgba(4, 10, 16, 0.78);
+      backdrop-filter: blur(4px); z-index: 50;
+      display: flex; align-items: flex-end; justify-content: center;
+      padding: 16px; padding-bottom: calc(16px + var(--safe-b));
+      opacity: 0; pointer-events: none; transition: opacity 0.25s ease;
     }
     .overlay.open { opacity: 1; pointer-events: auto; }
     .overlay.start-screen {
       align-items: center;
-      background:
-        radial-gradient(ellipse 100% 70% at 50% 20%, rgba(40, 80, 110, 0.55), transparent 60%),
-        rgba(4, 10, 16, 0.92);
+      background: radial-gradient(ellipse 100% 70% at 50% 20%, rgba(40, 80, 110, 0.55), transparent 60%), rgba(4, 10, 16, 0.92);
     }
     .modal {
       background: linear-gradient(180deg, #1a3347, #0f2030);
       border: 1px solid var(--line);
-      border-radius: 20px 20px 16px 16px;
+      border-radius: 20px;
       padding: 20px 18px;
       width: min(440px, 100%);
       max-height: 85vh;
       overflow-y: auto;
-      transform: translateY(24px);
-      transition: transform 0.28s ease;
-      box-shadow: 0 -8px 40px rgba(0,0,0,0.5);
-    }
-    .overlay.start-screen .modal {
-      border-radius: 20px;
-      transform: scale(0.96);
       box-shadow: 0 16px 48px rgba(0,0,0,0.55);
     }
-    .overlay.open .modal { transform: translateY(0); }
-    .overlay.start-screen.open .modal { transform: scale(1); }
     .modal h2 {
-      font-family: "Bungee", cursive;
-      color: var(--gold);
-      margin: 0 0 10px;
-      font-size: 1.35rem;
+      font-family: "Bungee", cursive; color: var(--gold); margin: 0 0 10px; font-size: 1.35rem;
     }
     .modal .start-brand {
       font-family: "Bungee", cursive;
       font-size: clamp(1.8rem, 8vw, 2.3rem);
       color: var(--gold);
-      text-shadow: 0 2px 0 #6a4a10, 0 0 28px rgba(232, 184, 74, 0.3);
-      margin: 0 0 4px;
-      line-height: 1.05;
+      text-shadow: 0 2px 0 #6a4a10;
+      margin: 0 0 4px; line-height: 1.05;
     }
     .modal .start-sub {
-      color: var(--cyan);
-      letter-spacing: 0.16em;
-      font-size: 0.75rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      margin: 0 0 16px;
+      color: var(--cyan); letter-spacing: 0.16em; font-size: 0.75rem; font-weight: 700;
+      text-transform: uppercase; margin: 0 0 16px;
     }
-    .modal p, .modal li {
-      color: var(--fog);
-      font-size: 0.92rem;
-      line-height: 1.45;
-    }
+    .modal p, .modal li { color: var(--fog); font-size: 0.92rem; line-height: 1.45; }
     .modal ol { padding-left: 1.2em; margin: 0 0 14px; }
     .modal li { margin-bottom: 6px; }
 
     .mode-toggle {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      margin: 0 0 14px;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 0 0 14px;
     }
     .mode-opt {
-      appearance: none;
-      border: 2px solid var(--line);
-      background: rgba(0,0,0,0.25);
-      color: var(--fog);
-      border-radius: 14px;
-      padding: 14px 10px;
-      min-height: 64px;
-      font-family: inherit;
-      font-weight: 800;
-      font-size: 0.95rem;
-      cursor: pointer;
+      appearance: none; border: 2px solid var(--line); background: rgba(0,0,0,0.25);
+      color: var(--fog); border-radius: 14px; padding: 14px 10px; min-height: 64px;
+      font-family: inherit; font-weight: 800; font-size: 0.95rem; cursor: pointer;
       touch-action: manipulation;
-      transition: border-color 0.15s, background 0.15s, transform 0.12s;
     }
-    .mode-opt:active { transform: scale(0.97); }
-    .mode-opt small {
-      display: block;
-      font-weight: 500;
-      font-size: 0.7rem;
-      color: var(--muted);
-      margin-top: 4px;
-    }
+    .mode-opt small { display: block; font-weight: 500; font-size: 0.7rem; color: var(--muted); margin-top: 4px; }
     .mode-opt.active {
-      border-color: var(--gold);
-      background: rgba(232, 184, 74, 0.15);
-      color: var(--gold);
-      box-shadow: 0 0 0 1px rgba(232, 184, 74, 0.25);
+      border-color: var(--gold); background: rgba(232, 184, 74, 0.15); color: var(--gold);
     }
     .mode-opt.active small { color: rgba(232, 184, 74, 0.75); }
 
     .load-status {
-      min-height: 1.2em;
-      font-size: 0.8rem;
-      color: var(--muted);
-      text-align: center;
-      margin: 0 0 10px;
+      min-height: 1.2em; font-size: 0.8rem; color: var(--muted); text-align: center; margin: 0 0 10px;
     }
     .load-status.error { color: var(--rose); }
     .load-status.ok { color: var(--mint); }
 
     .toast {
-      position: fixed;
-      left: 50%;
-      bottom: calc(24px + var(--safe-b));
+      position: fixed; left: 50%; bottom: calc(24px + var(--safe-b));
       transform: translateX(-50%) translateY(20px);
-      background: var(--panel-2);
-      border: 1px solid var(--gold);
-      color: var(--gold);
-      padding: 12px 18px;
-      border-radius: 12px;
-      font-weight: 700;
-      font-size: 0.9rem;
-      z-index: 60;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.25s, transform 0.25s;
-      max-width: 90vw;
-      text-align: center;
+      background: var(--panel-2); border: 1px solid var(--gold); color: var(--gold);
+      padding: 12px 18px; border-radius: 12px; font-weight: 700; font-size: 0.9rem;
+      z-index: 60; opacity: 0; pointer-events: none; transition: opacity 0.25s, transform 0.25s;
+      max-width: 90vw; text-align: center;
     }
-    .toast.show {
-      opacity: 1;
-      transform: translateX(-50%) translateY(0);
-    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-    .sell-bar { display: none; margin-top: 8px; }
-    .sell-bar.show { display: block; }
-
-    @keyframes fadeDown {
-      from { opacity: 0; transform: translateY(-8px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    @keyframes riseIn {
-      from { opacity: 0; transform: translateY(12px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    @keyframes cardPop {
-      from { opacity: 0; transform: scale(0.88); }
+    @keyframes tokenPop {
+      from { opacity: 0; transform: scale(0.7); }
       to { opacity: 1; transform: scale(1); }
+    }
+    @keyframes tokenHit {
+      0%, 100% { transform: scale(1); }
+      40% { transform: scale(1.12); filter: brightness(1.4); }
     }
     @keyframes shake {
       0%, 100% { transform: translateX(0); }
@@ -597,10 +623,19 @@
     }
     .shake { animation: shake 0.35s ease; }
 
-    @media (min-width: 500px) {
-      .zones, .shop-row { gap: 8px; }
-      .card .name { font-size: 0.65rem; }
-      .card .emoji { font-size: 1.55rem; }
+    .combat-fx {
+      position: absolute;
+      pointer-events: none;
+      font-size: 0.7rem;
+      font-weight: 800;
+      color: #ff6a6a;
+      text-shadow: 0 1px 2px #000;
+      z-index: 20;
+      animation: floatDmg 0.7s ease forwards;
+    }
+    @keyframes floatDmg {
+      from { opacity: 1; transform: translateY(0); }
+      to { opacity: 0; transform: translateY(-18px); }
     }
   </style>
 </head>
@@ -608,8 +643,8 @@
   <div class="overlay start-screen open" id="startOverlay">
     <div class="modal">
       <p class="start-brand">Duel Tactics</p>
-      <p class="start-sub">Auto · Duel</p>
-      <p style="margin-top:0">Shop, fuse, and clash left-to-right for Life Points.</p>
+      <p class="start-sub">Hex · Auto · Duel</p>
+      <p style="margin-top:0">Buy, place on the hex board, and Fight.</p>
       <div class="mode-toggle" role="group" aria-label="Card mode">
         <button type="button" class="mode-opt active" id="modeClassic" data-mode="classic">
           Classic cards
@@ -628,7 +663,7 @@
 
   <div class="app" id="app">
     <header class="top">
-      <h1 class="brand">Duel Tactics<span>AUTO · DUEL</span></h1>
+      <h1 class="brand">Duel Tactics<span>HEX · DUEL</span></h1>
       <div class="hud">
         <div class="pill lp"><span class="label">LP</span><span class="val" id="lp">8000</span></div>
         <div class="pill gold"><span class="label">Gold</span><span class="val" id="gold">10</span></div>
@@ -638,56 +673,39 @@
 
     <div class="notice" id="fallbackNotice">Classic API unavailable — using original roster.</div>
 
-    <div class="actions" id="shopActions">
+    <div class="shop-actions" id="shopActions">
       <button type="button" class="btn btn-ghost" id="btnHow">How to Play</button>
       <button type="button" class="btn btn-secondary" id="btnReroll">Reroll · 2🪙</button>
-      <button type="button" class="btn btn-primary" id="btnBattle">⚔️ Start Battle</button>
-    </div>
-
-    <div class="battle-strip" id="battleStrip">
-      <div class="vs-row">
-        <div>
-          <div class="hint">You</div>
-          <div class="mini-zones" id="playerBattle"></div>
-        </div>
-        <div class="vs-label">VS</div>
-        <div>
-          <div class="hint" style="text-align:right">Opponent</div>
-          <div class="mini-zones" id="enemyBattle"></div>
-        </div>
-      </div>
-      <div class="pill" style="width:100%;justify-content:space-between;margin-bottom:8px">
-        <span>Enemy LP <strong id="enemyLp" style="color:var(--rose)">8000</strong></span>
-        <span id="battleStatus" class="hint">Battling…</span>
-      </div>
     </div>
 
     <section class="block" id="shopBlock">
       <div class="block-head">
         <h2>Shop</h2>
-        <span class="hint">Tap a card to buy</span>
+        <span class="hint">Tap to buy</span>
       </div>
       <div class="shop-row" id="shop"></div>
     </section>
 
-    <section class="block">
-      <div class="block-head">
-        <h2>Field · 5 Zones</h2>
-        <span class="hint">Tap bench → tap zone</span>
-      </div>
-      <div class="zones" id="field"></div>
+    <div class="arena" id="arena">
+      <div class="arena-label enemy">Enemy field</div>
+      <div class="hex-board" id="enemyBoard"></div>
+      <div class="midline">VS</div>
+      <div class="arena-label player">Your field · max 5</div>
+      <div class="hex-board" id="playerBoard"></div>
       <div class="bonuses" id="bonuses"></div>
-      <div class="sell-bar" id="sellBar">
-        <button type="button" class="btn btn-danger btn-wide" id="btnSell">Sell selected · 1🪙</button>
-      </div>
-    </section>
+    </div>
+
+    <button type="button" class="btn btn-fight" id="btnFight">FIGHT</button>
 
     <section class="block">
       <div class="block-head">
         <h2>Bench · 5</h2>
-        <span class="hint">3 copies fuse ★★</span>
+        <span class="hint">Tap → hex to place · 3 fuse ★★</span>
       </div>
-      <div class="zones" id="bench"></div>
+      <div class="bench-row" id="bench"></div>
+      <div class="sell-bar" id="sellBar">
+        <button type="button" class="btn btn-danger btn-wide" id="btnSell">Sell selected · 1🪙</button>
+      </div>
     </section>
 
     <section class="block">
@@ -700,13 +718,12 @@
     <div class="modal">
       <h2>How to Play</h2>
       <ol>
-        <li>Pick Classic (API) or Original cards, then begin.</li>
-        <li>Buy monsters from the shop with gold. Reroll costs 2 gold.</li>
-        <li>Place up to 5 monsters on the field from your bench.</li>
-        <li>3 copies of the same monster fuse into a stronger ★★ version.</li>
-        <li>2+ monsters of the same Type grant an ATK type bonus.</li>
-        <li>Battle clashes left to right. Higher ATK wins; leftover damage hits Life Points.</li>
-        <li>Earn gold after each round. 0 LP ends the duel.</li>
+        <li>Pick Classic or Original cards, then begin.</li>
+        <li>Buy from the shop (reroll costs 2 gold). 3 copies fuse into ★★.</li>
+        <li>Tap a bench monster, then tap a hex on your half to place it (max 5). Tap a placed monster to return it to the bench. Drag works too.</li>
+        <li>2+ of the same Type grant an ATK bonus.</li>
+        <li>Press <strong>FIGHT</strong> — units move to the nearest foe and attack. HP = DEF (min 500), damage = ATK ÷ 4.</li>
+        <li>Surviving enemies deal Life Point damage (200 × Level each). Earn gold after the round. 0 LP ends the duel.</li>
       </ol>
       <button type="button" class="btn btn-primary btn-wide" id="btnCloseHow">Got it</button>
     </div>
@@ -728,10 +745,13 @@
 
   const CACHE_KEY = "duelTacticsClassicV1";
   const CACHE_MS = 7 * 24 * 60 * 60 * 1000;
-  const API_SETS = [
-    "Legend of Blue Eyes White Dragon",
-    "Metal Raiders",
-  ];
+  const API_SETS = ["Legend of Blue Eyes White Dragon", "Metal Raiders"];
+  const HEX_ROWS = 4;
+  const HEX_COLS = 7;
+  const MAX_BOARD = 5;
+  const ATTACK_MS = 1000;
+  const MOVE_MS = 380;
+  const TICK_MS = 50;
 
   const RACE_META = {
     Dragon: { emoji: "🐉", bonusAtk: 300 },
@@ -758,7 +778,15 @@
     "Beast-Warrior": { emoji: "🦁", bonusAtk: 270 },
   };
 
-  /** Built-in original roster (fallback + Original mode) */
+  function costFromLevel(level) {
+    const lv = Number(level) || 1;
+    if (lv <= 2) return 1;
+    if (lv <= 4) return 2;
+    if (lv <= 6) return 3;
+    if (lv === 7) return 4;
+    return 5;
+  }
+
   const ORIGINAL_ROSTER = [
     { id: "ember_wyrm", name: "Ember Wyrm", type: "Dragon", attribute: "FIRE", level: 4, atk: 1600, def: 1200 },
     { id: "storm_drake", name: "Storm Drake", type: "Dragon", attribute: "WIND", level: 5, atk: 2000, def: 1400 },
@@ -798,61 +826,78 @@
     roster: ORIGINAL_ROSTER.slice(),
     usedFallback: false,
     lp: 8000,
-    enemyLp: 8000,
     gold: 10,
     round: 1,
-    phase: "menu",
+    phase: "menu", // menu | shop | fight | end
     shop: [],
-    field: [null, null, null, null, null],
     bench: [null, null, null, null, null],
-    selected: null,
+    // global hex grid: rows 0..3 enemy, 4..7 player; cols 0..6
+    grid: {},
+    selected: null, // { from:'bench'|'hex', index? , row?, col? }
     uid: 1,
+    combatTimer: null,
+    drag: null,
   };
 
   const $ = (id) => document.getElementById(id);
   const el = {
     app: $("app"),
     lp: $("lp"), gold: $("gold"), round: $("round"),
-    shop: $("shop"), field: $("field"), bench: $("bench"),
+    shop: $("shop"), bench: $("bench"),
+    playerBoard: $("playerBoard"), enemyBoard: $("enemyBoard"),
     bonuses: $("bonuses"), log: $("log"),
-    sellBar: $("sellBar"), battleStrip: $("battleStrip"),
-    playerBattle: $("playerBattle"), enemyBattle: $("enemyBattle"),
-    enemyLp: $("enemyLp"), battleStatus: $("battleStatus"),
-    shopBlock: $("shopBlock"), shopActions: $("shopActions"),
+    sellBar: $("sellBar"), shopBlock: $("shopBlock"), shopActions: $("shopActions"),
     howOverlay: $("howOverlay"), endOverlay: $("endOverlay"),
     startOverlay: $("startOverlay"),
     endTitle: $("endTitle"), endMsg: $("endMsg"), toast: $("toast"),
     fallbackNotice: $("fallbackNotice"),
     loadStatus: $("loadStatus"),
     btnStart: $("btnStart"),
+    btnFight: $("btnFight"),
+    arena: $("arena"),
   };
-
-  function costFromLevel(level) {
-    const lv = Number(level) || 1;
-    if (lv <= 2) return 1;
-    if (lv <= 4) return 2;
-    if (lv <= 6) return 3;
-    if (lv === 7) return 4;
-    return 5;
-  }
 
   function raceMeta(race) {
     if (RACE_META[race]) return RACE_META[race];
-    // Stable fallback for uncommon races from the API
     let hash = 0;
     const s = String(race || "Unknown");
     for (let i = 0; i < s.length; i++) hash = (hash * 31 + s.charCodeAt(i)) >>> 0;
-    return {
-      emoji: "🃏",
-      bonusAtk: 200 + (hash % 9) * 15,
-    };
+    return { emoji: "🃏", bonusAtk: 200 + (hash % 9) * 15 };
   }
 
   function uid() { return state.uid++; }
 
+  function key(row, col) { return row + "," + col; }
+
+  function getCell(row, col) {
+    return state.grid[key(row, col)] || null;
+  }
+
+  function setCell(row, col, unit) {
+    const k = key(row, col);
+    if (unit) {
+      unit.row = row;
+      unit.col = col;
+      state.grid[k] = unit;
+    } else {
+      delete state.grid[k];
+    }
+  }
+
+  function allUnits(side) {
+    return Object.values(state.grid).filter((u) => u && (!side || u.side === side));
+  }
+
+  function playerCount() {
+    return allUnits("player").length;
+  }
+
   function makeInstance(base, stars) {
     stars = stars || 1;
     const mult = stars === 2 ? 1.6 : 1;
+    const atk = Math.round(base.atk * mult);
+    const def = Math.round(base.def * mult);
+    const maxHp = Math.max(500, def);
     return {
       uid: uid(),
       baseId: base.id,
@@ -862,8 +907,15 @@
       level: base.level,
       cost: base.cost != null ? base.cost : costFromLevel(base.level),
       stars,
-      atk: Math.round(base.atk * mult),
-      def: Math.round(base.def * mult),
+      atk,
+      def,
+      maxHp,
+      hp: maxHp,
+      side: null,
+      row: null,
+      col: null,
+      atkCd: 0,
+      moveCd: 0,
     };
   }
 
@@ -885,36 +937,29 @@
 
   function rollShop() {
     const pool = shopPoolForRound(state.round);
-    if (!pool.length) {
-      state.shop = [];
-      return;
-    }
+    if (!pool.length) { state.shop = []; return; }
     state.shop = Array.from({ length: 5 }, () => makeInstance(weightedPick(pool), 1));
   }
 
-  function firstEmpty(arr) {
-    const i = arr.findIndex((x) => !x);
+  function firstEmptyBench() {
+    const i = state.bench.findIndex((x) => !x);
     return i === -1 ? null : i;
   }
 
   function findCopies(baseId, stars) {
     const locs = [];
-    state.field.forEach((c, i) => {
-      if (c && c.baseId === baseId && c.stars === stars) locs.push({ from: "field", index: i });
-    });
     state.bench.forEach((c, i) => {
       if (c && c.baseId === baseId && c.stars === stars) locs.push({ from: "bench", index: i });
+    });
+    allUnits("player").forEach((u) => {
+      if (u.baseId === baseId && u.stars === stars) locs.push({ from: "hex", row: u.row, col: u.col });
     });
     return locs;
   }
 
-  function removeAt(from, index) {
-    if (from === "field") state.field[index] = null;
-    else state.bench[index] = null;
-  }
-
-  function getAt(from, index) {
-    return from === "field" ? state.field[index] : state.bench[index];
+  function removeLoc(loc) {
+    if (loc.from === "bench") state.bench[loc.index] = null;
+    else setCell(loc.row, loc.col, null);
   }
 
   function tryFuse(baseId) {
@@ -923,44 +968,49 @@
     const take = locs.slice(0, 3);
     const base = state.roster.find((r) => r.id === baseId);
     if (!base) return false;
-    take.forEach((l) => removeAt(l.from, l.index));
+    take.forEach(removeLoc);
     const fused = makeInstance(base, 2);
+    // Prefer first emptied hex among take, else bench
     let placed = false;
     for (const l of take) {
-      if (!getAt(l.from, l.index)) {
-        if (l.from === "field") state.field[l.index] = fused;
-        else state.bench[l.index] = fused;
+      if (l.from === "hex" && !getCell(l.row, l.col)) {
+        fused.side = "player";
+        setCell(l.row, l.col, fused);
         placed = true;
         break;
       }
     }
     if (!placed) {
-      const bi = firstEmpty(state.bench);
-      const fi = firstEmpty(state.field);
+      for (const l of take) {
+        if (l.from === "bench" && !state.bench[l.index]) {
+          state.bench[l.index] = fused;
+          placed = true;
+          break;
+        }
+      }
+    }
+    if (!placed) {
+      const bi = firstEmptyBench();
       if (bi !== null) state.bench[bi] = fused;
-      else if (fi !== null) state.field[fi] = fused;
     }
     toast(`Fusion! ${fused.name} ★★`);
     logLine(`<span class="sys">⚡ ${escapeHtml(fused.name)} fused into ★★!</span>`);
     return true;
   }
 
-  function typeCounts(board) {
+  function typeCounts(side) {
     const counts = {};
-    board.forEach((c) => {
-      if (!c) return;
+    allUnits(side).forEach((c) => {
       counts[c.type] = (counts[c.type] || 0) + 1;
     });
     return counts;
   }
 
-  function effectiveAtk(card, board) {
-    if (!card) return 0;
-    const counts = typeCounts(board);
-    let atk = card.atk;
-    if ((counts[card.type] || 0) >= 2) {
-      atk += raceMeta(card.type).bonusAtk;
-    }
+  function effectiveAtk(unit) {
+    if (!unit) return 0;
+    const counts = typeCounts(unit.side);
+    let atk = unit.atk;
+    if ((counts[unit.type] || 0) >= 2) atk += raceMeta(unit.type).bonusAtk;
     return atk;
   }
 
@@ -985,53 +1035,115 @@
     el.log.prepend(p);
   }
 
-  function cardHTML(card, opts) {
-    opts = opts || {};
-    if (!card) return "";
+  /* —— Hex math (odd-r offset, pointy-top) —— */
+  function offsetToCube(row, col) {
+    const x = col - (row - (row & 1)) / 2;
+    const z = row;
+    const y = -x - z;
+    return { x, y, z };
+  }
+
+  function hexDist(r1, c1, r2, c2) {
+    const a = offsetToCube(r1, c1);
+    const b = offsetToCube(r2, c2);
+    return (Math.abs(a.x - b.x) + Math.abs(a.y - b.y) + Math.abs(a.z - b.z)) / 2;
+  }
+
+  function neighbors(row, col) {
+    const odd = row & 1;
+    const dirs = odd
+      ? [[-1, 0], [-1, 1], [0, -1], [0, 1], [1, 0], [1, 1]]
+      : [[-1, -1], [-1, 0], [0, -1], [0, 1], [1, -1], [1, 0]];
+    const out = [];
+    dirs.forEach(([dr, dc]) => {
+      const nr = row + dr;
+      const nc = col + dc;
+      if (nr >= 0 && nr < HEX_ROWS * 2 && nc >= 0 && nc < HEX_COLS) {
+        out.push({ row: nr, col: nc });
+      }
+    });
+    return out;
+  }
+
+  function hexPixel(boardEl, localRow, col) {
+    const w = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--hex-w")) || 48;
+    const h = w * 1.12;
+    const odd = localRow & 1;
+    const x = col * w * 0.92 + (odd ? w * 0.46 : 0) + 4;
+    const y = localRow * h * 0.78;
+    return { x, y, w, h };
+  }
+
+  function layoutBoard(boardEl, side) {
+    boardEl.innerHTML = "";
+    const isEnemy = side === "enemy";
+    for (let r = 0; r < HEX_ROWS; r++) {
+      for (let c = 0; c < HEX_COLS; c++) {
+        const globalRow = isEnemy ? r : r + HEX_ROWS;
+        const hex = document.createElement("div");
+        hex.className = "hex " + (isEnemy ? "enemy-hex" : "player-hex");
+        hex.dataset.row = String(globalRow);
+        hex.dataset.col = String(c);
+        const pos = hexPixel(boardEl, r, c);
+        hex.style.left = pos.x + "px";
+        hex.style.top = pos.y + "px";
+        // center the row group
+        const totalW = HEX_COLS * pos.w * 0.92 + pos.w * 0.46;
+        boardEl.style.width = "100%";
+        const offsetX = Math.max(0, (boardEl.clientWidth || boardEl.offsetWidth || 360) - totalW) / 2;
+        hex.style.left = (pos.x + offsetX) + "px";
+
+        const unit = getCell(globalRow, c);
+        if (unit) {
+          hex.appendChild(createTokenEl(unit));
+        }
+
+        hex.addEventListener("pointerdown", (e) => onHexPointerDown(e, globalRow, c));
+        hex.addEventListener("click", (e) => {
+          if (state.drag) return;
+          onHexTap(globalRow, c);
+        });
+        boardEl.appendChild(hex);
+      }
+    }
+  }
+
+  function createTokenEl(unit) {
+    const meta = raceMeta(unit.type);
+    const attr = String(unit.attribute || "DARK").toUpperCase();
+    const tok = document.createElement("div");
+    tok.className = "token attr-" + attr + (unit.stars === 2 ? " star2" : "");
+    tok.dataset.uid = String(unit.uid);
+    const pct = Math.max(0, Math.min(100, (unit.hp / unit.maxHp) * 100));
+    const short = unit.name.length > 8 ? unit.name.slice(0, 7) + "…" : unit.name;
+    tok.innerHTML =
+      '<div class="ring"></div>' +
+      '<div class="emoji">' + meta.emoji + "</div>" +
+      '<div class="stars">' + (unit.stars === 2 ? "★★" : "★") + "</div>" +
+      '<div class="tname">' + escapeHtml(short) + "</div>" +
+      '<div class="hp-bar"><div class="hp-fill" style="width:' + pct + '%"></div></div>';
+    if (state.selected && state.selected.from === "hex" &&
+        state.selected.row === unit.row && state.selected.col === unit.col) {
+      tok.classList.add("selected");
+    }
+    return tok;
+  }
+
+  function cardHTML(card) {
     const meta = raceMeta(card.type);
     const attr = String(card.attribute || "DARK").toUpperCase();
     const stars = "★".repeat(Math.min(12, card.level || 1));
-    const starClass = card.stars === 2 ? " star2" : "";
-    const sel = opts.selected ? " selected" : "";
-    const shop = opts.shop ? " shop-card" : "";
-    const cost = opts.shop ? `<span class="cost-badge">${card.cost}🪙</span>` : "";
-    const atkVal = opts.showBonusAtk != null ? opts.showBonusAtk : card.atk;
-    return `
-      <div class="card attr-${attr}${starClass}${sel}${shop}" data-uid="${card.uid}">
-        ${cost}
-        <div class="emoji">${meta.emoji}${card.stars === 2 ? "✨" : ""}</div>
-        <div class="name">${escapeHtml(card.name)}${card.stars === 2 ? " ★★" : ""}</div>
-        <div class="stars">${stars}</div>
-        <div class="type-chip">${escapeHtml(card.type)}</div>
-        <div class="attr-chip">${escapeHtml(attr)}</div>
-        <div class="stats">
-          <span class="atk">${atkVal}</span>
-          <span class="def">${card.def}</span>
-        </div>
-      </div>`;
-  }
-
-  function isSelected(from, index) {
-    return state.selected && state.selected.from === from && state.selected.index === index;
-  }
-
-  function renderZones(container, arr, from) {
-    container.innerHTML = "";
-    arr.forEach((card, i) => {
-      const zone = document.createElement("div");
-      zone.className = "zone" + (card ? " filled" : "") + (isSelected(from, i) ? " selected" : "");
-      if (card) {
-        const atk = from === "field" ? effectiveAtk(card, state.field) : card.atk;
-        zone.innerHTML = cardHTML(card, {
-          selected: isSelected(from, i),
-          showBonusAtk: from === "field" ? atk : null,
-        });
-      } else {
-        zone.innerHTML = `<span class="empty-label">${from === "field" ? "ZONE" : "BENCH"}</span>`;
-      }
-      zone.addEventListener("click", () => onZoneClick(from, i));
-      container.appendChild(zone);
-    });
+    return (
+      '<div class="card attr-' + attr + (card.stars === 2 ? " star2" : "") + '">' +
+      '<span class="cost-badge">' + card.cost + "🪙</span>" +
+      '<div class="emoji">' + meta.emoji + (card.stars === 2 ? "✨" : "") + "</div>" +
+      '<div class="name">' + escapeHtml(card.name) + (card.stars === 2 ? " ★★" : "") + "</div>" +
+      '<div class="stars">' + stars + "</div>" +
+      '<div class="type-chip">' + escapeHtml(card.type) + "</div>" +
+      '<div class="attr-chip">' + escapeHtml(attr) + "</div>" +
+      '<div class="stats"><span class="atk">' + card.atk + '</span><span class="def">' + card.def + "</span></div>" +
+      "</div>"
+    );
   }
 
   function renderShop() {
@@ -1040,22 +1152,56 @@
       const wrap = document.createElement("div");
       wrap.className = "zone" + (card ? " filled" : "");
       if (card) {
-        wrap.innerHTML = cardHTML(card, { shop: true, selected: isSelected("shop", i) });
+        wrap.innerHTML = cardHTML(card);
         wrap.addEventListener("click", () => buyCard(i));
       }
       el.shop.appendChild(wrap);
     });
   }
 
+  function renderBench() {
+    el.bench.innerHTML = "";
+    state.bench.forEach((card, i) => {
+      const slot = document.createElement("div");
+      slot.className = "bench-slot" + (card ? " filled" : "");
+      if (state.selected && state.selected.from === "bench" && state.selected.index === i) {
+        slot.classList.add("selected");
+      }
+      if (state.selected && state.selected.from === "hex" && !card) {
+        slot.classList.add("valid-target");
+      }
+      if (card) {
+        slot.appendChild(createTokenEl(Object.assign({}, card, { row: null, col: null, hp: card.hp || card.maxHp, maxHp: card.maxHp })));
+      }
+      slot.addEventListener("click", () => onBenchTap(i));
+      slot.addEventListener("pointerdown", (e) => onBenchPointerDown(e, i));
+      el.bench.appendChild(slot);
+    });
+  }
+
+  function renderBoards() {
+    layoutBoard(el.enemyBoard, "enemy");
+    layoutBoard(el.playerBoard, "player");
+    // highlight valid hexes when bench selected
+    if (state.phase === "shop" && state.selected && state.selected.from === "bench") {
+      el.playerBoard.querySelectorAll(".hex").forEach((hex) => {
+        const r = +hex.dataset.row;
+        const c = +hex.dataset.col;
+        if (!getCell(r, c) && playerCount() < MAX_BOARD) hex.classList.add("valid-target");
+        else if (getCell(r, c) && getCell(r, c).side === "player") hex.classList.add("valid-target");
+      });
+    }
+  }
+
   function renderBonuses() {
-    const counts = typeCounts(state.field);
+    const counts = typeCounts("player");
     el.bonuses.innerHTML = "";
     Object.keys(counts).forEach((t) => {
       if (counts[t] >= 2) {
         const meta = raceMeta(t);
         const tag = document.createElement("span");
         tag.className = "bonus-tag";
-        tag.textContent = `${meta.emoji} ${t} Synergy +${meta.bonusAtk} ATK`;
+        tag.textContent = meta.emoji + " " + t + " +" + meta.bonusAtk + " ATK";
         el.bonuses.appendChild(tag);
       }
     });
@@ -1065,24 +1211,25 @@
     el.lp.textContent = state.lp;
     el.gold.textContent = state.gold;
     el.round.textContent = state.round;
-    el.enemyLp.textContent = state.enemyLp;
     el.fallbackNotice.classList.toggle("show", !!state.usedFallback);
-    const canSell = !!(state.selected && (state.selected.from === "field" || state.selected.from === "bench"));
+    const canSell = !!(state.selected && state.selected.from === "bench" && state.bench[state.selected.index]);
     el.sellBar.classList.toggle("show", canSell);
     if (canSell) {
-      const card = getAt(state.selected.from, state.selected.index);
-      const refund = card ? Math.max(1, Math.floor(card.cost * card.stars)) : 1;
-      $("btnSell").textContent = `Sell selected · ${refund}🪙`;
+      const card = state.bench[state.selected.index];
+      const refund = Math.max(1, Math.floor(card.cost * card.stars));
+      $("btnSell").textContent = "Sell selected · " + refund + "🪙";
     }
     $("btnReroll").disabled = state.phase !== "shop" || state.gold < 2;
-    $("btnBattle").disabled = state.phase !== "shop" || !state.field.some(Boolean);
+    el.btnFight.disabled = state.phase !== "shop" || playerCount() < 1;
+    el.shopBlock.style.opacity = state.phase === "fight" ? "0.45" : "1";
+    el.shopActions.style.opacity = state.phase === "fight" ? "0.45" : "1";
   }
 
   function render() {
     renderHUD();
     renderShop();
-    renderZones(el.field, state.field, "field");
-    renderZones(el.bench, state.bench, "bench");
+    renderBoards();
+    renderBench();
     renderBonuses();
   }
 
@@ -1090,70 +1237,238 @@
     if (state.phase !== "shop") return;
     const card = state.shop[index];
     if (!card) return;
-    if (state.gold < card.cost) {
-      toast("Not enough gold");
-      return;
-    }
-    const slot = firstEmpty(state.bench);
-    if (slot === null) {
-      toast("Bench is full");
-      return;
-    }
+    if (state.gold < card.cost) { toast("Not enough gold"); return; }
+    const slot = firstEmptyBench();
+    if (slot === null) { toast("Bench is full"); return; }
     state.gold -= card.cost;
     state.bench[slot] = card;
     state.shop[index] = null;
-    logLine(`Bought <strong>${escapeHtml(card.name)}</strong> (−${card.cost}🪙)`);
-    while (tryFuse(card.baseId)) { /* cascade */ }
+    logLine("Bought <strong>" + escapeHtml(card.name) + "</strong> (−" + card.cost + "🪙)");
+    while (tryFuse(card.baseId)) {}
     state.roster.forEach((r) => { while (tryFuse(r.id)) {} });
     state.selected = null;
     render();
   }
 
-  function onZoneClick(from, index) {
+  function onBenchTap(index) {
     if (state.phase !== "shop") return;
-    const card = getAt(from, index);
+    const card = state.bench[index];
 
-    if (state.selected) {
-      const sel = state.selected;
-      if (sel.from === from && sel.index === index) {
+    // Returning from hex selection to empty bench slot
+    if (state.selected && state.selected.from === "hex") {
+      if (!card) {
+        const unit = getCell(state.selected.row, state.selected.col);
+        if (unit) {
+          setCell(state.selected.row, state.selected.col, null);
+          unit.side = null;
+          state.bench[index] = unit;
+        }
         state.selected = null;
         render();
-        return;
       }
-      if ((sel.from === "bench" || sel.from === "field") && (from === "bench" || from === "field")) {
-        const a = getAt(sel.from, sel.index);
-        const b = getAt(from, index);
-        if (sel.from === "field") state.field[sel.index] = b;
-        else state.bench[sel.index] = b;
-        if (from === "field") state.field[index] = a;
-        else state.bench[index] = a;
-        state.selected = null;
-        render();
-        return;
-      }
+      return;
     }
 
-    if (card) {
-      state.selected = { from, index };
+    if (!card) {
+      state.selected = null;
       render();
-    } else if (state.selected && state.selected.from === "bench" && from === "field") {
-      state.field[index] = state.bench[state.selected.index];
-      state.bench[state.selected.index] = null;
+      return;
+    }
+
+    if (state.selected && state.selected.from === "bench" && state.selected.index === index) {
+      state.selected = null;
+    } else {
+      state.selected = { from: "bench", index };
+    }
+    render();
+  }
+
+  function onHexTap(row, col) {
+    if (state.phase !== "shop") return;
+    const unit = getCell(row, col);
+    const isPlayerHalf = row >= HEX_ROWS;
+
+    // Place from bench
+    if (state.selected && state.selected.from === "bench") {
+      if (!isPlayerHalf) { toast("Place on your half"); return; }
+      const card = state.bench[state.selected.index];
+      if (!card) return;
+
+      if (unit && unit.side === "player") {
+        // swap
+        state.bench[state.selected.index] = unit;
+        unit.side = null;
+        card.side = "player";
+        setCell(row, col, card);
+      } else if (!unit) {
+        if (playerCount() >= MAX_BOARD) { toast("Max " + MAX_BOARD + " on board"); return; }
+        state.bench[state.selected.index] = null;
+        card.side = "player";
+        setCell(row, col, card);
+      }
+      state.selected = null;
+      render();
+      return;
+    }
+
+    // Tap own unit → return to bench
+    if (unit && unit.side === "player") {
+      const bi = firstEmptyBench();
+      if (bi === null) { toast("Bench is full"); return; }
+      setCell(row, col, null);
+      unit.side = null;
+      state.bench[bi] = unit;
+      state.selected = null;
+      render();
+      return;
+    }
+
+    state.selected = null;
+    render();
+  }
+
+  /* Drag & drop (pointer events — works on iPhone) */
+  function onBenchPointerDown(e, index) {
+    if (state.phase !== "shop" || !state.bench[index]) return;
+    if (e.button != null && e.button !== 0) return;
+    beginDrag(e, { from: "bench", index });
+  }
+
+  function onHexPointerDown(e, row, col) {
+    if (state.phase !== "shop") return;
+    const unit = getCell(row, col);
+    if (!unit || unit.side !== "player") return;
+    if (e.button != null && e.button !== 0) return;
+    beginDrag(e, { from: "hex", row, col });
+  }
+
+  function beginDrag(e, src) {
+    const startX = e.clientX;
+    const startY = e.clientY;
+    let moved = false;
+    const unit = src.from === "bench" ? state.bench[src.index] : getCell(src.row, src.col);
+    if (!unit) return;
+
+    const ghost = createTokenEl(unit);
+    ghost.classList.add("ghost-token");
+    ghost.style.left = startX + "px";
+    ghost.style.top = startY + "px";
+    document.body.appendChild(ghost);
+
+    state.drag = { src, ghost, startX, startY, moved: false };
+    e.target.setPointerCapture?.(e.pointerId);
+
+    const onMove = (ev) => {
+      if (!state.drag) return;
+      const dx = ev.clientX - startX;
+      const dy = ev.clientY - startY;
+      if (Math.abs(dx) + Math.abs(dy) > 10) state.drag.moved = true;
+      ghost.style.left = ev.clientX + "px";
+      ghost.style.top = ev.clientY + "px";
+      highlightDropTarget(ev.clientX, ev.clientY);
+    };
+
+    const onUp = (ev) => {
+      document.removeEventListener("pointermove", onMove);
+      document.removeEventListener("pointerup", onUp);
+      document.removeEventListener("pointercancel", onUp);
+      ghost.remove();
+      clearDropHighlights();
+      const drag = state.drag;
+      state.drag = null;
+      if (!drag || !drag.moved) return; // let click handler manage taps
+      dropAt(ev.clientX, ev.clientY, drag.src);
+    };
+
+    document.addEventListener("pointermove", onMove);
+    document.addEventListener("pointerup", onUp);
+    document.addEventListener("pointercancel", onUp);
+  }
+
+  function highlightDropTarget(x, y) {
+    clearDropHighlights();
+    const t = document.elementFromPoint(x, y);
+    const hex = t && t.closest(".hex.player-hex");
+    const bench = t && t.closest(".bench-slot");
+    if (hex) hex.classList.add("drop-hover");
+    if (bench) bench.classList.add("valid-target");
+  }
+
+  function clearDropHighlights() {
+    document.querySelectorAll(".drop-hover").forEach((n) => n.classList.remove("drop-hover"));
+    document.querySelectorAll(".bench-slot.valid-target").forEach((n) => {
+      if (!(state.selected && state.selected.from === "hex")) n.classList.remove("valid-target");
+    });
+  }
+
+  function dropAt(x, y, src) {
+    const t = document.elementFromPoint(x, y);
+    if (!t) return;
+    const hex = t.closest(".hex.player-hex");
+    const bench = t.closest(".bench-slot");
+
+    let unit = src.from === "bench" ? state.bench[src.index] : getCell(src.row, src.col);
+    if (!unit) return;
+
+    if (hex) {
+      const row = +hex.dataset.row;
+      const col = +hex.dataset.col;
+      const occ = getCell(row, col);
+      if (src.from === "bench") {
+        if (occ) {
+          state.bench[src.index] = occ;
+          occ.side = null;
+        } else {
+          if (playerCount() >= MAX_BOARD) { toast("Max " + MAX_BOARD + " on board"); render(); return; }
+          state.bench[src.index] = null;
+        }
+        unit.side = "player";
+        setCell(row, col, unit);
+      } else {
+        // move/swap hex to hex
+        if (occ && !(occ.row === src.row && occ.col === src.col)) {
+          setCell(src.row, src.col, occ);
+          setCell(row, col, unit);
+        } else if (!occ) {
+          setCell(src.row, src.col, null);
+          setCell(row, col, unit);
+        }
+      }
+      state.selected = null;
+      render();
+      return;
+    }
+
+    if (bench && src.from === "hex") {
+      const idx = [...el.bench.children].indexOf(bench);
+      if (idx < 0) return;
+      if (state.bench[idx]) {
+        // swap with bench
+        const b = state.bench[idx];
+        setCell(src.row, src.col, null);
+        b.side = "player";
+        setCell(src.row, src.col, b);
+        unit.side = null;
+        state.bench[idx] = unit;
+      } else {
+        setCell(src.row, src.col, null);
+        unit.side = null;
+        state.bench[idx] = unit;
+      }
       state.selected = null;
       render();
     }
   }
 
   function sellSelected() {
-    if (!state.selected) return;
-    const { from, index } = state.selected;
-    const card = getAt(from, index);
+    if (!state.selected || state.selected.from !== "bench") return;
+    const card = state.bench[state.selected.index];
     if (!card) return;
-    removeAt(from, index);
+    state.bench[state.selected.index] = null;
     const refund = Math.max(1, Math.floor(card.cost * card.stars));
     state.gold += refund;
-    toast(`Sold for ${refund}🪙`);
-    logLine(`Sold ${escapeHtml(card.name)} (+${refund}🪙)`);
+    toast("Sold for " + refund + "🪙");
+    logLine("Sold " + escapeHtml(card.name) + " (+" + refund + "🪙)");
     state.selected = null;
     render();
   }
@@ -1166,169 +1481,267 @@
     render();
   }
 
-  function sleep(ms) {
-    return new Promise((r) => setTimeout(r, ms));
+  /* —— Enemy placement —— */
+  function clearEnemy() {
+    allUnits("enemy").forEach((u) => setCell(u.row, u.col, null));
   }
 
-  function buildEnemyBoard(round) {
-    const count = Math.min(5, 1 + Math.floor(round / 1.5));
-    const pool = shopPoolForRound(round + 1);
-    const board = [null, null, null, null, null];
-    if (!pool.length) return board;
+  function placeEnemy() {
+    clearEnemy();
+    const count = Math.min(5, 1 + Math.floor(state.round / 1.5));
+    const pool = shopPoolForRound(state.round + 1);
+    if (!pool.length) return;
     const sorted = [...pool].sort((a, b) => b.atk - a.atk);
-    for (let i = 0; i < count; i++) {
-      let base;
-      if (round >= 4 && Math.random() < 0.35) {
-        base = sorted[Math.min(i, sorted.length - 1)];
-      } else {
-        base = weightedPick(pool);
-      }
-      let stars = 1;
-      if (round >= 3 && Math.random() < 0.15 + round * 0.03) stars = 2;
-      const mon = makeInstance(base, stars);
-      mon.atk += (round - 1) * 80;
-      mon.def += (round - 1) * 40;
-      board[i] = mon;
+    // Prefer front rows (closer to player): local rows 2–3 → global 2–3
+    const slots = [];
+    for (let r = HEX_ROWS - 1; r >= 0; r--) {
+      for (let c = 0; c < HEX_COLS; c++) slots.push({ row: r, col: c });
     }
-    return board;
+    // shuffle lightly within preference
+    for (let i = slots.length - 1; i > 0; i--) {
+      if (Math.random() < 0.35) {
+        const j = Math.floor(Math.random() * (i + 1));
+        const tmp = slots[i]; slots[i] = slots[j]; slots[j] = tmp;
+      }
+    }
+    for (let i = 0; i < count; i++) {
+      let base = state.round >= 4 && Math.random() < 0.35
+        ? sorted[Math.min(i, sorted.length - 1)]
+        : weightedPick(pool);
+      let stars = 1;
+      if (state.round >= 3 && Math.random() < 0.15 + state.round * 0.03) stars = 2;
+      const mon = makeInstance(base, stars);
+      mon.atk += (state.round - 1) * 80;
+      mon.def += (state.round - 1) * 40;
+      mon.maxHp = Math.max(500, mon.def);
+      mon.hp = mon.maxHp;
+      mon.side = "enemy";
+      const slot = slots[i];
+      setCell(slot.row, slot.col, mon);
+    }
   }
 
-  function renderMiniBoard(container, board) {
-    container.innerHTML = "";
-    board.forEach((card) => {
-      const zone = document.createElement("div");
-      zone.className = "zone" + (card ? " filled" : "");
-      if (card) {
-        zone.innerHTML = cardHTML(card, { showBonusAtk: effectiveAtk(card, board) });
+  /* —— Combat —— */
+  function closestEnemy(unit) {
+    const foes = allUnits(unit.side === "player" ? "enemy" : "player");
+    let best = null;
+    let bestD = Infinity;
+    foes.forEach((f) => {
+      const d = hexDist(unit.row, unit.col, f.row, f.col);
+      if (d < bestD) { bestD = d; best = f; }
+    });
+    return best;
+  }
+
+  function stepToward(unit, target) {
+    if (!target) return false;
+    const opts = neighbors(unit.row, unit.col);
+    let best = null;
+    let bestD = hexDist(unit.row, unit.col, target.row, target.col);
+    opts.forEach((n) => {
+      if (getCell(n.row, n.col)) return;
+      const d = hexDist(n.row, n.col, target.row, target.col);
+      if (d < bestD) { bestD = d; best = n; }
+    });
+    if (!best) return false;
+    setCell(unit.row, unit.col, null);
+    setCell(best.row, best.col, unit);
+    return true;
+  }
+
+  function showDamageFx(row, col, dmg) {
+    const board = row < HEX_ROWS ? el.enemyBoard : el.playerBoard;
+    const localRow = row < HEX_ROWS ? row : row - HEX_ROWS;
+    const hex = board.querySelector('.hex[data-row="' + row + '"][data-col="' + col + '"]');
+    if (!hex) return;
+    const fx = document.createElement("div");
+    fx.className = "combat-fx";
+    fx.textContent = "-" + dmg;
+    fx.style.left = (hex.offsetLeft + hex.offsetWidth / 2) + "px";
+    fx.style.top = (hex.offsetTop + 4) + "px";
+    board.appendChild(fx);
+    setTimeout(() => fx.remove(), 700);
+  }
+
+  function updateTokenHp(unit) {
+    const board = unit.row < HEX_ROWS ? el.enemyBoard : el.playerBoard;
+    const tok = board.querySelector('.token[data-uid="' + unit.uid + '"]');
+    if (!tok) return;
+    const fill = tok.querySelector(".hp-fill");
+    if (fill) fill.style.width = Math.max(0, (unit.hp / unit.maxHp) * 100) + "%";
+    tok.classList.remove("hit");
+    void tok.offsetWidth;
+    tok.classList.add("hit");
+  }
+
+  async function startFight() {
+    if (state.phase !== "shop" || playerCount() < 1) return;
+    state.phase = "fight";
+    state.selected = null;
+    placeEnemy();
+    // Reset HP for player units
+    allUnits("player").forEach((u) => {
+      u.maxHp = Math.max(500, u.def);
+      u.hp = u.maxHp;
+      u.atkCd = Math.random() * 200;
+      u.moveCd = Math.random() * 100;
+    });
+    allUnits("enemy").forEach((u) => {
+      u.atkCd = Math.random() * 200;
+      u.moveCd = Math.random() * 100;
+    });
+    logLine('<span class="sys">—— Round ' + state.round + " FIGHT ——</span>");
+    render();
+
+    await runCombatLoop();
+    finishFight();
+  }
+
+  function runCombatLoop() {
+    return new Promise((resolve) => {
+      let last = performance.now();
+      const combatStart = last;
+
+      function tick(now) {
+        if (state.phase !== "fight") { resolve(); return; }
+        const dt = Math.min(100, now - last);
+        last = now;
+
+        if (now - combatStart > 45000) {
+          logLine('<span class="sys">Time up — combat ends</span>');
+          renderBoards();
+          resolve();
+          return;
+        }
+
+        const players = allUnits("player");
+        const enemies = allUnits("enemy");
+        if (!players.length || !enemies.length) {
+          renderBoards();
+          resolve();
+          return;
+        }
+
+        let needsBoardRender = false;
+        const units = players.concat(enemies);
+
+        units.forEach((u) => {
+          if (u.hp <= 0) return;
+          const target = closestEnemy(u);
+          if (!target) return;
+          const dist = hexDist(u.row, u.col, target.row, target.col);
+
+          u.atkCd -= dt;
+          u.moveCd -= dt;
+
+          if (dist <= 1) {
+            // Attack
+            if (u.atkCd <= 0) {
+              const dmg = Math.max(1, Math.round(effectiveAtk(u) / 4));
+              target.hp -= dmg;
+              showDamageFx(target.row, target.col, dmg);
+              updateTokenHp(target);
+              u.atkCd = ATTACK_MS;
+              if (target.hp <= 0) {
+                logLine('<span class="' + (u.side === "player" ? "win" : "dmg") + '">' +
+                  escapeHtml(u.name) + " defeated " + escapeHtml(target.name) + "</span>");
+                setCell(target.row, target.col, null);
+                needsBoardRender = true;
+              }
+            }
+          } else if (u.moveCd <= 0) {
+            if (stepToward(u, target)) {
+              needsBoardRender = true;
+              u.moveCd = MOVE_MS;
+            } else {
+              u.moveCd = MOVE_MS * 0.5;
+            }
+          }
+        });
+
+        if (needsBoardRender) renderBoards();
+        renderHUD();
+
+        state.combatTimer = requestAnimationFrame(tick);
       }
-      container.appendChild(zone);
+
+      state.combatTimer = requestAnimationFrame(tick);
     });
   }
 
-  async function startBattle() {
-    if (state.phase !== "shop") return;
-    if (!state.field.some(Boolean)) {
-      toast("Place at least one monster");
-      return;
-    }
-    state.phase = "battle";
-    state.selected = null;
-    state.enemyLp = 8000;
-    const playerBoard = state.field.map((c) => (c ? Object.assign({}, c) : null));
-    const enemyBoard = buildEnemyBoard(state.round);
-
-    el.shopBlock.style.display = "none";
-    el.shopActions.style.display = "none";
-    el.battleStrip.classList.add("active");
-    renderMiniBoard(el.playerBattle, playerBoard);
-    renderMiniBoard(el.enemyBattle, enemyBoard);
-    renderHUD();
-    el.battleStatus.textContent = "Clash!";
-    logLine(`<span class="sys">—— Round ${state.round} Battle ——</span>`);
-
-    await sleep(600);
-
-    for (let i = 0; i < 5; i++) {
-      const p = playerBoard[i];
-      const e = enemyBoard[i];
-      if (!p && !e) continue;
-
-      const pAtk = p ? effectiveAtk(p, playerBoard) : 0;
-      const eAtk = e ? effectiveAtk(e, enemyBoard) : 0;
-
-      const pZones = el.playerBattle.children;
-      const eZones = el.enemyBattle.children;
-      if (pZones[i]) pZones[i].classList.add("selected");
-      if (eZones[i]) eZones[i].classList.add("selected");
-
-      await sleep(450);
-
-      if (p && e) {
-        if (pAtk > eAtk) {
-          const dmg = pAtk - eAtk;
-          state.enemyLp = Math.max(0, state.enemyLp - dmg);
-          logLine(`<span class="win">${escapeHtml(p.name)} (${pAtk}) beats ${escapeHtml(e.name)} (${eAtk})</span> → <span class="dmg">${dmg} dmg</span> to foe`);
-          enemyBoard[i] = null;
-        } else if (eAtk > pAtk) {
-          const dmg = eAtk - pAtk;
-          state.lp = Math.max(0, state.lp - dmg);
-          logLine(`<span class="dmg">${escapeHtml(e.name)} (${eAtk}) beats ${escapeHtml(p.name)} (${pAtk})</span> → you take <span class="dmg">${dmg}</span>`);
-          playerBoard[i] = null;
-          el.lp.classList.add("shake");
-          setTimeout(() => el.lp.classList.remove("shake"), 400);
-        } else {
-          logLine(`${escapeHtml(p.name)} and ${escapeHtml(e.name)} clash equally — both destroyed`);
-          playerBoard[i] = null;
-          enemyBoard[i] = null;
-        }
-      } else if (p && !e) {
-        state.enemyLp = Math.max(0, state.enemyLp - pAtk);
-        logLine(`<span class="win">${escapeHtml(p.name)} direct attack!</span> <span class="dmg">${pAtk}</span> to foe`);
-      } else if (!p && e) {
-        state.lp = Math.max(0, state.lp - eAtk);
-        logLine(`<span class="dmg">${escapeHtml(e.name)} direct attack!</span> you take <span class="dmg">${eAtk}</span>`);
-        el.lp.classList.add("shake");
-        setTimeout(() => el.lp.classList.remove("shake"), 400);
-      }
-
-      renderMiniBoard(el.playerBattle, playerBoard);
-      renderMiniBoard(el.enemyBattle, enemyBoard);
-      renderHUD();
-      el.battleStatus.textContent = `Lane ${i + 1}`;
-
-      if (state.lp <= 0) break;
-      await sleep(350);
+  function finishFight() {
+    if (state.combatTimer) {
+      cancelAnimationFrame(state.combatTimer);
+      state.combatTimer = null;
     }
 
-    await sleep(500);
-    endBattle();
-  }
+    const survivors = allUnits("enemy");
+    let lpDmg = 0;
+    survivors.forEach((e) => {
+      lpDmg += 200 * (e.level || 1);
+    });
 
-  function incomeForRound(round) {
-    return 4 + Math.min(round, 6);
-  }
+    if (lpDmg > 0) {
+      state.lp = Math.max(0, state.lp - lpDmg);
+      logLine('<span class="dmg">Survivors deal ' + lpDmg + " LP damage</span>");
+      el.lp.classList.add("shake");
+      setTimeout(() => el.lp.classList.remove("shake"), 400);
+    } else if (allUnits("player").length) {
+      logLine('<span class="win">Board wiped — no LP damage!</span>');
+    }
 
-  function endBattle() {
-    el.battleStrip.classList.remove("active");
-    el.shopBlock.style.display = "";
-    el.shopActions.style.display = "";
+    // Clear enemy; gather player survivors and reseat on player half
+    const survivorsP = allUnits("player").map((u) => {
+      setCell(u.row, u.col, null);
+      u.maxHp = Math.max(500, u.def);
+      u.hp = u.maxHp;
+      u.side = "player";
+      return u;
+    });
+    clearEnemy();
+    const homeSlots = [];
+    for (let r = HEX_ROWS; r < HEX_ROWS * 2; r++) {
+      for (let c = 0; c < HEX_COLS; c++) homeSlots.push({ row: r, col: c });
+    }
+    // Prefer back rows for redeploy
+    homeSlots.sort((a, b) => b.row - a.row || a.col - b.col);
+    survivorsP.forEach((u, i) => {
+      const slot = homeSlots[i];
+      if (slot) setCell(slot.row, slot.col, u);
+    });
 
     if (state.lp <= 0) {
       state.phase = "end";
       el.endTitle.textContent = "Defeat";
-      el.endMsg.textContent = `You survived ${state.round} round${state.round === 1 ? "" : "s"}. Your Life Points hit zero.`;
+      el.endMsg.textContent = "You survived " + state.round + " round" + (state.round === 1 ? "" : "s") + ". Your Life Points hit zero.";
       el.endOverlay.classList.add("open");
       render();
       return;
     }
 
-    const gained = incomeForRound(state.round);
+    const gained = 4 + Math.min(state.round, 6);
     state.gold += gained;
-    logLine(`<span class="sys">Victory! +${gained}🪙 · Enemy had ${state.enemyLp} LP left</span>`);
-    toast(`+${gained} gold`);
+    logLine('<span class="sys">Round clear! +' + gained + "🪙</span>");
+    toast("+" + gained + " gold");
     state.round += 1;
     state.phase = "shop";
     rollShop();
     render();
   }
 
-  /* ---------- Classic API ---------- */
-
+  /* —— Classic API —— */
   function normalizeApiCard(raw) {
     if (!raw || typeof raw !== "object") return null;
-    const typeStr = String(raw.type || "");
-    if (!typeStr.includes("Monster")) return null;
+    if (!String(raw.type || "").includes("Monster")) return null;
     if (typeof raw.atk !== "number" || raw.atk < 0) return null;
     if (typeof raw.def !== "number" || raw.def < 0) return null;
     if (typeof raw.level !== "number" || raw.level < 1) return null;
-    const race = raw.race || "Warrior";
-    const attribute = String(raw.attribute || "DARK").toUpperCase();
     const id = "api_" + (raw.id != null ? raw.id : String(raw.name).toLowerCase().replace(/\W+/g, "_"));
     return {
       id,
       name: raw.name,
-      type: race,
-      attribute,
+      type: raw.race || "Warrior",
+      attribute: String(raw.attribute || "DARK").toUpperCase(),
       level: raw.level,
       atk: raw.atk,
       def: raw.def,
@@ -1343,17 +1756,13 @@
       const parsed = JSON.parse(raw);
       if (!parsed || !Array.isArray(parsed.cards) || !parsed.ts) return null;
       if (Date.now() - parsed.ts > CACHE_MS) return null;
-      if (!parsed.cards.length) return null;
-      return parsed.cards;
-    } catch (_) {
-      return null;
-    }
+      return parsed.cards.length ? parsed.cards : null;
+    } catch (_) { return null; }
   }
 
   function writeCache(cards) {
-    try {
-      localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), cards }));
-    } catch (_) { /* ignore quota */ }
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), cards })); }
+    catch (_) {}
   }
 
   async function fetchSet(setName) {
@@ -1367,7 +1776,6 @@
   async function loadClassicRoster() {
     const cached = readCache();
     if (cached) return { cards: cached, fromCache: true };
-
     const byId = new Map();
     for (const setName of API_SETS) {
       const rows = await fetchSet(setName);
@@ -1392,43 +1800,39 @@
     state.roster = roster;
     state.usedFallback = !!usedFallback;
     state.lp = 8000;
-    state.enemyLp = 8000;
     state.gold = 10;
     state.round = 1;
     state.phase = "shop";
-    state.field = [null, null, null, null, null];
     state.bench = [null, null, null, null, null];
+    state.grid = {};
     state.selected = null;
     el.log.innerHTML = "";
     el.endOverlay.classList.remove("open");
-    el.battleStrip.classList.remove("active");
-    el.shopBlock.style.display = "";
-    el.shopActions.style.display = "";
     el.startOverlay.classList.remove("open");
     el.app.classList.add("visible");
     rollShop();
     const modeLabel = state.mode === "classic" && !usedFallback ? "Classic" : "Original";
-    logLine(`<span class="sys">Duel start (${modeLabel}) — 8000 LP · 10 gold · ${roster.length} monsters</span>`);
+    logLine('<span class="sys">Duel start (' + modeLabel + ") — 8000 LP · 10 gold · " + roster.length + " monsters</span>");
     render();
+    // Relayout hexes after app visible (needs width)
+    requestAnimationFrame(() => renderBoards());
   }
 
   async function onStart() {
     el.btnStart.disabled = true;
     el.loadStatus.className = "load-status";
     el.loadStatus.textContent = state.mode === "classic" ? "Loading classic cards…" : "";
-
     try {
       if (state.mode === "original") {
         beginDuel(ORIGINAL_ROSTER.slice(), false);
         el.loadStatus.textContent = "";
         return;
       }
-
       const { cards, fromCache } = await loadClassicRoster();
       el.loadStatus.className = "load-status ok";
       el.loadStatus.textContent = fromCache
-        ? `Loaded ${cards.length} classic monsters (cached).`
-        : `Loaded ${cards.length} classic monsters.`;
+        ? "Loaded " + cards.length + " classic monsters (cached)."
+        : "Loaded " + cards.length + " classic monsters.";
       beginDuel(cards, false);
     } catch (err) {
       console.warn("Classic load failed", err);
@@ -1442,6 +1846,10 @@
   }
 
   function showStartScreen() {
+    if (state.combatTimer) {
+      cancelAnimationFrame(state.combatTimer);
+      state.combatTimer = null;
+    }
     state.phase = "menu";
     el.app.classList.remove("visible");
     el.endOverlay.classList.remove("open");
@@ -1462,9 +1870,12 @@
     if (e.target === el.howOverlay) el.howOverlay.classList.remove("open");
   });
   $("btnReroll").addEventListener("click", reroll);
-  $("btnBattle").addEventListener("click", () => { startBattle(); });
+  el.btnFight.addEventListener("click", () => { startFight(); });
   $("btnSell").addEventListener("click", sellSelected);
   $("btnRestart").addEventListener("click", showStartScreen);
+  window.addEventListener("resize", () => {
+    if (state.phase === "shop" || state.phase === "fight") renderBoards();
+  });
 
   setModeUI("classic");
 })();
