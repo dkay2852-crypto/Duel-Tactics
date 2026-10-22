@@ -269,7 +269,7 @@
       border: 1px solid #2a5040;
       border-radius: 14px;
       /* Tight pad so hexes fill; overlays sit above in board-wrap */
-      padding: 10px 0 6px;
+      padding: 4px 0 2px;
       overflow: visible;
     }
     .hex-stage {
@@ -284,7 +284,7 @@
       -webkit-transform: rotateX(var(--board-tilt)) scale(var(--board-scale));
       transform-style: preserve-3d;
       -webkit-transform-style: preserve-3d;
-      transform-origin: 50% 55%;
+      transform-origin: 50% 50%;
       will-change: transform;
     }
     .hex-board {
@@ -967,12 +967,13 @@
     }
     .card .stats {
       display: flex; justify-content: space-between; align-items: center;
-      font-size: 13px; font-weight: 800;
-      background: rgba(0,0,0,0.1); border-radius: 3px; padding: 2px 3px; margin-top: auto;
+      font-size: 14px; font-weight: 800;
+      background: rgba(0,0,0,0.18); border-radius: 3px; padding: 3px 4px; margin-top: auto;
+      line-height: 1.1;
     }
-    .card .atk { color: #ff8a8a; }
-    .card .def { color: #8ab8ff; }
-    .card .type-ico { font-size: 11px; opacity: 0.85; }
+    .card .atk { color: #ff8a8a; font-size: 14px; }
+    .card .def { color: #8ab8ff; font-size: 14px; }
+    .card .type-ico { font-size: 12px; opacity: 0.85; }
     .card .cost-badge {
       position: absolute; top: 1px; right: 1px; background: var(--gold); color: #1a1408;
       font-size: 0.58rem; font-weight: 800; border-radius: 5px; padding: 1px 4px;
@@ -2514,11 +2515,11 @@
   const API_SETS = ["Legend of Blue Eyes White Dragon", "Metal Raiders"];
   const HEX_ROWS = 4;
   const HEX_COLS = 7;
-  const ATTACK_MS = 2100;
-  const MOVE_MS = 820;
+  const ATTACK_MS = 3200;
+  const MOVE_MS = 1050;
   const RESULTS_HOLD_MS = 2000;
   const COMBAT_MAX_MS = 15000;
-  const COMBAT_END_HOLD_MS = 700; // let shatter / last floats finish
+  const COMBAT_END_HOLD_MS = 850; // let shatter / last floats finish
   const TRAIT_THRESHOLDS = [2, 4, 6];
   const ITEM_DRAFT_ROUNDS = [2, 5, 9, 13];
   const MAX_ITEMS = 3;
@@ -3601,18 +3602,18 @@
     const tiltRad = 35 * Math.PI / 180;
     const cosT = Math.cos(tiltRad);
 
-    // Fill near-edge width tightly (7 columns)
-    let screenHex = aw / 6.82;
-    const flatRows = 1.12 * 3.0 * 2 + 0.06;
+    // Fill near-edge width tightly (7 columns) — prefer width fill over empty side gutters
+    let screenHex = aw / 6.55;
+    const flatRows = 1.12 * 2.95 * 2 + 0.04;
     const projectedAtFill = screenHex * flatRows * cosT;
-    if (projectedAtFill > ah * 1.22) {
-      screenHex = (ah * 1.22) / (flatRows * cosT);
+    if (projectedAtFill > ah * 1.28) {
+      screenHex = (ah * 1.28) / (flatRows * cosT);
     }
-    let scale = 1.45;
+    let scale = 1.55;
     let w = Math.round(screenHex / scale);
-    w = Math.max(28, Math.min(54, w));
+    w = Math.max(26, Math.min(56, w));
     scale = screenHex / w;
-    scale = Math.max(1.25, Math.min(1.9, scale));
+    scale = Math.max(1.35, Math.min(2.05, scale));
 
     document.documentElement.style.setProperty("--hex-w", w + "px");
     document.documentElement.style.setProperty("--board-scale", scale.toFixed(3));
@@ -3620,11 +3621,14 @@
   }
 
   function measureScreenHexW() {
-    const hex = document.querySelector("#playerBoard .hex, #enemyBoard .hex");
-    if (hex) {
+    const hexes = document.querySelectorAll("#playerBoard .hex");
+    let sum = 0;
+    let n = 0;
+    hexes.forEach((hex) => {
       const r = hex.getBoundingClientRect();
-      if (r.width > 8) return r.width;
-    }
+      if (r.width > 8) { sum += r.width; n++; }
+    });
+    if (n > 0) return sum / n;
     const css = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--hex-screen-w"));
     return css > 8 ? css : 48;
   }
@@ -4079,8 +4083,12 @@
       state.placeGlowHex = null;
       pulsePlaceGlow(glow.row, glow.col);
     }
-    // Wait two frames so tilt/scale layout is settled before measuring hexes
-    requestAnimationFrame(() => requestAnimationFrame(() => syncHoloLayer()));
+    // Wait for tilt/scale layout to settle, then size screen-space holos from projected hexes
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      syncHoloLayer();
+      // Second pass: WebKit sometimes reports pre-transform rects on the first measure
+      requestAnimationFrame(() => syncHoloLayer());
+    }));
   }
 
   function renderTraits() {
@@ -4891,6 +4899,11 @@
     opts = opts || {};
     if (!target || target.dead || rawDmg <= 0) return 0;
     let dmg = Math.max(1, Math.round(rawDmg));
+    // Soft-cap bursts so early 1v1 fights read for 8–15s (abilities still chunk hard)
+    if (!opts.noCap && target.maxHp > 0) {
+      const cap = Math.max(120, Math.round(target.maxHp * 0.42));
+      if (dmg > cap) dmg = cap;
+    }
     if (target.shield > 0) {
       const absorbed = Math.min(target.shield, dmg);
       target.shield -= absorbed;
@@ -5143,8 +5156,9 @@
       u.hasteUntil = 0;
       u.dead = false;
       if (u.type === "Zombie") { u.canRevive = true; u.revived = false; }
-      u.atkCd = Math.random() * 200;
-      u.moveCd = Math.random() * 100;
+      // Stagger first swings so the fight opens with movement, not an instant nuke
+      u.atkCd = 1100 + Math.random() * 700;
+      u.moveCd = 200 + Math.random() * 300;
     });
     const d = currentDuelist();
     logLine('<span class="sys">—— Round ' + state.duelRound + " vs " +
@@ -5161,6 +5175,8 @@
     }
     requestAnimationFrame(() => { mountCombatTokens(); });
     await sleep(80);
+    mountCombatTokens();
+    await sleep(400 / state.fightSpeed);
     mountCombatTokens();
     await runCombatLoop();
     finishFight();
