@@ -36,7 +36,7 @@
       --bench-h: 52px;
       --fight-h: 52px;
       --econ-h: 44px;
-      --shop-h: 100px;
+      --shop-h: 108px;
       --board-tilt: 35deg;
       --board-scale: 1.45;
       /* Screen-space hex width after tilt scale (set by fitHexSize) */
@@ -147,19 +147,19 @@
       text-align: center;
     }
     .top-mid .round-line {
-      font-size: 0.68rem;
+      font-size: 0.72rem;
       font-weight: 800;
-      letter-spacing: 0.1em;
+      letter-spacing: 0.06em;
       text-transform: uppercase;
       color: var(--gold);
     }
     .top-mid .duelist-line {
       font-family: "Bungee", cursive;
-      font-size: 0.68rem;
+      font-size: 0.78rem;
       color: #f0b8c0;
       white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      overflow: visible;
+      text-overflow: clip;
       line-height: 1.15;
       max-width: 100%;
     }
@@ -186,7 +186,7 @@
       color: var(--gold);
       border-radius: 8px;
       padding: 4px 8px;
-      font-size: 0.68rem;
+      font-size: 12px;
       font-weight: 700;
     }
     .notice.show { display: block; }
@@ -208,7 +208,7 @@
     }
     .trait-bar::-webkit-scrollbar { display: none; }
     .trait-bar .hint {
-      font-size: 0.68rem;
+      font-size: 12px;
       color: var(--muted);
       white-space: nowrap;
     }
@@ -225,7 +225,7 @@
       background: rgba(20, 30, 40, 0.85);
       color: #6a7a88;
       font-weight: 800;
-      font-size: 0.68rem;
+      font-size: 12px;
       cursor: pointer;
       touch-action: manipulation;
       user-select: none;
@@ -246,6 +246,14 @@
       background: linear-gradient(160deg, rgba(200, 150, 40, 0.5), rgba(60, 40, 10, 0.95));
     }
 
+    /* Board wrap owns overlays OUTSIDE the perspective tree (WebKit/iOS Safari). */
+    .board-wrap {
+      flex: 1 1 auto;
+      min-height: 0;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
     .arena {
       flex: 1 1 auto;
       min-height: 0;
@@ -253,15 +261,15 @@
       display: flex;
       flex-direction: column;
       perspective: 900px;
-      perspective-origin: 50% 42%;
+      perspective-origin: 50% 40%;
+      -webkit-perspective: 900px;
       background:
         radial-gradient(ellipse at 50% 30%, rgba(40, 70, 50, 0.35), transparent 55%),
         linear-gradient(180deg, rgba(20, 36, 28, 0.95), rgba(12, 24, 36, 0.95));
       border: 1px solid #2a5040;
       border-radius: 14px;
-      /* Top pad for upright billboards; light side pad for edge tokens.
-         overflow must stay visible — overflow:hidden flattens preserve-3d. */
-      padding: 44px 2px 10px;
+      /* Tight pad so hexes fill; overlays sit above in board-wrap */
+      padding: 4px 0 2px;
       overflow: visible;
     }
     .hex-stage {
@@ -269,13 +277,14 @@
       min-height: 0;
       display: flex;
       flex-direction: column;
-      justify-content: flex-end;
+      justify-content: center;
       position: relative;
       width: 100%;
       transform: rotateX(var(--board-tilt)) scale(var(--board-scale));
+      -webkit-transform: rotateX(var(--board-tilt)) scale(var(--board-scale));
       transform-style: preserve-3d;
-      /* Origin near bottom so scale-after-tilt grows toward the camera */
-      transform-origin: 50% 78%;
+      -webkit-transform-style: preserve-3d;
+      transform-origin: 50% 50%;
       will-change: transform;
     }
     .hex-board {
@@ -283,15 +292,22 @@
       width: 100%;
       flex: 0 0 auto;
       transform-style: preserve-3d;
+      -webkit-transform-style: preserve-3d;
       overflow: visible;
     }
     .hex-board + .hex-board { margin-top: 0; }
+    /* Flat screen-space layers — siblings of .arena, never inside preserve-3d */
     .holo-layer, .combat-layer {
       position: absolute;
       inset: 0;
       pointer-events: none;
       z-index: 12;
       overflow: visible;
+      transform: translateZ(0);
+      -webkit-transform: translateZ(0);
+      transform-style: flat;
+      -webkit-transform-style: flat;
+      isolation: isolate;
     }
     .holo-layer { z-index: 11; }
     .combat-layer { z-index: 13; }
@@ -372,6 +388,14 @@
     }
     .hex.drop-hover::before {
       background: linear-gradient(160deg, rgba(62, 199, 194, 0.55), rgba(20, 60, 70, 0.7));
+    }
+    .hex.place-glow::before {
+      animation: placeGlow 0.5s ease;
+      box-shadow: 0 0 18px rgba(90, 210, 255, 0.9), inset 0 0 0 2px #7ad8ff;
+    }
+    @keyframes placeGlow {
+      0% { filter: brightness(2.2); }
+      100% { filter: brightness(1); }
     }
 
     .token {
@@ -564,7 +588,14 @@
       flex: 0 0 auto;
       gap: 2px;
     }
-    .token.holo .hp-bar, .token.holo .mana-bar { height: 4px; border-radius: 3px; }
+    .token.holo .hp-bar, .token.holo .mana-bar {
+      height: 5px;
+      border-radius: 3px;
+      opacity: 1;
+      visibility: visible;
+      background: rgba(0, 0, 0, 0.65);
+    }
+    .token.holo .bars { z-index: 6; }
     .token.holo.attacking .holo-rig {
       animation: holoLean 0.28s ease;
     }
@@ -574,6 +605,10 @@
     .token.holo.selected {
       outline: 2px solid var(--cyan);
       outline-offset: 2px;
+    }
+    .token.holo.just-placed {
+      animation: holoRise 0.5s cubic-bezier(0.2, 0.85, 0.3, 1) both;
+      filter: drop-shadow(0 0 14px rgba(90, 210, 255, 0.95));
     }
     .hex-hit-token {
       width: 70% !important;
@@ -677,7 +712,13 @@
       overflow-x: auto; -webkit-overflow-scrolling: touch;
       min-height: 0; max-height: 36px; align-items: center;
     }
-    .item-bench:empty, .item-bench .hint { display: none; }
+    .item-bench:empty { display: none; }
+    .item-bench .hint {
+      font-size: 12px;
+      color: var(--muted);
+      white-space: nowrap;
+      font-weight: 700;
+    }
     .item-chip {
       display: inline-flex; align-items: center; gap: 3px;
       min-height: 32px; padding: 4px 8px; border-radius: 10px;
@@ -785,7 +826,7 @@
       font-weight: 800; font-size: 0.78rem;
     }
     .level-pill .lv { color: var(--cyan); }
-    .level-pill .xp-label { color: var(--muted); font-size: 0.68rem; font-weight: 700; }
+    .level-pill .xp-label { color: var(--muted); font-size: 12px; font-weight: 700; }
     .xp-track {
       height: 5px; border-radius: 4px; background: rgba(0,0,0,0.4); overflow: hidden;
     }
@@ -805,7 +846,7 @@
       color: var(--fog);
       font-family: inherit;
       font-weight: 800;
-      font-size: 0.68rem;
+      font-size: 12px;
       line-height: 1.15;
       cursor: pointer;
       touch-action: manipulation;
@@ -926,12 +967,13 @@
     }
     .card .stats {
       display: flex; justify-content: space-between; align-items: center;
-      font-size: 0.55rem; font-weight: 800;
-      background: rgba(0,0,0,0.1); border-radius: 3px; padding: 1px 2px; margin-top: auto;
+      font-size: 14px; font-weight: 800;
+      background: rgba(0,0,0,0.18); border-radius: 3px; padding: 3px 4px; margin-top: auto;
+      line-height: 1.1;
     }
-    .card .atk { color: #ff8a8a; }
-    .card .def { color: #8ab8ff; }
-    .card .type-ico { font-size: 0.55rem; opacity: 0.85; }
+    .card .atk { color: #ff8a8a; font-size: 14px; }
+    .card .def { color: #8ab8ff; font-size: 14px; }
+    .card .type-ico { font-size: 12px; opacity: 0.85; }
     .card .cost-badge {
       position: absolute; top: 1px; right: 1px; background: var(--gold); color: #1a1408;
       font-size: 0.58rem; font-weight: 800; border-radius: 5px; padding: 1px 4px;
@@ -1777,7 +1819,8 @@
       margin: 0 0 6px; font-family: "Bungee", cursive; font-size: 1.4rem; color: var(--gold);
     }
     .results-banner.defeat h3 { color: var(--rose); }
-    .results-banner p { margin: 0 0 14px; color: var(--fog); font-weight: 700; }
+    .results-banner p { margin: 0 0 10px; color: var(--fog); font-weight: 700; font-size: 14px; }
+    .results-banner .btn { display: none; } /* auto-advances after ~2s */
 
     .ts-head { display: flex; gap: 10px; align-items: center; margin-bottom: 12px; }
     .ts-emoji { font-size: 2rem; }
@@ -1889,9 +1932,10 @@
       100% { transform: rotateX(0) translateY(0); }
     }
     @keyframes holoHitFlash {
-      0%, 100% { filter: brightness(1); }
-      25% { filter: brightness(4) contrast(1.5) saturate(0.2); }
-      55% { filter: brightness(1.8); }
+      0%, 100% { filter: brightness(1) saturate(1); }
+      20% { filter: brightness(6) contrast(1.4) saturate(0); }
+      45% { filter: brightness(3.2) saturate(0.15); }
+      70% { filter: brightness(1.6); }
     }
     @keyframes holoShatter {
       0% { opacity: 1; filter: brightness(1); transform: scale(1); }
@@ -1951,7 +1995,7 @@
       min-height: 28px;
       padding: 4px 10px;
       border-radius: 10px;
-      font-size: 0.68rem;
+      font-size: 12px;
       font-weight: 800;
       letter-spacing: 0.04em;
       text-align: center;
@@ -2131,16 +2175,16 @@
       position: absolute;
       transform: translate(-50%, -50%);
       font-family: "Bungee", cursive;
-      font-size: 1.15rem;
+      font-size: 1.35rem;
       font-weight: 800;
       color: #ff6a6a;
-      text-shadow: 0 2px 0 #400808, 0 0 8px rgba(255,80,80,0.6);
+      text-shadow: 0 2px 0 #400808, 0 0 10px rgba(255,80,80,0.75);
       pointer-events: none;
       z-index: 20;
-      animation: floatDmg 0.85s ease forwards;
+      animation: floatDmg 0.95s ease forwards;
     }
     .combat-fx.heal { color: #6aef9a; text-shadow: 0 2px 0 #084020; }
-    .combat-fx.big { font-size: 1.45rem; }
+    .combat-fx.big { font-size: 1.65rem; }
     @keyframes floatDmg {
       0% { opacity: 1; transform: translate(-50%, -50%) scale(0.8); }
       100% { opacity: 0; transform: translate(-50%, -120%) scale(1.15); }
@@ -2259,7 +2303,7 @@
         <span id="lp">4000</span>
       </div>
       <div class="top-mid">
-        <div class="round-line">Round <span id="duelistRound">1</span><span id="round" hidden>1</span></div>
+        <div class="round-line"><span id="duelistRound">R1</span><span id="round" hidden>1</span></div>
         <div class="duelist-line" id="duelistName">Weevil Underwood</div>
         <div class="star-chips" id="starChips" aria-label="Star Chips" title="Star Chips"></div>
       </div>
@@ -2275,15 +2319,17 @@
 
     <div class="trait-bar" id="traitBar" aria-label="Traits"></div>
 
-    <div class="arena" id="arena">
-      <div class="hex-stage" id="hexStage">
-        <div class="hex-board" id="enemyBoard"></div>
-        <div class="hex-board" id="playerBoard"></div>
+    <div class="board-wrap" id="boardWrap">
+      <div class="arena" id="arena">
+        <div class="hex-stage" id="hexStage">
+          <div class="hex-board" id="enemyBoard"></div>
+          <div class="hex-board" id="playerBoard"></div>
+        </div>
+        <div class="duel-flash" id="duelFlash" aria-hidden="true"><span>DUEL!</span></div>
       </div>
-      <!-- Screen-space layers so billboards stay upright (app overflow flattens 3D) -->
+      <!-- Screen-space overlays OUTSIDE perspective (fixes flat/tiny holos on iOS Safari) -->
       <div class="holo-layer" id="holoLayer"></div>
       <div class="combat-layer" id="combatLayer"></div>
-      <div class="duel-flash" id="duelFlash" aria-hidden="true"><span>DUEL!</span></div>
     </div>
 
     <div class="bench-wrap">
@@ -2469,8 +2515,11 @@
   const API_SETS = ["Legend of Blue Eyes White Dragon", "Metal Raiders"];
   const HEX_ROWS = 4;
   const HEX_COLS = 7;
-  const ATTACK_MS = 1000;
-  const MOVE_MS = 380;
+  const ATTACK_MS = 3200;
+  const MOVE_MS = 1050;
+  const RESULTS_HOLD_MS = 2000;
+  const COMBAT_MAX_MS = 15000;
+  const COMBAT_END_HOLD_MS = 850; // let shatter / last floats finish
   const TRAIT_THRESHOLDS = [2, 4, 6];
   const ITEM_DRAFT_ROUNDS = [2, 5, 9, 13];
   const MAX_ITEMS = 3;
@@ -2946,6 +2995,9 @@
     strongestEver: null, // { name, atk, imgSmall }
     awaitingItemDraft: false,
     preFightArmy: null, // snapshot of player board units before combat
+    justPlacedUid: null,
+    placeGlowHex: null, // { row, col } hex to pulse after bench→board place
+    resultsHoldTimer: null,
   };
 
   const $ = (id) => document.getElementById(id);
@@ -2990,6 +3042,7 @@
     resultsTitle: $("resultsTitle"),
     resultsMsg: $("resultsMsg"),
     arena: $("arena"),
+    boardWrap: $("boardWrap"),
     hexStage: $("hexStage"),
     holoLayer: $("holoLayer"),
     levelNum: $("levelNum"),
@@ -3549,24 +3602,42 @@
     const tiltRad = 35 * Math.PI / 180;
     const cosT = Math.cos(tiltRad);
 
-    // Width-first: 7 columns fill the content width (near edge)
-    let screenHex = aw / 6.95;
-    // Two board halves × row stack, projected after rotateX
-    const flatRows = 1.12 * 3.05 * 2 + 0.08;
+    // Fill near-edge width tightly (7 columns) — prefer width fill over empty side gutters
+    let screenHex = aw / 6.55;
+    const flatRows = 1.12 * 2.95 * 2 + 0.04;
     const projectedAtFill = screenHex * flatRows * cosT;
-    // Prefer full width; allow slight height overflow into arena padding
-    if (projectedAtFill > ah * 1.15) {
-      screenHex = (ah * 1.15) / (flatRows * cosT);
+    if (projectedAtFill > ah * 1.28) {
+      screenHex = (ah * 1.28) / (flatRows * cosT);
     }
-    let scale = 1.4;
+    let scale = 1.55;
     let w = Math.round(screenHex / scale);
-    w = Math.max(30, Math.min(52, w));
+    w = Math.max(26, Math.min(56, w));
     scale = screenHex / w;
-    scale = Math.max(1.2, Math.min(1.85, scale));
+    scale = Math.max(1.35, Math.min(2.05, scale));
 
     document.documentElement.style.setProperty("--hex-w", w + "px");
     document.documentElement.style.setProperty("--board-scale", scale.toFixed(3));
     document.documentElement.style.setProperty("--hex-screen-w", (w * scale).toFixed(2) + "px");
+  }
+
+  function measureScreenHexW() {
+    const hexes = document.querySelectorAll("#playerBoard .hex");
+    let sum = 0;
+    let n = 0;
+    hexes.forEach((hex) => {
+      const r = hex.getBoundingClientRect();
+      if (r.width > 8) { sum += r.width; n++; }
+    });
+    if (n > 0) return sum / n;
+    const css = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--hex-screen-w"));
+    return css > 8 ? css : 48;
+  }
+
+  function sizeHoloToken(tok) {
+    if (!tok) return;
+    const hw = measureScreenHexW();
+    tok.style.width = (hw * 1.3).toFixed(1) + "px";
+    tok.style.height = (hw * 1.5).toFixed(1) + "px";
   }
 
   function layoutBoard(boardEl, side) {
@@ -3968,6 +4039,22 @@
     });
   }
 
+  function pulsePlaceGlow(row, col) {
+    const board = row < HEX_ROWS ? el.enemyBoard : el.playerBoard;
+    const hex = board && board.querySelector('.hex[data-row="' + row + '"][data-col="' + col + '"]');
+    if (!hex) return;
+    hex.classList.remove("place-glow");
+    void hex.offsetWidth;
+    hex.classList.add("place-glow");
+    setTimeout(() => hex.classList.remove("place-glow"), 520);
+  }
+
+  function markBenchPlace(unit, row, col) {
+    if (!unit) return;
+    state.justPlacedUid = unit.uid;
+    state.placeGlowHex = { row: row, col: col };
+  }
+
   function renderBoards() {
     fitHexSize();
     layoutBoard(el.enemyBoard, "enemy");
@@ -3991,8 +4078,17 @@
         }
       });
     }
-    // Wait two frames so tilt/scale layout is settled before measuring hexes
-    requestAnimationFrame(() => requestAnimationFrame(() => syncHoloLayer()));
+    const glow = state.placeGlowHex;
+    if (glow) {
+      state.placeGlowHex = null;
+      pulsePlaceGlow(glow.row, glow.col);
+    }
+    // Wait for tilt/scale layout to settle, then size screen-space holos from projected hexes
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      syncHoloLayer();
+      // Second pass: WebKit sometimes reports pre-transform rects on the first measure
+      requestAnimationFrame(() => syncHoloLayer());
+    }));
   }
 
   function renderTraits() {
@@ -4134,10 +4230,17 @@
 
   function renderDuelist() {
     const d = currentDuelist();
-    if (el.duelistRound) el.duelistRound.textContent = String(state.duelRound || 1);
+    if (el.duelistRound) el.duelistRound.textContent = "R" + (state.duelRound || 1);
     if (el.duelistName) {
-      el.duelistName.textContent = d.name;
-      el.duelistName.title = d.name + (d.theme ? " · " + d.theme : "");
+      const name = d.name || "";
+      el.duelistName.textContent = name;
+      el.duelistName.title = name + (d.theme ? " · " + d.theme : "");
+      // Shrink so long names (e.g. Maximillion Pegasus) never clip on iPhone
+      let fs = 0.78;
+      if (name.length > 18) fs = 0.55;
+      else if (name.length > 14) fs = 0.62;
+      else if (name.length > 11) fs = 0.7;
+      el.duelistName.style.fontSize = fs + "rem";
     }
   }
 
@@ -4232,11 +4335,13 @@
         unit.side = null;
         card.side = "player";
         setCell(row, col, card);
+        markBenchPlace(card, row, col);
       } else if (!unit) {
         if (playerCount() >= boardCap()) { toast("Max " + boardCap() + " on board (level up!)"); return; }
         state.bench[state.selected.index] = null;
         card.side = "player";
         setCell(row, col, card);
+        markBenchPlace(card, row, col);
       }
       state.selected = null;
       render();
@@ -4388,6 +4493,7 @@
         }
         unit.side = "player";
         setCell(row, col, unit);
+        markBenchPlace(unit, row, col);
       } else {
         // move/swap hex to hex
         if (occ && !(occ.row === src.row && occ.col === src.col)) {
@@ -4603,11 +4709,12 @@
   }
 
   function hexCenterInArena(row, col) {
-    // Screen-space center of the hex relative to .arena (holo/combat layers).
+    // Screen-space center relative to board-wrap (overlay host outside perspective).
     const board = row < HEX_ROWS ? el.enemyBoard : el.playerBoard;
     const hex = board && board.querySelector('.hex[data-row="' + row + '"][data-col="' + col + '"]');
-    if (!hex || !el.arena) return { x: 0, y: 0 };
-    const a = el.arena.getBoundingClientRect();
+    const host = el.boardWrap || el.arena;
+    if (!hex || !host) return { x: 0, y: 0 };
+    const a = host.getBoundingClientRect();
     const h = hex.getBoundingClientRect();
     return {
       x: h.left - a.left + h.width / 2,
@@ -4619,6 +4726,8 @@
     if (!el.holoLayer) return;
     el.holoLayer.innerHTML = "";
     if (state.phase === "fight" || state.phase === "menu") return;
+    const hw = measureScreenHexW();
+    document.documentElement.style.setProperty("--hex-screen-w", hw.toFixed(2) + "px");
     allUnits().forEach((u) => {
       if (!u || u.dead) return;
       const pos = hexCenterInArena(u.row, u.col);
@@ -4626,13 +4735,22 @@
       ground.className = "holo-ground";
       ground.style.left = pos.x + "px";
       ground.style.top = pos.y + "px";
+      ground.style.width = (hw * 0.9).toFixed(1) + "px";
+      ground.style.height = (hw * 0.4).toFixed(1) + "px";
+      ground.style.marginLeft = (-hw * 0.45).toFixed(1) + "px";
+      ground.style.marginTop = (-hw * 0.2).toFixed(1) + "px";
       el.holoLayer.appendChild(ground);
       const tok = createTokenEl(u, { holo: true });
+      sizeHoloToken(tok);
       tok.style.left = pos.x + "px";
       tok.style.top = pos.y + "px";
       if (state.selected && state.selected.from === "hex" &&
           state.selected.row === u.row && state.selected.col === u.col) {
         tok.classList.add("selected");
+      }
+      if (state.justPlacedUid === u.uid) {
+        tok.classList.add("just-placed");
+        state.justPlacedUid = null;
       }
       el.holoLayer.appendChild(tok);
     });
@@ -4646,7 +4764,9 @@
   function mountCombatTokens() {
     clearCombatLayer();
     if (el.holoLayer) el.holoLayer.innerHTML = "";
-    // Combat layer owns visuals during fight
+    const hw = measureScreenHexW();
+    document.documentElement.style.setProperty("--hex-screen-w", hw.toFixed(2) + "px");
+    // Combat layer owns visuals during fight (screen-space, outside perspective)
     el.arena.querySelectorAll(".hex .token").forEach((t) => { t.style.visibility = "hidden"; });
     allUnits().forEach((u) => {
       if (u.dead) return;
@@ -4654,11 +4774,12 @@
       wrap.className = "combat-token";
       wrap.dataset.uid = String(u.uid);
       const tok = createTokenEl(u, { holo: true });
+      sizeHoloToken(tok);
       wrap.appendChild(tok);
       el.combatLayer.appendChild(wrap);
       const pos = hexCenterInArena(u.row, u.col);
-      const halfW = (tok.offsetWidth || 40) / 2;
-      const halfH = (tok.offsetHeight || 48) / 2;
+      const halfW = (parseFloat(tok.style.width) || hw * 1.3) / 2;
+      const halfH = (parseFloat(tok.style.height) || hw * 1.5) / 2;
       state.combatVisuals[u.uid] = {
         wrap, tok, x: pos.x, y: pos.y, half: halfW, halfW, halfH,
         lungeX: 0, lungeY: 0, lungeT: 0, lean: 0,
@@ -4778,6 +4899,11 @@
     opts = opts || {};
     if (!target || target.dead || rawDmg <= 0) return 0;
     let dmg = Math.max(1, Math.round(rawDmg));
+    // Soft-cap bursts so early 1v1 fights read for 8–15s (abilities still chunk hard)
+    if (!opts.noCap && target.maxHp > 0) {
+      const cap = Math.max(120, Math.round(target.maxHp * 0.42));
+      if (dmg > cap) dmg = cap;
+    }
     if (target.shield > 0) {
       const absorbed = Math.min(target.shield, dmg);
       target.shield -= absorbed;
@@ -5030,8 +5156,9 @@
       u.hasteUntil = 0;
       u.dead = false;
       if (u.type === "Zombie") { u.canRevive = true; u.revived = false; }
-      u.atkCd = Math.random() * 200;
-      u.moveCd = Math.random() * 100;
+      // Stagger first swings so the fight opens with movement, not an instant nuke
+      u.atkCd = 1100 + Math.random() * 700;
+      u.moveCd = 200 + Math.random() * 300;
     });
     const d = currentDuelist();
     logLine('<span class="sys">—— Round ' + state.duelRound + " vs " +
@@ -5049,6 +5176,8 @@
     requestAnimationFrame(() => { mountCombatTokens(); });
     await sleep(80);
     mountCombatTokens();
+    await sleep(400 / state.fightSpeed);
+    mountCombatTokens();
     await runCombatLoop();
     finishFight();
   }
@@ -5061,14 +5190,16 @@
     return new Promise((resolve) => {
       let last = performance.now();
       const combatStart = last;
+      let sideClearedAt = 0;
 
       function tick(now) {
         if (state.phase !== "fight") { resolve(); return; }
         const rawDt = Math.min(50, now - last);
         last = now;
         const dt = rawDt * state.fightSpeed;
+        const elapsed = (now - combatStart) * state.fightSpeed;
 
-        if (now - combatStart > 60000) {
+        if (elapsed > COMBAT_MAX_MS) {
           logLine('<span class="sys">Time up — combat ends</span>');
           resolve();
           return;
@@ -5078,7 +5209,12 @@
         const enemies = allUnits("enemy").filter((u) => !u.dead);
         if (!players.length || !enemies.length) {
           updateCombatVisuals(dt);
-          resolve();
+          if (!sideClearedAt) sideClearedAt = now;
+          if ((now - sideClearedAt) * state.fightSpeed >= COMBAT_END_HOLD_MS) {
+            resolve();
+            return;
+          }
+          state.combatTimer = requestAnimationFrame(tick);
           return;
         }
 
@@ -5234,21 +5370,22 @@
     };
 
     el.resultsBanner.classList.toggle("defeat", duelDefeat || (!duelOver && playerTakesHit));
+    const dealtLine = "Dealt " + foeLpDmg + " LP";
+    const lostLine = "Lost " + playerLpDmg + " LP";
+    const dmgLine = dealtLine + "  ·  " + lostLine;
     if (beatBoss) {
       el.resultsTitle.textContent = "Champion!";
-      el.resultsMsg.textContent = "You defeated " + duelist.name + "!";
+      el.resultsMsg.textContent = "You defeated " + duelist.name + "!  ·  " + dmgLine;
     } else if (duelVictory) {
       el.resultsTitle.textContent = "Duel Won!";
-      el.resultsMsg.textContent = "You defeated " + duelist.name +
-        " in " + state.duelRound + " round" + (state.duelRound === 1 ? "" : "s");
+      el.resultsMsg.textContent = "Beat " + duelist.name + " in " + state.duelRound +
+        " round" + (state.duelRound === 1 ? "" : "s") + "  ·  " + dmgLine;
     } else if (duelDefeat) {
       el.resultsTitle.textContent = "Duel Lost";
-      el.resultsMsg.textContent = duelist.name + " reduced you to 0 LP";
+      el.resultsMsg.textContent = dmgLine + "  ·  0 LP remaining";
     } else {
       el.resultsTitle.textContent = playerWonRound ? "Round Won!" : "Round Lost";
-      el.resultsMsg.textContent = playerTakesHit
-        ? ("−" + playerLpDmg + " LP  ·  Foe " + state.enemyLp + " LP")
-        : ("Foe −" + foeLpDmg + " LP  ·  You " + state.lp + " LP");
+      el.resultsMsg.textContent = dmgLine;
     }
     if (el.resultsRewards) {
       const chips = [];
@@ -5269,6 +5406,11 @@
     el.btnFight.style.display = "none";
     renderHUD();
     saveRun();
+    if (state.resultsHoldTimer) clearTimeout(state.resultsHoldTimer);
+    state.resultsHoldTimer = setTimeout(() => {
+      state.resultsHoldTimer = null;
+      dismissResults();
+    }, RESULTS_HOLD_MS);
   }
 
   function fillRunSummary(won) {
@@ -5471,6 +5613,10 @@
   }
 
   function dismissResults() {
+    if (state.resultsHoldTimer) {
+      clearTimeout(state.resultsHoldTimer);
+      state.resultsHoldTimer = null;
+    }
     el.resultsBanner.classList.remove("show");
     const res = state.pendingResult;
     state.pendingResult = null;
