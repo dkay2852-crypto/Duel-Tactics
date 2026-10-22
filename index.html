@@ -906,6 +906,7 @@
       flex-direction: column;
       gap: 6px;
       overflow: hidden;
+      padding-bottom: 72px; /* room for fixed home nav */
     }
     .home-top {
       flex: 0 0 auto;
@@ -1140,16 +1141,19 @@
     }
     .home-load-error.show { display: block; }
     .home-nav {
-      flex: 0 0 auto;
-      position: relative;
+      position: absolute;
+      left: calc(12px + var(--safe-l));
+      right: calc(12px + var(--safe-r));
+      bottom: calc(8px + var(--safe-b));
       z-index: 3;
       display: grid;
       grid-template-columns: 1fr 72px 1fr;
       align-items: end;
       gap: 6px;
       min-height: 58px;
-      padding-top: 4px;
+      pointer-events: none;
     }
+    .home-nav > * { pointer-events: auto; }
     .home-nav-btn {
       min-height: 48px;
       border-radius: 16px;
@@ -4704,13 +4708,15 @@
 
   function setHomeTab(tab) {
     state.homeTab = tab;
-    if (el.homeMain) el.homeMain.style.display = tab === "duel" ? "" : "none";
+    if (el.homeMain) el.homeMain.style.visibility = tab === "duel" ? "visible" : "hidden";
     if (el.panelRecords) el.panelRecords.classList.toggle("open", tab === "records");
     if (el.panelBinder) el.panelBinder.classList.toggle("open", tab === "binder");
     const nr = $("navRecords");
     const nb = $("navBinder");
+    const nd = $("navDuel");
     if (nr) nr.classList.toggle("active", tab === "records");
     if (nb) nb.classList.toggle("active", tab === "binder");
+    if (nd) nd.style.outline = tab === "duel" ? "3px solid #ffe566" : "";
     if (tab === "records") renderRecords();
     if (tab === "binder") renderBinder();
   }
@@ -4804,8 +4810,9 @@
     if (el.homeSigArt) {
       const sig = findSignatureCard(foe);
       const emoji = raceMeta(sig ? sig.type : (foe.types && foe.types[0])).emoji;
-      if (sig && cardArtSrc(sig, "small")) {
-        el.homeSigArt.innerHTML = '<img src="' + cardArtSrc(sig, "small") + '" alt="" />';
+      const src = sig ? (cardArtSrc(sig, "cropped") || cardArtSrc(sig, "small")) : null;
+      if (src) {
+        el.homeSigArt.innerHTML = '<img src="' + src + '" alt="" />';
         bindArtFallback(el.homeSigArt.querySelector("img"), emoji);
       } else {
         el.homeSigArt.innerHTML = '<span class="emoji-fallback">' + emoji + "</span>";
