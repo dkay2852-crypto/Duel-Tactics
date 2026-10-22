@@ -769,14 +769,18 @@
       background: linear-gradient(165deg, #fff8ee 0%, #e8dcc8 100%);
       touch-action: manipulation;
     }
-    .card.star2 { box-shadow: 0 0 10px rgba(232, 184, 74, 0.45); }
-    .card.attr-DARK { background: linear-gradient(165deg, #d8cce8, #5a3a78); border-color: #3a2060; color: #140820; }
-    .card.attr-LIGHT { background: linear-gradient(165deg, #fffef5, #e0c860); border-color: #a89030; color: #2a2410; }
-    .card.attr-EARTH { background: linear-gradient(165deg, #f0e0c8, #8a6840); border-color: #5a4020; color: #1e1408; }
-    .card.attr-WATER { background: linear-gradient(165deg, #e0f0ff, #3070b0); border-color: #184878; color: #081828; }
-    .card.attr-FIRE { background: linear-gradient(165deg, #ffe8d8, #b03828); border-color: #801818; color: #200808; }
-    .card.attr-WIND { background: linear-gradient(165deg, #e8f8e0, #408838); border-color: #204818; color: #0c1c08; }
-    .card.attr-DIVINE { background: linear-gradient(165deg, #fff6d0, #c89820); border-color: #806010; color: #201808; }
+    .card.star2, .card.star3 { box-shadow: 0 0 10px rgba(232, 184, 74, 0.45); }
+    /* Cost-colored borders: gray / green / blue / purple / gold */
+    .card.cost-1 { border-color: #9aa3ad; background: linear-gradient(165deg, #2a3340, #141a22); color: #e8eef5; }
+    .card.cost-2 { border-color: #3ecf6a; background: linear-gradient(165deg, #163528, #0c1a14); color: #e8f8ee; }
+    .card.cost-3 { border-color: #3a8aef; background: linear-gradient(165deg, #142848, #0a1528); color: #e8f0ff; }
+    .card.cost-4 { border-color: #a64dff; background: linear-gradient(165deg, #2a1848, #140a28); color: #f3e8ff; }
+    .card.cost-5 { border-color: #f0c040; background: linear-gradient(165deg, #3a3010, #1e1808); color: #fff8e0; }
+    .card.cost-1 .cost-badge { background: #9aa3ad; color: #101418; }
+    .card.cost-2 .cost-badge { background: #3ecf6a; color: #062010; }
+    .card.cost-3 .cost-badge { background: #3a8aef; color: #061428; }
+    .card.cost-4 .cost-badge { background: #a64dff; color: #140820; }
+    .card.cost-5 .cost-badge { background: #f0c040; color: #1a1408; }
     .card .art-wrap {
       flex: 1 1 auto;
       min-height: 42px;
@@ -818,8 +822,8 @@
       font-size: 0.55rem; font-weight: 800;
       background: rgba(0,0,0,0.1); border-radius: 3px; padding: 1px 2px; margin-top: auto;
     }
-    .card .atk { color: #8a1010; }
-    .card .def { color: #103868; }
+    .card .atk { color: #ff8a8a; }
+    .card .def { color: #8ab8ff; }
     .card .type-ico { font-size: 0.55rem; opacity: 0.85; }
     .card .cost-badge {
       position: absolute; top: 1px; right: 1px; background: var(--gold); color: #1a1408;
@@ -1343,6 +1347,239 @@
       font-size: 0.95rem;
       cursor: pointer;
     }
+
+    /* —— Monster / game guide —— */
+    .guide {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 70;
+      width: 100%;
+      max-width: 480px;
+      margin: 0 auto;
+      height: 100%;
+      height: 100dvh;
+      background: linear-gradient(165deg, #0e1a2c 0%, #152848 45%, #0a1420 100%);
+      flex-direction: column;
+      overflow: hidden;
+      padding:
+        calc(6px + var(--safe-t))
+        calc(10px + var(--safe-r))
+        calc(6px + var(--safe-b))
+        calc(10px + var(--safe-l));
+    }
+    .guide.open { display: flex; }
+    .guide-top {
+      flex: 0 0 auto;
+      display: grid;
+      grid-template-columns: 48px 1fr auto;
+      align-items: center;
+      gap: 8px;
+      min-height: 48px;
+    }
+    .guide-top h2 {
+      margin: 0;
+      text-align: center;
+      font-family: "Bungee", cursive;
+      font-size: 1rem;
+      color: #ffe566;
+      text-shadow: 0 2px 0 #6a4a10;
+    }
+    .guide-close, .guide-buy, .guide-arrow {
+      min-height: 44px;
+      min-width: 44px;
+      border-radius: 14px;
+      border: 3px solid #fff;
+      background: linear-gradient(180deg, #4a8ad4, #2a5a9a);
+      color: #fff;
+      font-weight: 800;
+      font-family: inherit;
+      font-size: 1.1rem;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+    .guide-buy {
+      padding: 0 12px;
+      font-size: 0.85rem;
+      background: linear-gradient(180deg, #ffe566, #e0a020);
+      color: #3a2800;
+      border-color: #fff8d0;
+    }
+    .guide-body {
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+      margin: 6px 0;
+      border-radius: 16px;
+      border: 3px solid rgba(255,255,255,0.2);
+      background: rgba(0,0,0,0.28);
+      padding: 12px;
+    }
+    .guide-flip {
+      flex: 0 0 auto;
+      display: none;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+    .guide-flip.show { display: flex; }
+    .guide-arrow { flex: 1; font-size: 1.6rem; line-height: 1; }
+    .guide-tabs {
+      flex: 0 0 auto;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 4px;
+      padding-top: 4px;
+    }
+    .guide-tab {
+      min-height: 48px;
+      border-radius: 12px;
+      border: 2px solid #5a8ab8;
+      background: #12283c;
+      color: #c8dcec;
+      font-family: inherit;
+      font-weight: 800;
+      font-size: 0.62rem;
+      line-height: 1.15;
+      cursor: pointer;
+      touch-action: manipulation;
+      padding: 4px 2px;
+    }
+    .guide-tab.active {
+      border-color: #f0d060;
+      background: linear-gradient(180deg, #f0c040, #c99220);
+      color: #2a1c00;
+    }
+    .g-hero {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+    .g-art {
+      width: 112px;
+      flex: 0 0 auto;
+      aspect-ratio: 3/4;
+      border-radius: 12px;
+      border: 3px solid #f0d060;
+      overflow: hidden;
+      background: #0a1524;
+      display: grid;
+      place-items: center;
+    }
+    .g-art img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .g-art .emoji { font-size: 2.4rem; }
+    .g-meta { flex: 1; min-width: 0; }
+    .g-name {
+      font-family: "Bungee", cursive;
+      font-size: 0.95rem;
+      color: #ffe566;
+      line-height: 1.15;
+      margin: 0 0 6px;
+    }
+    .g-cost {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      font-weight: 800;
+      margin-right: 6px;
+      color: #101418;
+    }
+    .g-cost.c1 { background: #9aa3ad; }
+    .g-cost.c2 { background: #3ecf6a; }
+    .g-cost.c3 { background: #3a8aef; color: #fff; }
+    .g-cost.c4 { background: #a64dff; color: #fff; }
+    .g-cost.c5 { background: #f0c040; }
+    .g-stars { color: #ffe566; font-weight: 800; font-size: 0.95rem; }
+    .g-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .g-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 2px solid #5a8ab8;
+      background: #1a3348;
+      font-size: 0.72rem;
+      font-weight: 800;
+      color: #e8f4ff;
+    }
+    .g-pill.role { border-color: #e85a6b; color: #ffc0c8; }
+    .g-pill.range { border-color: #3ec7c2; color: #a8fff8; }
+    .g-section { margin-top: 14px; }
+    .g-section h3 {
+      margin: 0 0 8px;
+      font-size: 0.72rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #8ab4d4;
+    }
+    .g-fusion {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr auto 1fr;
+      gap: 4px;
+      align-items: stretch;
+    }
+    .g-fuse-card {
+      border-radius: 12px;
+      border: 2px solid #5a8ab8;
+      background: #12283c;
+      padding: 6px;
+      text-align: center;
+    }
+    .g-fuse-card.active { border-color: #f0d060; box-shadow: 0 0 10px rgba(240,200,60,0.35); }
+    .g-fuse-card img {
+      width: 100%;
+      aspect-ratio: 1;
+      object-fit: cover;
+      border-radius: 8px;
+      display: block;
+      background: #0a1524;
+    }
+    .g-fuse-card .fs { color: #ffe566; font-weight: 800; font-size: 0.75rem; margin-top: 4px; }
+    .g-fuse-card .fh { font-size: 0.62rem; font-weight: 700; color: #a8c8e8; }
+    .g-fuse-arrow { align-self: center; color: #ffe566; font-weight: 800; font-size: 1.1rem; }
+    .g-ability {
+      border-radius: 12px;
+      border: 2px solid #7a5ab8;
+      background: linear-gradient(180deg, #2a1848, #141028);
+      padding: 10px;
+    }
+    .g-ability .an { font-weight: 800; color: #e0c0ff; }
+    .g-ability .am { float: right; font-size: 0.72rem; color: #8ab8ff; font-weight: 800; }
+    .g-ability .ad { margin: 6px 0 0; font-size: 0.8rem; color: #d0d8e8; line-height: 1.35; clear: both; }
+    .g-raw {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .g-raw div {
+      flex: 1;
+      border-radius: 12px;
+      border: 2px solid #5a8ab8;
+      background: #12283c;
+      padding: 8px;
+      text-align: center;
+      font-weight: 800;
+    }
+    .g-raw .atk { color: #ff8a8a; }
+    .g-raw .def { color: #8ab8ff; }
+    .g-raw small { display: block; font-size: 0.65rem; color: #8ab4d4; font-weight: 700; }
+    .g-list { display: grid; gap: 8px; }
+    .g-list-card {
+      border-radius: 12px;
+      border: 2px solid #5a8ab8;
+      background: #12283c;
+      padding: 10px;
+    }
+    .g-list-card h4 { margin: 0 0 4px; color: #ffe566; font-size: 0.95rem; }
+    .g-list-card p { margin: 0; font-size: 0.78rem; color: #c8d9e6; line-height: 1.35; }
+    .g-list-card ul { margin: 6px 0 0; padding-left: 1.1em; font-size: 0.78rem; color: #c8d9e6; }
+    .g-basics ol { margin: 0; padding-left: 1.2em; font-size: 0.85rem; line-height: 1.4; color: #d8e4f0; }
+    .g-basics li { margin-bottom: 8px; }
 
     .menu-backdrop {
       position: fixed; inset: 0; z-index: 60;
@@ -1966,7 +2203,8 @@
         <li>Win a duel: +1 Star Chip. Lose: −1. Hit 0 chips or 0 LP and the run ends.</li>
         <li>Reach <strong>10 Star Chips</strong> to unlock Pegasus's Castle.</li>
         <li>Between rounds, tap the glowing island spot. Each area boosts matching Types by +30% ATK.</li>
-        <li>Buy, fuse (3→★★), place on hexes, then <strong>FIGHT</strong> for a DUEL!</li>
+        <li>Buy, fuse (3→★★→★★★), place on hexes, then <strong>FIGHT</strong> for a DUEL!</li>
+        <li>Cost follows ATK+DEF. HP = DEF×1.5, damage = ATK÷4. Tap any monster for the Guide.</li>
         <li>Board size = your level (1–9). Lock the shop to keep offers between rounds.</li>
         <li>Tournament path: Weevil → Rex → Mako → Mai → Keith → Bonz → Panik → Castle (Kaiba, Yugi, Pegasus).</li>
         <li>Tap a token for stats. Drag to place. Items draft after rounds 2, 5, 9, 13.</li>
@@ -2007,17 +2245,24 @@
     </div>
   </div>
 
-  <div class="overlay" id="cardViewOverlay">
-    <div class="modal card-view-modal">
-      <div id="cardViewArt"></div>
-      <div class="cv-name" id="cardViewName"></div>
-      <div class="cv-sub" id="cardViewSub"></div>
-      <div class="cv-stats" id="cardViewStats"></div>
-      <div class="card-view-actions">
-        <button type="button" class="btn btn-primary btn-wide" id="btnCardViewBuy" style="display:none">Buy</button>
-        <button type="button" class="btn btn-ghost btn-wide" id="btnCardViewClose">Close</button>
-      </div>
+  <div class="guide" id="guideOverlay" aria-modal="true" role="dialog">
+    <header class="guide-top">
+      <button type="button" class="guide-close" id="btnGuideClose" aria-label="Close">✕</button>
+      <h2 id="guideTitle">Guide</h2>
+      <button type="button" class="guide-buy" id="btnGuideBuy" style="display:none">Buy</button>
+    </header>
+    <div class="guide-body" id="guideBody"></div>
+    <div class="guide-flip" id="guideFlip">
+      <button type="button" class="guide-arrow" id="btnGuidePrev" aria-label="Previous">‹</button>
+      <button type="button" class="guide-arrow" id="btnGuideNext" aria-label="Next">›</button>
     </div>
+    <nav class="guide-tabs" aria-label="Guide sections">
+      <button type="button" class="guide-tab active" data-tab="monsters">Monsters</button>
+      <button type="button" class="guide-tab" data-tab="types">Types</button>
+      <button type="button" class="guide-tab" data-tab="items">Items</button>
+      <button type="button" class="guide-tab" data-tab="basics">Basics</button>
+      <button type="button" class="guide-tab" data-tab="duelists">Duelists</button>
+    </nav>
   </div>
 
   <div class="overlay" id="endOverlay">
@@ -2077,7 +2322,7 @@
 (function () {
   "use strict";
 
-  const CACHE_KEY = "duelTacticsClassicV2";
+  const CACHE_KEY = "duelTacticsClassicV3";
   const CACHE_MS = 7 * 24 * 60 * 60 * 1000;
   const API_SETS = ["Legend of Blue Eyes White Dragon", "Metal Raiders"];
   const HEX_ROWS = 4;
@@ -2225,22 +2470,35 @@
     { id: "toon_dm", name: "Toon Dark Magician", type: "Toon", attribute: "DARK", level: 7, atk: 2500, def: 2100 },
     { id: "toon_beud", name: "Toon Blue-Eyes", type: "Toon", attribute: "LIGHT", level: 8, atk: 3000, def: 2500 },
     { id: "toon_cannon", name: "Toon Cannon Soldier", type: "Toon", attribute: "DARK", level: 4, atk: 1400, def: 1300 },
-  ].map((c) => Object.assign({}, c, { cost: costFromLevel(c.level) }));
+  ].map((c) => enrichCardBase(c));
 
   /**
-   * Shop odds by player level for monster Level buckets:
-   * [Lv1–2, Lv3–4, Lv5–6, Lv7–8+]
+   * Shop odds by player level for cost buckets (TFT-style):
+   * [1-cost, 2-cost, 3-cost, 4-cost, 5-cost]
+   * 4- and 5-cost stay rare until level 7+.
    */
   const SHOP_ODDS = {
-    1: [75, 25, 0, 0],
-    2: [65, 30, 5, 0],
-    3: [50, 35, 15, 0],
-    4: [40, 35, 20, 5],
-    5: [30, 35, 25, 10],
-    6: [24, 30, 30, 16],
-    7: [18, 25, 32, 25],
-    8: [14, 20, 33, 33],
-    9: [10, 18, 32, 40],
+    1: [100, 0, 0, 0, 0],
+    2: [70, 30, 0, 0, 0],
+    3: [55, 35, 10, 0, 0],
+    4: [40, 40, 18, 2, 0],
+    5: [30, 35, 28, 7, 0],
+    6: [24, 32, 30, 13, 1],
+    7: [18, 28, 32, 18, 4],
+    8: [14, 22, 32, 24, 8],
+    9: [10, 18, 28, 30, 14],
+  };
+
+  const ABILITIES = {
+    Dragon: { name: "Fire Breath", mana: 100, desc: "Breathe fire: deal 2× ATK split among the 3 closest foes." },
+    Spellcaster: { name: "Arc Stun", mana: 100, desc: "Blast the target for 1.5× ATK and stun them for 1s." },
+    Warrior: { name: "Double Strike", mana: 100, desc: "Strike twice for ATK÷4 damage each hit." },
+    Fiend: { name: "Life Drain", mana: 100, desc: "Deal ATK÷4 and heal for 50% of damage dealt." },
+    Beast: { name: "Bloodrush", mana: 100, desc: "Gain haste for 3s and strike for ATK÷4." },
+    "Winged Beast": { name: "Bloodrush", mana: 100, desc: "Gain haste for 3s and strike for ATK÷4." },
+    Machine: { name: "Hard Shield", mana: 100, desc: "Gain a 30% max-HP shield, then strike for ATK÷4." },
+    Zombie: { name: "Grave Bolt", mana: 100, desc: "Unleash a 2× ATK nuke (Zombies can also revive once)." },
+    _other: { name: "Power Strike", mana: 100, desc: "Unleash a 2× ATK nuke on the target." },
   };
 
   const TRAIT_INFO = {
@@ -2308,13 +2566,66 @@
     Toon: { emoji: "🎨" },
   };
 
-  function costFromLevel(level) {
-    const lv = Number(level) || 1;
-    if (lv <= 2) return 1;
-    if (lv <= 4) return 2;
-    if (lv <= 6) return 3;
-    if (lv === 7) return 4;
+  /** Cost from ATK+DEF total (Level ignored). */
+  function costFromStats(atk, def) {
+    const sum = (Number(atk) || 0) + (Number(def) || 0);
+    if (sum < 2000) return 1;
+    if (sum < 3000) return 2;
+    if (sum < 4000) return 3;
+    if (sum < 5000) return 4;
     return 5;
+  }
+
+  function starMult(stars) {
+    const s = Number(stars) || 1;
+    if (s >= 3) return 3.2;
+    if (s === 2) return 1.8;
+    return 1;
+  }
+
+  function starsLabel(stars) {
+    const s = Math.max(1, Math.min(3, Number(stars) || 1));
+    return "★".repeat(s);
+  }
+
+  /** DEF much higher → Tank; ATK much higher → Attacker; else Fighter. */
+  function roleFor(card) {
+    const atk = Number(card && card.atk) || 0;
+    const def = Number(card && card.def) || 0;
+    if (def >= atk * 1.35 || (def > atk && def - atk >= 400)) return "Tank";
+    if (atk >= def * 1.35 || (atk > def && atk - def >= 400)) return "Attacker";
+    return "Fighter";
+  }
+
+  function rangeFor(card) {
+    const role = roleFor(card);
+    if (role === "Attacker") {
+      const t = card && card.type;
+      if (t === "Spellcaster" || t === "Thunder" || t === "Machine") return 2;
+    }
+    return 1;
+  }
+
+  function abilityFor(card) {
+    const t = (card && card.type) || "";
+    return ABILITIES[t] || ABILITIES._other;
+  }
+
+  function enrichCardBase(card) {
+    if (!card) return card;
+    const next = Object.assign({}, card);
+    next.cost = costFromStats(next.atk, next.def);
+    next.role = roleFor(next);
+    next.range = rangeFor(next);
+    return next;
+  }
+
+  function battleHpFromDef(def, stars) {
+    return Math.round(Math.max(600, (Number(def) || 0) * 1.5) * starMult(stars));
+  }
+
+  function battleDmgFromAtk(atk, stars) {
+    return Math.max(1, Math.round(((Number(atk) || 0) * starMult(stars)) / 4));
   }
 
   const META_KEY = "duelTacticsMetaV1";
@@ -2445,12 +2756,14 @@
     btnLockShop: $("btnLockShop"),
     tokenStatsOverlay: $("tokenStatsOverlay"),
     tokenStatsBody: $("tokenStatsBody"),
-    cardViewOverlay: $("cardViewOverlay"),
-    cardViewArt: $("cardViewArt"),
-    cardViewName: $("cardViewName"),
-    cardViewSub: $("cardViewSub"),
-    cardViewStats: $("cardViewStats"),
-    btnCardViewBuy: $("btnCardViewBuy"),
+    guideOverlay: $("guideOverlay"),
+    guideBody: $("guideBody"),
+    guideTitle: $("guideTitle"),
+    guideFlip: $("guideFlip"),
+    btnGuideBuy: $("btnGuideBuy"),
+    btnGuideClose: $("btnGuideClose"),
+    btnGuidePrev: $("btnGuidePrev"),
+    btnGuideNext: $("btnGuideNext"),
   };
 
   function raceMeta(race) {
@@ -2482,12 +2795,8 @@
     return SHOP_ODDS[lv] || SHOP_ODDS[1];
   }
 
-  function bucketForMonsterLevel(level) {
-    const lv = Number(level) || 1;
-    if (lv <= 2) return 0;
-    if (lv <= 4) return 1;
-    if (lv <= 6) return 2;
-    return 3;
+  function bucketForCost(cost) {
+    return Math.max(0, Math.min(4, (Number(cost) || 1) - 1));
   }
 
   /** Unique monsters per Type (copies of same baseId don't stack). */
@@ -2735,18 +3044,20 @@
 
   function makeInstance(base, stars) {
     stars = stars || 1;
-    const mult = stars === 2 ? 1.6 : 1;
-    const atk = Math.round(base.atk * mult);
-    const def = Math.round(base.def * mult);
-    const maxHp = Math.max(500, def);
+    const enriched = enrichCardBase(base);
+    const atk = Number(enriched.atk) || 0;
+    const def = Number(enriched.def) || 0;
+    const maxHp = battleHpFromDef(def, stars);
     return {
       uid: uid(),
-      baseId: base.id,
-      name: base.name,
-      type: base.type,
-      attribute: base.attribute || "DARK",
-      level: base.level,
-      cost: base.cost != null ? base.cost : costFromLevel(base.level),
+      baseId: enriched.id,
+      name: enriched.name,
+      type: enriched.type,
+      attribute: enriched.attribute || "DARK",
+      level: enriched.level,
+      cost: enriched.cost,
+      role: enriched.role,
+      range: enriched.range,
       stars,
       atk,
       def,
@@ -2756,7 +3067,7 @@
       shield: 0,
       stunUntil: 0,
       hasteUntil: 0,
-      canRevive: String(base.type) === "Zombie",
+      canRevive: String(enriched.type) === "Zombie",
       revived: false,
       dead: false,
       side: null,
@@ -2765,9 +3076,9 @@
       atkCd: 0,
       moveCd: 0,
       items: [],
-      imgSmall: base.imgSmall || null,
-      imgCropped: base.imgCropped || null,
-      apiId: base.apiId || null,
+      imgSmall: enriched.imgSmall || null,
+      imgCropped: enriched.imgCropped || null,
+      apiId: enriched.apiId || null,
     };
   }
 
@@ -2786,12 +3097,11 @@
       r -= odds[i];
       if (r <= 0) { bucket = i; break; }
     }
-    let pool = state.roster.filter((c) => bucketForMonsterLevel(c.level) === bucket);
+    let pool = state.roster.filter((c) => bucketForCost(c.cost) === bucket);
     if (!pool.length) {
-      // fallback: nearest non-empty bucket
-      for (let d = 1; d <= 3 && !pool.length; d++) {
+      for (let d = 1; d <= 4 && !pool.length; d++) {
         pool = state.roster.filter((c) => {
-          const b = bucketForMonsterLevel(c.level);
+          const b = bucketForCost(c.cost);
           return b === bucket - d || b === bucket + d;
         });
       }
@@ -2839,7 +3149,14 @@
   }
 
   function tryFuse(baseId) {
-    const locs = findCopies(baseId, 1);
+    // Prefer 2★→3★ first, then 1★→2★
+    if (fuseCopies(baseId, 2, 3)) return true;
+    if (fuseCopies(baseId, 1, 2)) return true;
+    return false;
+  }
+
+  function fuseCopies(baseId, fromStars, toStars) {
+    const locs = findCopies(baseId, fromStars);
     if (locs.length < 3) return false;
     const take = locs.slice(0, 3);
     const base = state.roster.find((r) => r.id === baseId);
@@ -2850,10 +3167,9 @@
       if (u && u.items) pooledItems.push.apply(pooledItems, u.items);
       removeLoc(l);
     });
-    const fused = makeInstance(base, 2);
+    const fused = makeInstance(base, toStars);
     fused.items = pooledItems.slice(0, MAX_ITEMS);
     pooledItems.slice(MAX_ITEMS).forEach((it) => state.itemBench.push(it));
-    // Prefer first emptied hex among take, else bench
     let placed = false;
     for (const l of take) {
       if (l.from === "hex" && !getCell(l.row, l.col)) {
@@ -2876,25 +3192,30 @@
       const bi = firstEmptyBench();
       if (bi !== null) state.bench[bi] = fused;
     }
-    toast(`Fusion! ${fused.name} ★★`);
-    logLine(`<span class="sys">⚡ ${escapeHtml(fused.name)} fused into ★★!</span>`);
+    toast("Fusion! " + fused.name + " " + starsLabel(toStars));
+    logLine('<span class="sys">⚡ ' + escapeHtml(fused.name) + " fused into " + starsLabel(toStars) + "!</span>");
     return true;
   }
 
+  /** Scaled ATK used for abilities / trait math (card ATK × star mult × bonuses). */
   function effectiveAtk(unit) {
     if (!unit) return 0;
     const b = traitBonusesFor(unit);
-    let base = unit.atk + itemAtkBonus(unit);
+    let base = (unit.atk + itemAtkBonus(unit)) * starMult(unit.stars);
     if (hasMegamorph(unit) && state.lp < state.enemyLp) base *= 2;
     const areaPct = areaAtkBonus(unit);
     return Math.round(base * (1 + b.atkPct + areaPct));
   }
 
   function effectiveMaxHp(unit) {
-    if (!unit) return 500;
+    if (!unit) return 600;
     const b = traitBonusesFor(unit);
     const def = Math.max(0, unit.def + itemDefBonus(unit));
-    return Math.max(500, Math.round(Math.max(500, def) * (1 + b.hpPct)));
+    return Math.max(600, Math.round(Math.max(600, def * 1.5) * starMult(unit.stars) * (1 + b.hpPct)));
+  }
+
+  function attackDamage(unit) {
+    return Math.max(1, Math.round(effectiveAtk(unit) / 4));
   }
 
   function escapeHtml(s) {
@@ -3025,7 +3346,10 @@
     const meta = raceMeta(unit.type);
     const attr = String(unit.attribute || "DARK").toUpperCase();
     const tok = document.createElement("div");
-    tok.className = "token attr-" + attr + (unit.stars === 2 ? " star2" : "") + (asHolo ? " holo" : "");
+    tok.className = "token attr-" + attr +
+      (unit.stars === 2 ? " star2" : "") +
+      (unit.stars >= 3 ? " star3" : "") +
+      (asHolo ? " holo" : "");
     tok.dataset.uid = String(unit.uid);
     const hpPct = Math.max(0, Math.min(100, ((unit.hp || unit.maxHp) / (unit.maxHp || 1)) * 100));
     const manaPct = Math.max(0, Math.min(100, (unit.mana || 0)));
@@ -3042,7 +3366,7 @@
         (icons ? '<div class="item-icons">' + icons + "</div>" : "") +
         '<div class="holo-shadow"></div>' +
         '<div class="holo-billboard">' + face +
-          '<div class="stars">' + (unit.stars === 2 ? "★★" : "★") + "</div>" +
+          '<div class="stars">' + starsLabel(unit.stars) + "</div>" +
         "</div>" +
         '<div class="bars">' +
           '<div class="hp-bar"><div class="hp-fill" style="width:' + hpPct + '%"></div></div>' +
@@ -3055,7 +3379,7 @@
         (icons ? '<div class="item-icons">' + icons + "</div>" : "") +
         '<div class="ring"></div>' +
         '<div class="emoji">' + meta.emoji + "</div>" +
-        '<div class="stars">' + (unit.stars === 2 ? "★★" : "★") + "</div>" +
+        '<div class="stars">' + starsLabel(unit.stars) + "</div>" +
         '<div class="bars">' +
           '<div class="hp-bar"><div class="hp-fill" style="width:' + hpPct + '%"></div></div>' +
           '<div class="mana-bar"><div class="mana-fill" style="width:' + manaPct + '%"></div></div>' +
@@ -3090,75 +3414,212 @@
     return wrap;
   }
 
+  function guideRosterSorted() {
+    return state.roster.slice().sort((a, b) => a.name.localeCompare(b.name));
+  }
+
   function openCardView(card, opts) {
-    opts = opts || {};
-    if (!card || !el.cardViewOverlay) return;
-    state.cardViewShopIndex = opts.shopIndex != null ? opts.shopIndex : null;
-    const meta = raceMeta(card.type);
-    const attr = String(card.attribute || "DARK").toUpperCase();
-    const src = cardArtSrc(card, "small");
-    if (src) {
-      el.cardViewArt.innerHTML = '<img src="' + src + '" alt="" />';
-      bindArtFallback(el.cardViewArt.querySelector("img"), meta.emoji);
-    } else {
-      el.cardViewArt.innerHTML = '<div class="cv-emoji">' + meta.emoji + "</div>";
-    }
-    el.cardViewName.textContent = card.name + (card.stars === 2 ? " ★★" : "");
-    el.cardViewSub.textContent = card.type + " · " + attr + " · Cost " + card.cost + "🪙";
-    el.cardViewStats.innerHTML =
-      '<span class="atk">ATK ' + card.atk + '</span><span class="def">DEF ' + card.def + "</span>";
-    if (el.btnCardViewBuy) {
-      const canBuy = state.cardViewShopIndex != null && state.phase === "shop";
-      el.btnCardViewBuy.style.display = canBuy ? "" : "none";
-      el.btnCardViewBuy.textContent = "Buy · " + card.cost + "🪙";
-    }
-    el.cardViewOverlay.classList.add("open");
+    openGuide("monsters", card, opts);
   }
 
   function closeCardView() {
-    if (el.cardViewOverlay) el.cardViewOverlay.classList.remove("open");
-    state.cardViewShopIndex = null;
+    closeGuide();
   }
 
   function showTokenStats(unit) {
-    if (!unit || !el.tokenStatsBody) return;
-    const meta = raceMeta(unit.type);
-    const attr = String(unit.attribute || "DARK").toUpperCase();
-    const items = unitItems(unit).map((it) => {
-      const d = itemDef(it.defId);
-      return d.emoji + " " + d.name;
+    if (!unit) return;
+    openGuide("monsters", unit, { stars: unit.stars });
+  }
+
+  function openGuide(tab, card, opts) {
+    opts = opts || {};
+    state.guideTab = tab || "monsters";
+    state.cardViewShopIndex = opts.shopIndex != null ? opts.shopIndex : null;
+    state.guideStars = opts.stars || (card && card.stars) || 1;
+    if (card) {
+      const list = guideRosterSorted();
+      const id = card.baseId || card.id;
+      let idx = list.findIndex((c) => c.id === id);
+      if (idx < 0) idx = list.findIndex((c) => c.name === card.name);
+      state.guideIndex = idx >= 0 ? idx : 0;
+      if (idx < 0 && card.name) {
+        // Ad-hoc card (e.g. toon pool) — stash as temporary view card
+        state.guideTempCard = enrichCardBase(card);
+      } else {
+        state.guideTempCard = null;
+      }
+    } else if (state.guideIndex == null) {
+      state.guideIndex = 0;
+    }
+    if (el.guideOverlay) el.guideOverlay.classList.add("open");
+    renderGuide();
+  }
+
+  function closeGuide() {
+    if (el.guideOverlay) el.guideOverlay.classList.remove("open");
+    state.cardViewShopIndex = null;
+    state.guideTempCard = null;
+  }
+
+  function currentGuideCard() {
+    if (state.guideTempCard) return state.guideTempCard;
+    const list = guideRosterSorted();
+    if (!list.length) return null;
+    const i = Math.max(0, Math.min(list.length - 1, state.guideIndex | 0));
+    return list[i];
+  }
+
+  function renderGuide() {
+    if (!el.guideOverlay || !el.guideBody) return;
+    const tab = state.guideTab || "monsters";
+    el.guideOverlay.querySelectorAll(".guide-tab").forEach((btn) => {
+      btn.classList.toggle("active", btn.getAttribute("data-tab") === tab);
     });
-    const src = cardArtSrc(unit, "small");
+    if (el.guideFlip) el.guideFlip.classList.toggle("show", tab === "monsters" && !state.guideTempCard && state.roster.length > 1);
+    if (el.guideTitle) {
+      el.guideTitle.textContent = ({
+        monsters: "Monsters",
+        types: "Types",
+        items: "Items",
+        basics: "Basics",
+        duelists: "Duelists",
+      })[tab] || "Guide";
+    }
+    const canBuy = tab === "monsters" && state.cardViewShopIndex != null && state.phase === "shop";
+    if (el.btnGuideBuy) {
+      el.btnGuideBuy.style.display = canBuy ? "" : "none";
+      const card = currentGuideCard();
+      if (card) el.btnGuideBuy.textContent = "Buy · " + card.cost + "🪙";
+    }
+    if (tab === "monsters") el.guideBody.innerHTML = renderGuideMonsterHTML();
+    else if (tab === "types") el.guideBody.innerHTML = renderGuideTypesHTML();
+    else if (tab === "items") el.guideBody.innerHTML = renderGuideItemsHTML();
+    else if (tab === "basics") el.guideBody.innerHTML = renderGuideBasicsHTML();
+    else if (tab === "duelists") el.guideBody.innerHTML = renderGuideDuelistsHTML();
+    const img = el.guideBody.querySelector(".g-art img");
+    if (img) {
+      const card = currentGuideCard();
+      bindArtFallback(img, raceMeta(card && card.type).emoji);
+    }
+    el.guideBody.querySelectorAll(".g-fuse-card img").forEach((im) => {
+      const card = currentGuideCard();
+      bindArtFallback(im, raceMeta(card && card.type).emoji);
+    });
+  }
+
+  function renderGuideMonsterHTML() {
+    const card = currentGuideCard();
+    if (!card) {
+      return '<div class="binder-empty">No monsters loaded yet.</div>';
+    }
+    const meta = raceMeta(card.type);
+    const attr = String(card.attribute || "DARK").toUpperCase();
+    const cost = card.cost != null ? card.cost : costFromStats(card.atk, card.def);
+    const role = card.role || roleFor(card);
+    const range = card.range != null ? card.range : rangeFor(card);
+    const ability = abilityFor(card);
+    const stars = state.guideStars || 1;
+    const src = cardArtSrc(card, "cropped") || cardArtSrc(card, "small");
     const art = src
-      ? '<img class="ts-art" src="' + src + '" alt="" />'
-      : '<div class="ts-head"><span class="ts-emoji">' + meta.emoji + "</span></div>";
-    el.tokenStatsBody.innerHTML =
-      art +
-      "<div><strong>" + escapeHtml(unit.name) + "</strong>" +
-      '<div class="ts-sub">' + escapeHtml(unit.type) + " · " + attr +
-      " · " + (unit.stars === 2 ? "★★" : "★") + "</div></div>" +
-      '<div class="ts-stats">' +
-      "<div>ATK <b>" + unit.atk + "</b></div>" +
-      "<div>DEF <b>" + unit.def + "</b></div>" +
-      "<div>HP <b>" + Math.round(unit.hp || unit.maxHp || 0) + "/" + Math.round(unit.maxHp || 0) + "</b></div>" +
-      "<div>Cost <b>" + (unit.cost || 0) + "🪙</b></div>" +
+      ? '<img src="' + src + '" alt="" />'
+      : '<span class="emoji">' + meta.emoji + "</span>";
+    const fuse = [1, 2, 3].map((s) => {
+      const hp = battleHpFromDef(card.def, s);
+      const dmg = battleDmgFromAtk(card.atk, s);
+      const active = s === Math.min(3, Math.max(1, stars)) ? " active" : "";
+      const fArt = src
+        ? '<img src="' + src + '" alt="" />'
+        : '<div style="font-size:1.4rem;padding:12px 0">' + meta.emoji + "</div>";
+      return (
+        '<div class="g-fuse-card' + active + '">' + fArt +
+        '<div class="fs">' + starsLabel(s) + "</div>" +
+        '<div class="fh">HP ' + hp + "<br>DMG " + dmg + "</div></div>"
+      );
+    }).join('<div class="g-fuse-arrow">→</div>');
+    return (
+      '<div class="g-hero">' +
+        '<div class="g-art">' + art + "</div>" +
+        '<div class="g-meta">' +
+          '<p class="g-name">' + escapeHtml(card.name) + "</p>" +
+          '<span class="g-cost c' + cost + '">' + cost + "</span>" +
+          '<span class="g-stars">' + starsLabel(stars) + "</span>" +
+          '<div class="g-pills">' +
+            '<span class="g-pill">' + meta.emoji + " " + escapeHtml(card.type) + "</span>" +
+            '<span class="g-pill">' + escapeHtml(attr) + "</span>" +
+            '<span class="g-pill role">' + role + "</span>" +
+            '<span class="g-pill range">Range ' + range + "</span>" +
+          "</div>" +
+        "</div>" +
       "</div>" +
-      (items.length ? '<div class="ts-items">' + items.map(escapeHtml).join(" · ") + "</div>" : "");
-    const img = el.tokenStatsBody.querySelector("img.ts-art");
-    bindArtFallback(img, meta.emoji);
-    el.tokenStatsOverlay.classList.add("open");
+      '<div class="g-section"><h3>Fusion chain</h3><div class="g-fusion">' + fuse + "</div></div>" +
+      '<div class="g-section"><h3>Ability</h3><div class="g-ability">' +
+        '<span class="am">Mana ' + ability.mana + "</span>" +
+        '<div class="an">' + escapeHtml(ability.name) + "</div>" +
+        '<p class="ad">' + escapeHtml(ability.desc) + "</p>" +
+      "</div></div>" +
+      '<div class="g-raw">' +
+        '<div class="atk"><small>Card ATK</small>' + card.atk + "</div>" +
+        '<div class="def"><small>Card DEF</small>' + card.def + "</div>" +
+      "</div>"
+    );
+  }
+
+  function renderGuideTypesHTML() {
+    const keys = Object.keys(TRAIT_INFO).filter((k) => k !== "_other");
+    const rows = keys.map((t) => {
+      const info = TRAIT_INFO[t];
+      return (
+        '<div class="g-list-card"><h4>' + info.emoji + " " + escapeHtml(t) + "</h4>" +
+        "<ul>" + info.lines.map((l) => "<li>" + escapeHtml(l) + "</li>").join("") + "</ul></div>"
+      );
+    }).join("");
+    const other = TRAIT_INFO._other;
+    return '<div class="g-list">' + rows +
+      '<div class="g-list-card"><h4>' + other.emoji + " Other Types</h4><ul>" +
+      other.lines.map((l) => "<li>" + escapeHtml(l) + "</li>").join("") +
+      "</ul></div></div>";
+  }
+
+  function renderGuideItemsHTML() {
+    return '<div class="g-list">' + ITEM_DEFS.map((it) =>
+      '<div class="g-list-card"><h4>' + it.emoji + " " + escapeHtml(it.name) + "</h4>" +
+      "<p>" + escapeHtml(it.desc) + "</p></div>"
+    ).join("") + "</div>";
+  }
+
+  function renderGuideBasicsHTML() {
+    return (
+      '<div class="g-basics"><ol>' +
+      "<li>Cost = ATK+DEF tier: under 2000→1, 2000s→2, 3000s→3, 4000s→4, 5000+→5. Borders: gray / green / blue / purple / gold.</li>" +
+      "<li>Battle HP = DEF×1.5 (min 600). Attack damage = ATK÷4. ★★ ×1.8, ★★★ ×3.2 to HP and damage.</li>" +
+      "<li>Roles: high DEF = Tank (melee). High ATK = Attacker (melee, or range 2 for Spellcaster / Thunder / Machine). Else Fighter.</li>" +
+      "<li>Buy 3 copies to fuse ★★, then 3 ★★ into ★★★. Place on hexes, then FIGHT.</li>" +
+      "<li>Win duels for Star Chips. Reach 10 ★ to open Pegasus's Castle. 0 LP or 0 chips ends the run.</li>" +
+      "<li>Shop odds favor cheap units early; 4- and 5-cost monsters are rare until level 7+.</li>" +
+      "</ol></div>"
+    );
+  }
+
+  function renderGuideDuelistsHTML() {
+    return '<div class="g-list">' + LADDER.map((d, i) =>
+      '<div class="g-list-card"><h4>' + (i + 1) + ". " + escapeHtml(d.name) + "</h4>" +
+      "<p><strong>" + escapeHtml(d.theme) + "</strong> · " + escapeHtml((AREAS[d.area] && AREAS[d.area].name) || d.area) +
+      (d.boss ? " · Final boss" : "") + "</p>" +
+      "<p style='margin-top:4px;opacity:0.9'>\"" + escapeHtml(d.taunt || "") + "\"</p></div>"
+    ).join("") + "</div>";
   }
 
   function cardHTML(card) {
     const meta = raceMeta(card.type);
-    const attr = String(card.attribute || "DARK").toUpperCase();
+    const cost = card.cost != null ? card.cost : costFromStats(card.atk, card.def);
     const src = cardArtSrc(card, "small");
     const art = src
       ? '<div class="art-wrap"><img class="card-art" src="' + src + '" alt="" draggable="false" data-fallback-class="emoji" /></div>'
       : '<div class="art-wrap"><div class="emoji">' + meta.emoji + "</div></div>";
+    const starCls = card.stars === 2 ? " star2" : (card.stars >= 3 ? " star3" : "");
     return (
-      '<div class="card attr-' + attr + (card.stars === 2 ? " star2" : "") + '">' +
-      '<span class="cost-badge">' + card.cost + "</span>" +
+      '<div class="card cost-' + cost + starCls + '">' +
+      '<span class="cost-badge">' + cost + "</span>" +
       art +
       '<div class="name">' + escapeHtml(card.name) + "</div>" +
       '<div class="stats"><span class="atk">' + card.atk + '</span><span class="type-ico">' +
@@ -3285,13 +3746,15 @@
 
   function showOddsPopup() {
     const odds = shopOddsForLevel(state.level);
-    const labels = ["Level 1–2", "Level 3–4", "Level 5–6", "Level 7–8+"];
+    const labels = ["1-cost", "2-cost", "3-cost", "4-cost", "5-cost"];
+    const colors = ["#9aa3ad", "#3ecf6a", "#3a8aef", "#a64dff", "#f0c040"];
     $("oddsTitle").textContent = "Shop Odds · Lv " + state.level;
     $("oddsBody").innerHTML = labels.map((lab, i) =>
       "<div style='display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line);font-weight:700'>" +
-      "<span>" + lab + "</span><span style='color:var(--gold)'>" + odds[i] + "%</span></div>"
+      "<span style='color:" + colors[i] + "'>" + lab + "</span><span style='color:var(--gold)'>" +
+      (odds[i] || 0) + "%</span></div>"
     ).join("") +
-      "<p style='margin:12px 0 0;font-size:0.82rem;color:var(--muted)'>Higher player levels roll stronger monsters more often.</p>";
+      "<p style='margin:12px 0 0;font-size:0.82rem;color:var(--muted)'>Cost = ATK+DEF tier. 4- and 5-cost monsters are rare until level 7+.</p>";
     el.oddsOverlay.classList.add("open");
   }
 
@@ -4124,8 +4587,7 @@
 
   function basicAttack(unit, target) {
     startLunge(unit, target);
-    const dmg = Math.max(1, Math.round(effectiveAtk(unit) / 4));
-    dealDamage(unit, target, dmg);
+    dealDamage(unit, target, attackDamage(unit));
     const manaGain = (traitBonusesFor(unit).manaOnHit || 10) + itemManaBonus(unit);
     gainMana(unit, manaGain);
     if (!unit.dead && unit.mana >= 100) {
@@ -4246,7 +4708,8 @@
           u.atkCd -= dt;
           u.moveCd -= dt;
 
-          if (dist <= 1) {
+          const range = u.range || 1;
+          if (dist <= range) {
             if (u.atkCd <= 0) {
               if (u.mana >= 100) {
                 castAbilityFixed(u, target);
@@ -4630,7 +5093,9 @@
       level: raw.level,
       atk: raw.atk,
       def: raw.def,
-      cost: costFromLevel(raw.level),
+      cost: costFromStats(raw.atk, raw.def),
+      role: roleFor({ atk: raw.atk, def: raw.def, type: raw.race || "Warrior" }),
+      range: rangeFor({ atk: raw.atk, def: raw.def, type: raw.race || "Warrior" }),
       imgSmall,
       imgCropped,
     };
@@ -4662,13 +5127,15 @@
 
   async function loadClassicRoster() {
     const cached = readCache();
-    if (cached) return { cards: cached, fromCache: true };
+    if (cached) {
+      return { cards: cached.map(enrichCardBase), fromCache: true };
+    }
     const byId = new Map();
     for (const setName of API_SETS) {
       const rows = await fetchSet(setName);
       rows.forEach((raw) => {
         const card = normalizeApiCard(raw);
-        if (card && !byId.has(card.id)) byId.set(card.id, card);
+        if (card && !byId.has(card.id)) byId.set(card.id, enrichCardBase(card));
       });
     }
     const cards = Array.from(byId.values());
@@ -5053,17 +5520,42 @@
       if (e.target === el.tokenStatsOverlay) el.tokenStatsOverlay.classList.remove("open");
     });
   }
-  if ($("btnCardViewClose")) $("btnCardViewClose").addEventListener("click", closeCardView);
-  if (el.cardViewOverlay) {
-    el.cardViewOverlay.addEventListener("click", (e) => {
-      if (e.target === el.cardViewOverlay) closeCardView();
+  if (el.btnGuideClose) el.btnGuideClose.addEventListener("click", closeGuide);
+  if (el.btnGuideBuy) {
+    el.btnGuideBuy.addEventListener("click", () => {
+      const idx = state.cardViewShopIndex;
+      closeGuide();
+      if (idx != null) buyCard(idx);
     });
   }
-  if (el.btnCardViewBuy) {
-    el.btnCardViewBuy.addEventListener("click", () => {
-      const idx = state.cardViewShopIndex;
-      closeCardView();
-      if (idx != null) buyCard(idx);
+  if (el.btnGuidePrev) {
+    el.btnGuidePrev.addEventListener("click", () => {
+      const list = guideRosterSorted();
+      if (!list.length) return;
+      state.guideTempCard = null;
+      state.cardViewShopIndex = null;
+      state.guideStars = 1;
+      state.guideIndex = ((state.guideIndex | 0) - 1 + list.length) % list.length;
+      renderGuide();
+    });
+  }
+  if (el.btnGuideNext) {
+    el.btnGuideNext.addEventListener("click", () => {
+      const list = guideRosterSorted();
+      if (!list.length) return;
+      state.guideTempCard = null;
+      state.cardViewShopIndex = null;
+      state.guideStars = 1;
+      state.guideIndex = ((state.guideIndex | 0) + 1) % list.length;
+      renderGuide();
+    });
+  }
+  if (el.guideOverlay) {
+    el.guideOverlay.querySelectorAll(".guide-tab").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        state.guideTab = btn.getAttribute("data-tab") || "monsters";
+        renderGuide();
+      });
     });
   }
   $("btnResultsOk").addEventListener("click", dismissResults);
