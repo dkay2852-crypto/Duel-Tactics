@@ -22,7 +22,6 @@
       --mint: #5ecf8a;
       --fog: #c8d9e6;
       --muted: #7a93a8;
-      --card-face: #f4ebe0;
       --card-ink: #1a2430;
       --safe-b: env(safe-area-inset-bottom, 0px);
       --safe-t: env(safe-area-inset-top, 0px);
@@ -60,7 +59,9 @@
       padding: calc(10px + var(--safe-t)) 12px calc(16px + var(--safe-b));
       position: relative;
       z-index: 1;
+      display: none;
     }
+    .app.visible { display: block; }
 
     header.top {
       display: grid;
@@ -114,6 +115,19 @@
     .pill.lp .val { color: var(--rose); }
     .pill.gold .val { color: var(--gold); }
     .pill.round .val { color: var(--cyan); }
+
+    .notice {
+      display: none;
+      background: rgba(232, 184, 74, 0.12);
+      border: 1px solid rgba(232, 184, 74, 0.45);
+      color: var(--gold);
+      border-radius: 10px;
+      padding: 8px 12px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+    .notice.show { display: block; animation: fadeDown 0.35s ease both; }
 
     .btn {
       appearance: none;
@@ -173,8 +187,6 @@
       margin-bottom: 10px;
       animation: riseIn 0.45s ease both;
     }
-    section.block:nth-of-type(2) { animation-delay: 0.05s; }
-    section.block:nth-of-type(3) { animation-delay: 0.1s; }
 
     .block-head {
       display: flex;
@@ -201,8 +213,7 @@
     }
 
     .zone {
-      background:
-        linear-gradient(160deg, rgba(30, 60, 80, 0.5), rgba(12, 28, 40, 0.7));
+      background: linear-gradient(160deg, rgba(30, 60, 80, 0.5), rgba(12, 28, 40, 0.7));
       border: 1.5px dashed var(--line);
       border-radius: 10px;
       min-height: 108px;
@@ -234,7 +245,6 @@
     .card {
       width: 100%;
       border-radius: 9px;
-      background: linear-gradient(165deg, #fff8ee 0%, #e8dcc8 100%);
       color: var(--card-ink);
       border: 2px solid #8a7040;
       padding: 4px;
@@ -247,10 +257,9 @@
       animation: cardPop 0.28s ease both;
       box-shadow: 0 3px 8px rgba(0,0,0,0.35);
       min-height: 100px;
+      background: linear-gradient(165deg, #fff8ee 0%, #e8dcc8 100%);
     }
     .card.star2 {
-      border-color: #c9a227;
-      background: linear-gradient(165deg, #fff4d6 0%, #e8c878 55%, #d4a84a 100%);
       box-shadow: 0 0 12px rgba(232, 184, 74, 0.45), 0 3px 8px rgba(0,0,0,0.35);
     }
     .card.shop-card { min-height: 118px; }
@@ -258,6 +267,44 @@
       outline: 3px solid var(--cyan);
       outline-offset: 1px;
     }
+
+    /* Attribute face colors */
+    .card.attr-DARK {
+      background: linear-gradient(165deg, #d8cce8 0%, #9a7ab8 55%, #5a3a78 100%);
+      border-color: #3a2060;
+      color: #140820;
+    }
+    .card.attr-LIGHT {
+      background: linear-gradient(165deg, #fffef5 0%, #f5e8a8 50%, #e0c860 100%);
+      border-color: #a89030;
+      color: #2a2410;
+    }
+    .card.attr-EARTH {
+      background: linear-gradient(165deg, #f0e0c8 0%, #c4a070 55%, #8a6840 100%);
+      border-color: #5a4020;
+      color: #1e1408;
+    }
+    .card.attr-WATER {
+      background: linear-gradient(165deg, #e0f0ff 0%, #78b0e0 55%, #3070b0 100%);
+      border-color: #184878;
+      color: #081828;
+    }
+    .card.attr-FIRE {
+      background: linear-gradient(165deg, #ffe8d8 0%, #e87850 55%, #b03828 100%);
+      border-color: #801818;
+      color: #200808;
+    }
+    .card.attr-WIND {
+      background: linear-gradient(165deg, #e8f8e0 0%, #88c868 55%, #408838 100%);
+      border-color: #204818;
+      color: #0c1c08;
+    }
+    .card.attr-DIVINE {
+      background: linear-gradient(165deg, #fff6d0 0%, #e8c040 45%, #c89820 100%);
+      border-color: #806010;
+      color: #201808;
+    }
+
     .card .emoji {
       font-size: 1.35rem;
       text-align: center;
@@ -271,25 +318,18 @@
       line-height: 1.15;
       min-height: 1.7em;
     }
-    .card .meta {
-      display: flex;
-      justify-content: space-between;
-      font-size: 0.55rem;
-      font-weight: 700;
-      color: #5a4a30;
-    }
     .card .stats {
       display: flex;
       justify-content: space-between;
       font-size: 0.62rem;
       font-weight: 800;
-      background: rgba(0,0,0,0.08);
+      background: rgba(0,0,0,0.1);
       border-radius: 4px;
       padding: 2px 3px;
       margin-top: auto;
     }
-    .card .atk { color: #b83030; }
-    .card .def { color: #2050a0; }
+    .card .atk { color: #8a1010; }
+    .card .def { color: #103868; }
     .card .cost-badge {
       position: absolute;
       top: 2px;
@@ -306,7 +346,7 @@
       text-align: center;
       font-size: 0.48rem;
       letter-spacing: -0.5px;
-      color: #c99220;
+      color: #8a6810;
       line-height: 1;
     }
     .type-chip {
@@ -315,7 +355,14 @@
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.04em;
-      opacity: 0.85;
+      opacity: 0.9;
+    }
+    .attr-chip {
+      font-size: 0.48rem;
+      text-align: center;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      opacity: 0.75;
     }
 
     .shop-row {
@@ -401,6 +448,12 @@
       transition: opacity 0.25s ease;
     }
     .overlay.open { opacity: 1; pointer-events: auto; }
+    .overlay.start-screen {
+      align-items: center;
+      background:
+        radial-gradient(ellipse 100% 70% at 50% 20%, rgba(40, 80, 110, 0.55), transparent 60%),
+        rgba(4, 10, 16, 0.92);
+    }
     .modal {
       background: linear-gradient(180deg, #1a3347, #0f2030);
       border: 1px solid var(--line);
@@ -413,12 +466,34 @@
       transition: transform 0.28s ease;
       box-shadow: 0 -8px 40px rgba(0,0,0,0.5);
     }
+    .overlay.start-screen .modal {
+      border-radius: 20px;
+      transform: scale(0.96);
+      box-shadow: 0 16px 48px rgba(0,0,0,0.55);
+    }
     .overlay.open .modal { transform: translateY(0); }
+    .overlay.start-screen.open .modal { transform: scale(1); }
     .modal h2 {
       font-family: "Bungee", cursive;
       color: var(--gold);
       margin: 0 0 10px;
       font-size: 1.35rem;
+    }
+    .modal .start-brand {
+      font-family: "Bungee", cursive;
+      font-size: clamp(1.8rem, 8vw, 2.3rem);
+      color: var(--gold);
+      text-shadow: 0 2px 0 #6a4a10, 0 0 28px rgba(232, 184, 74, 0.3);
+      margin: 0 0 4px;
+      line-height: 1.05;
+    }
+    .modal .start-sub {
+      color: var(--cyan);
+      letter-spacing: 0.16em;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      margin: 0 0 16px;
     }
     .modal p, .modal li {
       color: var(--fog);
@@ -427,6 +502,53 @@
     }
     .modal ol { padding-left: 1.2em; margin: 0 0 14px; }
     .modal li { margin-bottom: 6px; }
+
+    .mode-toggle {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin: 0 0 14px;
+    }
+    .mode-opt {
+      appearance: none;
+      border: 2px solid var(--line);
+      background: rgba(0,0,0,0.25);
+      color: var(--fog);
+      border-radius: 14px;
+      padding: 14px 10px;
+      min-height: 64px;
+      font-family: inherit;
+      font-weight: 800;
+      font-size: 0.95rem;
+      cursor: pointer;
+      touch-action: manipulation;
+      transition: border-color 0.15s, background 0.15s, transform 0.12s;
+    }
+    .mode-opt:active { transform: scale(0.97); }
+    .mode-opt small {
+      display: block;
+      font-weight: 500;
+      font-size: 0.7rem;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+    .mode-opt.active {
+      border-color: var(--gold);
+      background: rgba(232, 184, 74, 0.15);
+      color: var(--gold);
+      box-shadow: 0 0 0 1px rgba(232, 184, 74, 0.25);
+    }
+    .mode-opt.active small { color: rgba(232, 184, 74, 0.75); }
+
+    .load-status {
+      min-height: 1.2em;
+      font-size: 0.8rem;
+      color: var(--muted);
+      text-align: center;
+      margin: 0 0 10px;
+    }
+    .load-status.error { color: var(--rose); }
+    .load-status.ok { color: var(--mint); }
 
     .toast {
       position: fixed;
@@ -452,10 +574,7 @@
       transform: translateX(-50%) translateY(0);
     }
 
-    .sell-bar {
-      display: none;
-      margin-top: 8px;
-    }
+    .sell-bar { display: none; margin-top: 8px; }
     .sell-bar.show { display: block; }
 
     @keyframes fadeDown {
@@ -485,7 +604,28 @@
   </style>
 </head>
 <body>
-  <div class="app">
+  <div class="overlay start-screen open" id="startOverlay">
+    <div class="modal">
+      <p class="start-brand">Duel Tactics</p>
+      <p class="start-sub">Auto · Duel</p>
+      <p style="margin-top:0">Shop, fuse, and clash left-to-right for Life Points.</p>
+      <div class="mode-toggle" role="group" aria-label="Card mode">
+        <button type="button" class="mode-opt active" id="modeClassic" data-mode="classic">
+          Classic cards
+          <small>LOB + Metal Raiders via API</small>
+        </button>
+        <button type="button" class="mode-opt" id="modeOriginal" data-mode="original">
+          Original
+          <small>Built-in fantasy roster</small>
+        </button>
+      </div>
+      <p class="load-status" id="loadStatus"></p>
+      <button type="button" class="btn btn-primary btn-wide" id="btnStart">Begin Duel</button>
+      <button type="button" class="btn btn-ghost btn-wide" id="btnStartHow" style="margin-top:8px">How to Play</button>
+    </div>
+  </div>
+
+  <div class="app" id="app">
     <header class="top">
       <h1 class="brand">Duel Tactics<span>AUTO · DUEL</span></h1>
       <div class="hud">
@@ -494,6 +634,8 @@
         <div class="pill round"><span class="label">Rnd</span><span class="val" id="round">1</span></div>
       </div>
     </header>
+
+    <div class="notice" id="fallbackNotice">Classic API unavailable — using original roster.</div>
 
     <div class="actions" id="shopActions">
       <button type="button" class="btn btn-ghost" id="btnHow">How to Play</button>
@@ -557,12 +699,13 @@
     <div class="modal">
       <h2>How to Play</h2>
       <ol>
-        <li>Buy monsters from the shop with gold. Reroll the shop for 2 gold.</li>
-        <li>Place up to 5 monsters on the field from your bench. Sell extras if needed.</li>
-        <li>Buy 3 copies of the same monster to fuse them into a stronger ★★ version.</li>
-        <li>2+ monsters of the same type grant a type bonus (e.g. Dragons +300 ATK).</li>
-        <li>Start Battle — monsters clash left to right. Higher ATK wins; leftover damage hits Life Points.</li>
-        <li>Earn gold after each round. Reach 0 LP and the duel is over.</li>
+        <li>Pick Classic (API) or Original cards, then begin.</li>
+        <li>Buy monsters from the shop with gold. Reroll costs 2 gold.</li>
+        <li>Place up to 5 monsters on the field from your bench.</li>
+        <li>3 copies of the same monster fuse into a stronger ★★ version.</li>
+        <li>2+ monsters of the same Type grant an ATK type bonus.</li>
+        <li>Battle clashes left to right. Higher ATK wins; leftover damage hits Life Points.</li>
+        <li>Earn gold after each round. 0 LP ends the duel.</li>
       </ol>
       <button type="button" class="btn btn-primary btn-wide" id="btnCloseHow">Got it</button>
     </div>
@@ -582,58 +725,92 @@
 (function () {
   "use strict";
 
-  const TYPES = {
-    Dragon:     { emoji: "🐉", bonusAtk: 300, label: "Dragon Synergy +300 ATK" },
-    Spellcaster:{ emoji: "🔮", bonusAtk: 250, label: "Spellcaster Synergy +250 ATK" },
-    Warrior:    { emoji: "⚔️", bonusAtk: 280, label: "Warrior Synergy +280 ATK" },
-    Fiend:      { emoji: "😈", bonusAtk: 320, label: "Fiend Synergy +320 ATK" },
-    Machine:    { emoji: "🤖", bonusAtk: 260, label: "Machine Synergy +260 ATK" },
-  };
-
-  /** Original roster — no licensed names */
-  const ROSTER = [
-    { id: "ember_wyrm", name: "Ember Wyrm", type: "Dragon", level: 4, atk: 1600, def: 1200, cost: 2 },
-    { id: "storm_drake", name: "Storm Drake", type: "Dragon", level: 5, atk: 2000, def: 1400, cost: 3 },
-    { id: "iron_scale", name: "Iron Scale", type: "Dragon", level: 3, atk: 1200, def: 1800, cost: 2 },
-    { id: "void_serpent", name: "Void Serpent", type: "Dragon", level: 7, atk: 2600, def: 1800, cost: 5 },
-    { id: "ash_hatchling", name: "Ash Hatchling", type: "Dragon", level: 1, atk: 600, def: 500, cost: 1 },
-    { id: "arc_mage", name: "Arc Mage", type: "Spellcaster", level: 4, atk: 1500, def: 1300, cost: 2 },
-    { id: "hex_adept", name: "Hex Adept", type: "Spellcaster", level: 3, atk: 1100, def: 900, cost: 1 },
-    { id: "rune_seer", name: "Rune Seer", type: "Spellcaster", level: 5, atk: 1800, def: 1600, cost: 3 },
-    { id: "shadow_channel", name: "Shadow Channeler", type: "Spellcaster", level: 6, atk: 2200, def: 1500, cost: 4 },
-    { id: "spark_apprentice", name: "Spark Apprentice", type: "Spellcaster", level: 2, atk: 800, def: 700, cost: 1 },
-    { id: "blade_guard", name: "Blade Guard", type: "Warrior", level: 4, atk: 1700, def: 1400, cost: 2 },
-    { id: "shield_knight", name: "Shield Knight", type: "Warrior", level: 3, atk: 1000, def: 1900, cost: 2 },
-    { id: "dual_swords", name: "Dual Swordsman", type: "Warrior", level: 5, atk: 2100, def: 1200, cost: 3 },
-    { id: "banner_captain", name: "Banner Captain", type: "Warrior", level: 6, atk: 2300, def: 1800, cost: 4 },
-    { id: "militia_scout", name: "Militia Scout", type: "Warrior", level: 1, atk: 700, def: 400, cost: 1 },
-    { id: "night_imp", name: "Night Imp", type: "Fiend", level: 2, atk: 900, def: 500, cost: 1 },
-    { id: "soul_siphon", name: "Soul Siphon", type: "Fiend", level: 4, atk: 1600, def: 1000, cost: 2 },
-    { id: "grin_mask", name: "Grinning Mask", type: "Fiend", level: 5, atk: 1900, def: 1300, cost: 3 },
-    { id: "abyss_howler", name: "Abyss Howler", type: "Fiend", level: 7, atk: 2500, def: 1600, cost: 5 },
-    { id: "whisper_shade", name: "Whisper Shade", type: "Fiend", level: 3, atk: 1300, def: 800, cost: 2 },
-    { id: "cog_golem", name: "Cog Golem", type: "Machine", level: 4, atk: 1400, def: 2000, cost: 2 },
-    { id: "pulse_drone", name: "Pulse Drone", type: "Machine", level: 2, atk: 850, def: 850, cost: 1 },
-    { id: "gear_titan", name: "Gear Titan", type: "Machine", level: 7, atk: 2700, def: 2200, cost: 5 },
-    { id: "circuit_scout", name: "Circuit Scout", type: "Machine", level: 3, atk: 1250, def: 1100, cost: 2 },
-    { id: "bolt_cannon", name: "Bolt Cannon", type: "Machine", level: 6, atk: 2400, def: 1500, cost: 4 },
+  const CACHE_KEY = "duelTacticsClassicV1";
+  const CACHE_MS = 7 * 24 * 60 * 60 * 1000;
+  const API_SETS = [
+    "Legend of Blue Eyes White Dragon",
+    "Metal Raiders",
   ];
 
+  const RACE_META = {
+    Dragon: { emoji: "🐉", bonusAtk: 300 },
+    Spellcaster: { emoji: "🔮", bonusAtk: 250 },
+    Warrior: { emoji: "⚔️", bonusAtk: 280 },
+    Fiend: { emoji: "😈", bonusAtk: 320 },
+    Beast: { emoji: "🐾", bonusAtk: 240 },
+    "Winged Beast": { emoji: "🦅", bonusAtk: 270 },
+    Machine: { emoji: "🤖", bonusAtk: 260 },
+    Zombie: { emoji: "💀", bonusAtk: 290 },
+    Aqua: { emoji: "💧", bonusAtk: 230 },
+    Pyro: { emoji: "🔥", bonusAtk: 270 },
+    Thunder: { emoji: "⚡", bonusAtk: 260 },
+    Rock: { emoji: "🪨", bonusAtk: 220 },
+    Plant: { emoji: "🌿", bonusAtk: 220 },
+    Insect: { emoji: "🐛", bonusAtk: 230 },
+    Reptile: { emoji: "🦎", bonusAtk: 240 },
+    Fairy: { emoji: "✨", bonusAtk: 250 },
+    Dinosaur: { emoji: "🦕", bonusAtk: 280 },
+    Sea: { emoji: "🌊", bonusAtk: 230 },
+    "Sea Serpent": { emoji: "🐍", bonusAtk: 270 },
+    Fish: { emoji: "🐟", bonusAtk: 220 },
+    BeastWarrior: { emoji: "🦁", bonusAtk: 270 },
+    "Beast-Warrior": { emoji: "🦁", bonusAtk: 270 },
+  };
+
+  /** Built-in original roster (fallback + Original mode) */
+  const ORIGINAL_ROSTER = [
+    { id: "ember_wyrm", name: "Ember Wyrm", type: "Dragon", attribute: "FIRE", level: 4, atk: 1600, def: 1200 },
+    { id: "storm_drake", name: "Storm Drake", type: "Dragon", attribute: "WIND", level: 5, atk: 2000, def: 1400 },
+    { id: "iron_scale", name: "Iron Scale", type: "Dragon", attribute: "EARTH", level: 3, atk: 1200, def: 1800 },
+    { id: "void_serpent", name: "Void Serpent", type: "Dragon", attribute: "DARK", level: 7, atk: 2600, def: 1800 },
+    { id: "ash_hatchling", name: "Ash Hatchling", type: "Dragon", attribute: "FIRE", level: 1, atk: 600, def: 500 },
+    { id: "arc_mage", name: "Arc Mage", type: "Spellcaster", attribute: "LIGHT", level: 4, atk: 1500, def: 1300 },
+    { id: "hex_adept", name: "Hex Adept", type: "Spellcaster", attribute: "DARK", level: 3, atk: 1100, def: 900 },
+    { id: "rune_seer", name: "Rune Seer", type: "Spellcaster", attribute: "WATER", level: 5, atk: 1800, def: 1600 },
+    { id: "shadow_channel", name: "Shadow Channeler", type: "Spellcaster", attribute: "DARK", level: 6, atk: 2200, def: 1500 },
+    { id: "spark_apprentice", name: "Spark Apprentice", type: "Spellcaster", attribute: "LIGHT", level: 2, atk: 800, def: 700 },
+    { id: "blade_guard", name: "Blade Guard", type: "Warrior", attribute: "EARTH", level: 4, atk: 1700, def: 1400 },
+    { id: "shield_knight", name: "Shield Knight", type: "Warrior", attribute: "LIGHT", level: 3, atk: 1000, def: 1900 },
+    { id: "dual_swords", name: "Dual Swordsman", type: "Warrior", attribute: "WIND", level: 5, atk: 2100, def: 1200 },
+    { id: "banner_captain", name: "Banner Captain", type: "Warrior", attribute: "EARTH", level: 6, atk: 2300, def: 1800 },
+    { id: "militia_scout", name: "Militia Scout", type: "Warrior", attribute: "EARTH", level: 1, atk: 700, def: 400 },
+    { id: "night_imp", name: "Night Imp", type: "Fiend", attribute: "DARK", level: 2, atk: 900, def: 500 },
+    { id: "soul_siphon", name: "Soul Siphon", type: "Fiend", attribute: "DARK", level: 4, atk: 1600, def: 1000 },
+    { id: "grin_mask", name: "Grinning Mask", type: "Fiend", attribute: "DARK", level: 5, atk: 1900, def: 1300 },
+    { id: "abyss_howler", name: "Abyss Howler", type: "Fiend", attribute: "DARK", level: 7, atk: 2500, def: 1600 },
+    { id: "whisper_shade", name: "Whisper Shade", type: "Fiend", attribute: "DARK", level: 3, atk: 1300, def: 800 },
+    { id: "cog_golem", name: "Cog Golem", type: "Machine", attribute: "EARTH", level: 4, atk: 1400, def: 2000 },
+    { id: "pulse_drone", name: "Pulse Drone", type: "Machine", attribute: "LIGHT", level: 2, atk: 850, def: 850 },
+    { id: "gear_titan", name: "Gear Titan", type: "Machine", attribute: "EARTH", level: 7, atk: 2700, def: 2200 },
+    { id: "circuit_scout", name: "Circuit Scout", type: "Machine", attribute: "LIGHT", level: 3, atk: 1250, def: 1100 },
+    { id: "bolt_cannon", name: "Bolt Cannon", type: "Machine", attribute: "FIRE", level: 6, atk: 2400, def: 1500 },
+    { id: "briar_boar", name: "Briar Boar", type: "Beast", attribute: "EARTH", level: 3, atk: 1300, def: 1000 },
+    { id: "dusk_fang", name: "Dusk Fang", type: "Beast", attribute: "DARK", level: 5, atk: 1900, def: 1400 },
+    { id: "gale_talon", name: "Gale Talon", type: "Winged Beast", attribute: "WIND", level: 4, atk: 1600, def: 1100 },
+    { id: "sky_reaver", name: "Sky Reaver", type: "Winged Beast", attribute: "WIND", level: 6, atk: 2200, def: 1500 },
+    { id: "tomb_walker", name: "Tomb Walker", type: "Zombie", attribute: "DARK", level: 4, atk: 1500, def: 0 },
+    { id: "bone_captain", name: "Bone Captain", type: "Zombie", attribute: "EARTH", level: 5, atk: 1800, def: 1600 },
+  ].map((c) => Object.assign({}, c, { cost: costFromLevel(c.level) }));
+
   const state = {
+    mode: "classic",
+    roster: ORIGINAL_ROSTER.slice(),
+    usedFallback: false,
     lp: 8000,
     enemyLp: 8000,
     gold: 10,
     round: 1,
-    phase: "shop", // shop | battle | end
+    phase: "menu",
     shop: [],
     field: [null, null, null, null, null],
     bench: [null, null, null, null, null],
-    selected: null, // { from: 'field'|'bench'|'shop', index }
+    selected: null,
     uid: 1,
   };
 
   const $ = (id) => document.getElementById(id);
   const el = {
+    app: $("app"),
     lp: $("lp"), gold: $("gold"), round: $("round"),
     shop: $("shop"), field: $("field"), bench: $("bench"),
     bonuses: $("bonuses"), log: $("log"),
@@ -642,8 +819,33 @@
     enemyLp: $("enemyLp"), battleStatus: $("battleStatus"),
     shopBlock: $("shopBlock"), shopActions: $("shopActions"),
     howOverlay: $("howOverlay"), endOverlay: $("endOverlay"),
+    startOverlay: $("startOverlay"),
     endTitle: $("endTitle"), endMsg: $("endMsg"), toast: $("toast"),
+    fallbackNotice: $("fallbackNotice"),
+    loadStatus: $("loadStatus"),
+    btnStart: $("btnStart"),
   };
+
+  function costFromLevel(level) {
+    const lv = Number(level) || 1;
+    if (lv <= 2) return 1;
+    if (lv <= 4) return 2;
+    if (lv <= 6) return 3;
+    if (lv === 7) return 4;
+    return 5;
+  }
+
+  function raceMeta(race) {
+    if (RACE_META[race]) return RACE_META[race];
+    // Stable fallback for uncommon races from the API
+    let hash = 0;
+    const s = String(race || "Unknown");
+    for (let i = 0; i < s.length; i++) hash = (hash * 31 + s.charCodeAt(i)) >>> 0;
+    return {
+      emoji: "🃏",
+      bonusAtk: 200 + (hash % 9) * 15,
+    };
+  }
 
   function uid() { return state.uid++; }
 
@@ -655,8 +857,9 @@
       baseId: base.id,
       name: base.name,
       type: base.type,
+      attribute: base.attribute || "DARK",
       level: base.level,
-      cost: base.cost,
+      cost: base.cost != null ? base.cost : costFromLevel(base.level),
       stars,
       atk: Math.round(base.atk * mult),
       def: Math.round(base.def * mult),
@@ -665,11 +868,10 @@
 
   function shopPoolForRound(round) {
     const maxCost = Math.min(5, 1 + Math.floor((round + 1) / 2));
-    return ROSTER.filter((c) => c.cost <= maxCost);
+    return state.roster.filter((c) => c.cost <= maxCost);
   }
 
   function weightedPick(pool) {
-    // Cheaper cards more common
     const weights = pool.map((c) => 6 - c.cost);
     const total = weights.reduce((a, b) => a + b, 0);
     let r = Math.random() * total;
@@ -682,20 +884,16 @@
 
   function rollShop() {
     const pool = shopPoolForRound(state.round);
+    if (!pool.length) {
+      state.shop = [];
+      return;
+    }
     state.shop = Array.from({ length: 5 }, () => makeInstance(weightedPick(pool), 1));
   }
 
   function firstEmpty(arr) {
     const i = arr.findIndex((x) => !x);
     return i === -1 ? null : i;
-  }
-
-  function countOwned(baseId, stars) {
-    let n = 0;
-    [...state.field, ...state.bench].forEach((c) => {
-      if (c && c.baseId === baseId && c.stars === stars) n++;
-    });
-    return n;
   }
 
   function findCopies(baseId, stars) {
@@ -719,14 +917,13 @@
   }
 
   function tryFuse(baseId) {
-    // Fuse 1★ → 2★ only
     const locs = findCopies(baseId, 1);
     if (locs.length < 3) return false;
     const take = locs.slice(0, 3);
-    const base = ROSTER.find((r) => r.id === baseId);
+    const base = state.roster.find((r) => r.id === baseId);
+    if (!base) return false;
     take.forEach((l) => removeAt(l.from, l.index));
     const fused = makeInstance(base, 2);
-    // Prefer placing on first emptied slot among the three, else bench/field empty
     let placed = false;
     for (const l of take) {
       if (!getAt(l.from, l.index)) {
@@ -743,7 +940,7 @@
       else if (fi !== null) state.field[fi] = fused;
     }
     toast(`Fusion! ${fused.name} ★★`);
-    logLine(`<span class="sys">⚡ ${fused.name} fused into ★★!</span>`);
+    logLine(`<span class="sys">⚡ ${escapeHtml(fused.name)} fused into ★★!</span>`);
     return true;
   }
 
@@ -761,9 +958,17 @@
     const counts = typeCounts(board);
     let atk = card.atk;
     if ((counts[card.type] || 0) >= 2) {
-      atk += TYPES[card.type].bonusAtk;
+      atk += raceMeta(card.type).bonusAtk;
     }
     return atk;
+  }
+
+  function escapeHtml(s) {
+    return String(s)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
   }
 
   function toast(msg) {
@@ -782,24 +987,24 @@
   function cardHTML(card, opts) {
     opts = opts || {};
     if (!card) return "";
-    const t = TYPES[card.type];
-    const stars = "★".repeat(card.level);
+    const meta = raceMeta(card.type);
+    const attr = String(card.attribute || "DARK").toUpperCase();
+    const stars = "★".repeat(Math.min(12, card.level || 1));
     const starClass = card.stars === 2 ? " star2" : "";
     const sel = opts.selected ? " selected" : "";
     const shop = opts.shop ? " shop-card" : "";
     const cost = opts.shop ? `<span class="cost-badge">${card.cost}🪙</span>` : "";
-    const bonusNote = opts.showBonusAtk != null
-      ? `<span class="atk">${opts.showBonusAtk}</span>`
-      : `<span class="atk">${card.atk}</span>`;
+    const atkVal = opts.showBonusAtk != null ? opts.showBonusAtk : card.atk;
     return `
-      <div class="card${starClass}${sel}${shop}" data-uid="${card.uid}">
+      <div class="card attr-${attr}${starClass}${sel}${shop}" data-uid="${card.uid}">
         ${cost}
-        <div class="emoji">${t.emoji}${card.stars === 2 ? "✨" : ""}</div>
-        <div class="name">${card.name}${card.stars === 2 ? " ★★" : ""}</div>
+        <div class="emoji">${meta.emoji}${card.stars === 2 ? "✨" : ""}</div>
+        <div class="name">${escapeHtml(card.name)}${card.stars === 2 ? " ★★" : ""}</div>
         <div class="stars">${stars}</div>
-        <div class="type-chip">${card.type}</div>
+        <div class="type-chip">${escapeHtml(card.type)}</div>
+        <div class="attr-chip">${escapeHtml(attr)}</div>
         <div class="stats">
-          ${bonusNote}
+          <span class="atk">${atkVal}</span>
           <span class="def">${card.def}</span>
         </div>
       </div>`;
@@ -844,11 +1049,12 @@
   function renderBonuses() {
     const counts = typeCounts(state.field);
     el.bonuses.innerHTML = "";
-    Object.keys(TYPES).forEach((t) => {
-      if ((counts[t] || 0) >= 2) {
+    Object.keys(counts).forEach((t) => {
+      if (counts[t] >= 2) {
+        const meta = raceMeta(t);
         const tag = document.createElement("span");
         tag.className = "bonus-tag";
-        tag.textContent = TYPES[t].emoji + " " + TYPES[t].label;
+        tag.textContent = `${meta.emoji} ${t} Synergy +${meta.bonusAtk} ATK`;
         el.bonuses.appendChild(tag);
       }
     });
@@ -859,6 +1065,7 @@
     el.gold.textContent = state.gold;
     el.round.textContent = state.round;
     el.enemyLp.textContent = state.enemyLp;
+    el.fallbackNotice.classList.toggle("show", !!state.usedFallback);
     const canSell = !!(state.selected && (state.selected.from === "field" || state.selected.from === "bench"));
     el.sellBar.classList.toggle("show", canSell);
     if (canSell) {
@@ -894,12 +1101,9 @@
     state.gold -= card.cost;
     state.bench[slot] = card;
     state.shop[index] = null;
-    logLine(`Bought <strong>${card.name}</strong> (−${card.cost}🪙)`);
-    tryFuse(card.baseId);
-    // Keep fusing if multiple triples somehow
-    while (tryFuse(card.baseId)) { /* noop */ }
-    // Also check all for cascades after fuse freed slots
-    ROSTER.forEach((r) => { while (tryFuse(r.id)) {} });
+    logLine(`Bought <strong>${escapeHtml(card.name)}</strong> (−${card.cost}🪙)`);
+    while (tryFuse(card.baseId)) { /* cascade */ }
+    state.roster.forEach((r) => { while (tryFuse(r.id)) {} });
     state.selected = null;
     render();
   }
@@ -910,13 +1114,11 @@
 
     if (state.selected) {
       const sel = state.selected;
-      // Same cell → deselect
       if (sel.from === from && sel.index === index) {
         state.selected = null;
         render();
         return;
       }
-      // Move / swap between field and bench
       if ((sel.from === "bench" || sel.from === "field") && (from === "bench" || from === "field")) {
         const a = getAt(sel.from, sel.index);
         const b = getAt(from, index);
@@ -934,7 +1136,6 @@
       state.selected = { from, index };
       render();
     } else if (state.selected && state.selected.from === "bench" && from === "field") {
-      // Place from bench to empty field
       state.field[index] = state.bench[state.selected.index];
       state.bench[state.selected.index] = null;
       state.selected = null;
@@ -951,7 +1152,7 @@
     const refund = Math.max(1, Math.floor(card.cost * card.stars));
     state.gold += refund;
     toast(`Sold for ${refund}🪙`);
-    logLine(`Sold ${card.name} (+${refund}🪙)`);
+    logLine(`Sold ${escapeHtml(card.name)} (+${refund}🪙)`);
     state.selected = null;
     render();
   }
@@ -972,7 +1173,7 @@
     const count = Math.min(5, 1 + Math.floor(round / 1.5));
     const pool = shopPoolForRound(round + 1);
     const board = [null, null, null, null, null];
-    // Prefer stronger cards as rounds climb
+    if (!pool.length) return board;
     const sorted = [...pool].sort((a, b) => b.atk - a.atk);
     for (let i = 0; i < count; i++) {
       let base;
@@ -984,7 +1185,6 @@
       let stars = 1;
       if (round >= 3 && Math.random() < 0.15 + round * 0.03) stars = 2;
       const mon = makeInstance(base, stars);
-      // Flat round scaling so AI pressures LP
       mon.atk += (round - 1) * 80;
       mon.def += (round - 1) * 40;
       board[i] = mon;
@@ -992,14 +1192,13 @@
     return board;
   }
 
-  function renderMiniBoard(container, board, isPlayer) {
+  function renderMiniBoard(container, board) {
     container.innerHTML = "";
     board.forEach((card) => {
       const zone = document.createElement("div");
       zone.className = "zone" + (card ? " filled" : "");
       if (card) {
-        const atk = effectiveAtk(card, board);
-        zone.innerHTML = cardHTML(card, { showBonusAtk: atk });
+        zone.innerHTML = cardHTML(card, { showBonusAtk: effectiveAtk(card, board) });
       }
       container.appendChild(zone);
     });
@@ -1014,14 +1213,14 @@
     state.phase = "battle";
     state.selected = null;
     state.enemyLp = 8000;
-    const playerBoard = state.field.map((c) => (c ? { ...c } : null));
+    const playerBoard = state.field.map((c) => (c ? Object.assign({}, c) : null));
     const enemyBoard = buildEnemyBoard(state.round);
 
     el.shopBlock.style.display = "none";
     el.shopActions.style.display = "none";
     el.battleStrip.classList.add("active");
-    renderMiniBoard(el.playerBattle, playerBoard, true);
-    renderMiniBoard(el.enemyBattle, enemyBoard, false);
+    renderMiniBoard(el.playerBattle, playerBoard);
+    renderMiniBoard(el.enemyBattle, enemyBoard);
     renderHUD();
     el.battleStatus.textContent = "Clash!";
     logLine(`<span class="sys">—— Round ${state.round} Battle ——</span>`);
@@ -1036,7 +1235,6 @@
       const pAtk = p ? effectiveAtk(p, playerBoard) : 0;
       const eAtk = e ? effectiveAtk(e, enemyBoard) : 0;
 
-      // Highlight columns
       const pZones = el.playerBattle.children;
       const eZones = el.enemyBattle.children;
       if (pZones[i]) pZones[i].classList.add("selected");
@@ -1048,35 +1246,32 @@
         if (pAtk > eAtk) {
           const dmg = pAtk - eAtk;
           state.enemyLp = Math.max(0, state.enemyLp - dmg);
-          logLine(`<span class="win">${p.name} (${pAtk}) beats ${e.name} (${eAtk})</span> → <span class="dmg">${dmg} dmg</span> to foe`);
+          logLine(`<span class="win">${escapeHtml(p.name)} (${pAtk}) beats ${escapeHtml(e.name)} (${eAtk})</span> → <span class="dmg">${dmg} dmg</span> to foe`);
           enemyBoard[i] = null;
         } else if (eAtk > pAtk) {
           const dmg = eAtk - pAtk;
           state.lp = Math.max(0, state.lp - dmg);
-          logLine(`<span class="dmg">${e.name} (${eAtk}) beats ${p.name} (${pAtk})</span> → you take <span class="dmg">${dmg}</span>`);
+          logLine(`<span class="dmg">${escapeHtml(e.name)} (${eAtk}) beats ${escapeHtml(p.name)} (${pAtk})</span> → you take <span class="dmg">${dmg}</span>`);
           playerBoard[i] = null;
           el.lp.classList.add("shake");
           setTimeout(() => el.lp.classList.remove("shake"), 400);
         } else {
-          logLine(`${p.name} and ${e.name} clash equally — both destroyed`);
+          logLine(`${escapeHtml(p.name)} and ${escapeHtml(e.name)} clash equally — both destroyed`);
           playerBoard[i] = null;
           enemyBoard[i] = null;
         }
       } else if (p && !e) {
-        // Direct attack
-        const dmg = pAtk;
-        state.enemyLp = Math.max(0, state.enemyLp - dmg);
-        logLine(`<span class="win">${p.name} direct attack!</span> <span class="dmg">${dmg}</span> to foe`);
+        state.enemyLp = Math.max(0, state.enemyLp - pAtk);
+        logLine(`<span class="win">${escapeHtml(p.name)} direct attack!</span> <span class="dmg">${pAtk}</span> to foe`);
       } else if (!p && e) {
-        const dmg = eAtk;
-        state.lp = Math.max(0, state.lp - dmg);
-        logLine(`<span class="dmg">${e.name} direct attack!</span> you take <span class="dmg">${dmg}</span>`);
+        state.lp = Math.max(0, state.lp - eAtk);
+        logLine(`<span class="dmg">${escapeHtml(e.name)} direct attack!</span> you take <span class="dmg">${eAtk}</span>`);
         el.lp.classList.add("shake");
         setTimeout(() => el.lp.classList.remove("shake"), 400);
       }
 
-      renderMiniBoard(el.playerBattle, playerBoard, true);
-      renderMiniBoard(el.enemyBattle, enemyBoard, false);
+      renderMiniBoard(el.playerBattle, playerBoard);
+      renderMiniBoard(el.enemyBattle, enemyBoard);
       renderHUD();
       el.battleStatus.textContent = `Lane ${i + 1}`;
 
@@ -1089,7 +1284,6 @@
   }
 
   function incomeForRound(round) {
-    // Base 4 + round, capped interest-ish
     return 4 + Math.min(round, 6);
   }
 
@@ -1117,7 +1311,85 @@
     render();
   }
 
-  function restart() {
+  /* ---------- Classic API ---------- */
+
+  function normalizeApiCard(raw) {
+    if (!raw || typeof raw !== "object") return null;
+    const typeStr = String(raw.type || "");
+    if (!typeStr.includes("Monster")) return null;
+    if (typeof raw.atk !== "number" || raw.atk < 0) return null;
+    if (typeof raw.def !== "number" || raw.def < 0) return null;
+    if (typeof raw.level !== "number" || raw.level < 1) return null;
+    const race = raw.race || "Warrior";
+    const attribute = String(raw.attribute || "DARK").toUpperCase();
+    const id = "api_" + (raw.id != null ? raw.id : String(raw.name).toLowerCase().replace(/\W+/g, "_"));
+    return {
+      id,
+      name: raw.name,
+      type: race,
+      attribute,
+      level: raw.level,
+      atk: raw.atk,
+      def: raw.def,
+      cost: costFromLevel(raw.level),
+    };
+  }
+
+  function readCache() {
+    try {
+      const raw = localStorage.getItem(CACHE_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (!parsed || !Array.isArray(parsed.cards) || !parsed.ts) return null;
+      if (Date.now() - parsed.ts > CACHE_MS) return null;
+      if (!parsed.cards.length) return null;
+      return parsed.cards;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function writeCache(cards) {
+    try {
+      localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), cards }));
+    } catch (_) { /* ignore quota */ }
+  }
+
+  async function fetchSet(setName) {
+    const url = "https://db.ygoprodeck.com/api/v7/cardinfo.php?cardset=" + encodeURIComponent(setName);
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const json = await res.json();
+    return Array.isArray(json.data) ? json.data : [];
+  }
+
+  async function loadClassicRoster() {
+    const cached = readCache();
+    if (cached) return { cards: cached, fromCache: true };
+
+    const byId = new Map();
+    for (const setName of API_SETS) {
+      const rows = await fetchSet(setName);
+      rows.forEach((raw) => {
+        const card = normalizeApiCard(raw);
+        if (card && !byId.has(card.id)) byId.set(card.id, card);
+      });
+    }
+    const cards = Array.from(byId.values());
+    if (!cards.length) throw new Error("No monster cards returned");
+    writeCache(cards);
+    return { cards, fromCache: false };
+  }
+
+  function setModeUI(mode) {
+    state.mode = mode;
+    $("modeClassic").classList.toggle("active", mode === "classic");
+    $("modeOriginal").classList.toggle("active", mode === "original");
+  }
+
+  function beginDuel(roster, usedFallback) {
+    state.roster = roster;
+    state.usedFallback = !!usedFallback;
     state.lp = 8000;
     state.enemyLp = 8000;
     state.gold = 10;
@@ -1131,12 +1403,58 @@
     el.battleStrip.classList.remove("active");
     el.shopBlock.style.display = "";
     el.shopActions.style.display = "";
+    el.startOverlay.classList.remove("open");
+    el.app.classList.add("visible");
     rollShop();
-    logLine('<span class="sys">Duel start — 8000 LP · 10 gold. Build your field!</span>');
+    const modeLabel = state.mode === "classic" && !usedFallback ? "Classic" : "Original";
+    logLine(`<span class="sys">Duel start (${modeLabel}) — 8000 LP · 10 gold · ${roster.length} monsters</span>`);
     render();
   }
 
+  async function onStart() {
+    el.btnStart.disabled = true;
+    el.loadStatus.className = "load-status";
+    el.loadStatus.textContent = state.mode === "classic" ? "Loading classic cards…" : "";
+
+    try {
+      if (state.mode === "original") {
+        beginDuel(ORIGINAL_ROSTER.slice(), false);
+        el.loadStatus.textContent = "";
+        return;
+      }
+
+      const { cards, fromCache } = await loadClassicRoster();
+      el.loadStatus.className = "load-status ok";
+      el.loadStatus.textContent = fromCache
+        ? `Loaded ${cards.length} classic monsters (cached).`
+        : `Loaded ${cards.length} classic monsters.`;
+      beginDuel(cards, false);
+    } catch (err) {
+      console.warn("Classic load failed", err);
+      el.loadStatus.className = "load-status error";
+      el.loadStatus.textContent = "Classic API failed — using original roster.";
+      beginDuel(ORIGINAL_ROSTER.slice(), true);
+      toast("Using original roster");
+    } finally {
+      el.btnStart.disabled = false;
+    }
+  }
+
+  function showStartScreen() {
+    state.phase = "menu";
+    el.app.classList.remove("visible");
+    el.endOverlay.classList.remove("open");
+    el.startOverlay.classList.add("open");
+    el.loadStatus.className = "load-status";
+    el.loadStatus.textContent = "";
+    el.btnStart.disabled = false;
+  }
+
   // Wire UI
+  $("modeClassic").addEventListener("click", () => setModeUI("classic"));
+  $("modeOriginal").addEventListener("click", () => setModeUI("original"));
+  el.btnStart.addEventListener("click", () => { onStart(); });
+  $("btnStartHow").addEventListener("click", () => el.howOverlay.classList.add("open"));
   $("btnHow").addEventListener("click", () => el.howOverlay.classList.add("open"));
   $("btnCloseHow").addEventListener("click", () => el.howOverlay.classList.remove("open"));
   el.howOverlay.addEventListener("click", (e) => {
@@ -1145,11 +1463,9 @@
   $("btnReroll").addEventListener("click", reroll);
   $("btnBattle").addEventListener("click", () => { startBattle(); });
   $("btnSell").addEventListener("click", sellSelected);
-  $("btnRestart").addEventListener("click", restart);
+  $("btnRestart").addEventListener("click", showStartScreen);
 
-  // First launch: show how-to once
-  restart();
-  el.howOverlay.classList.add("open");
+  setModeUI("classic");
 })();
   </script>
 </body>
