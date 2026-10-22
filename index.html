@@ -129,6 +129,104 @@
     }
     .notice.show { display: block; }
 
+    .trait-bar {
+      display: flex;
+      flex-wrap: nowrap;
+      gap: 6px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 4px 2px 10px;
+      margin-bottom: 2px;
+      min-height: 52px;
+    }
+    .trait-chip {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      min-height: 44px;
+      padding: 6px 10px;
+      border-radius: 12px;
+      border: 1.5px solid #3a4a58;
+      background: rgba(20, 30, 40, 0.85);
+      color: #6a7a88;
+      font-weight: 800;
+      font-size: 0.72rem;
+      cursor: pointer;
+      touch-action: manipulation;
+      user-select: none;
+      transition: border-color 0.15s, background 0.15s, color 0.15s, transform 0.12s;
+    }
+    .trait-chip:active { transform: scale(0.96); }
+    .trait-chip .timg { font-size: 1.05rem; line-height: 1; }
+    .trait-chip.inactive { opacity: 0.55; filter: grayscale(0.7); }
+    .trait-chip.bronze {
+      color: #e8c4a0;
+      border-color: #b07840;
+      background: linear-gradient(160deg, rgba(120, 70, 30, 0.55), rgba(40, 24, 12, 0.9));
+      box-shadow: 0 0 10px rgba(176, 120, 64, 0.35);
+    }
+    .trait-chip.silver {
+      color: #e8f0f8;
+      border-color: #a8b8c8;
+      background: linear-gradient(160deg, rgba(140, 160, 180, 0.45), rgba(40, 50, 60, 0.9));
+      box-shadow: 0 0 12px rgba(180, 200, 220, 0.35);
+    }
+    .trait-chip.gold {
+      color: #ffe9a0;
+      border-color: #e8c040;
+      background: linear-gradient(160deg, rgba(200, 150, 40, 0.5), rgba(60, 40, 10, 0.95));
+      box-shadow: 0 0 14px rgba(232, 184, 74, 0.45);
+    }
+
+    .level-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .level-pill {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      background: rgba(19, 38, 54, 0.92);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 8px 12px;
+      min-height: 52px;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+    .level-pill .lv-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-weight: 800;
+      font-size: 0.9rem;
+    }
+    .level-pill .lv-top .lv { color: var(--cyan); }
+    .level-pill .lv-top .xp-label { color: var(--muted); font-size: 0.75rem; font-weight: 700; }
+    .xp-track {
+      height: 8px;
+      border-radius: 6px;
+      background: rgba(0,0,0,0.4);
+      overflow: hidden;
+    }
+    .xp-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #2a8a9a, var(--cyan));
+      border-radius: 6px;
+      transition: width 0.25s ease;
+    }
+    .btn-xp {
+      min-height: 52px;
+      padding: 10px 14px;
+      font-size: 0.88rem;
+      white-space: nowrap;
+    }
+
     .btn {
       appearance: none;
       border: none;
@@ -800,7 +898,20 @@
       </div>
     </header>
 
+    <div class="trait-bar" id="traitBar" aria-label="Traits"></div>
+
     <div class="notice" id="fallbackNotice">Classic API unavailable — using original roster.</div>
+
+    <div class="level-row" id="levelRow">
+      <button type="button" class="level-pill" id="btnLevel" aria-label="Level and shop odds">
+        <div class="lv-top">
+          <span class="lv">Lv <span id="levelNum">1</span></span>
+          <span class="xp-label"><span id="xpText">0/2 XP</span></span>
+        </div>
+        <div class="xp-track"><div class="xp-fill" id="xpFill"></div></div>
+      </button>
+      <button type="button" class="btn btn-secondary btn-xp" id="btnBuyXp">Buy XP<br>4🪙 → 4</button>
+    </div>
 
     <div class="shop-actions" id="shopActions">
       <button type="button" class="btn btn-ghost" id="btnHow">How to Play</button>
@@ -819,9 +930,8 @@
       <div class="arena-label enemy">Enemy field</div>
       <div class="hex-board" id="enemyBoard"></div>
       <div class="midline">VS</div>
-      <div class="arena-label player">Your field · max 5</div>
+      <div class="arena-label player">Your field · max <span id="boardCap">1</span></div>
       <div class="hex-board" id="playerBoard"></div>
-      <div class="bonuses" id="bonuses"></div>
       <div class="combat-layer" id="combatLayer"></div>
     </div>
 
@@ -854,13 +964,29 @@
       <ol>
         <li>Pick Classic or Original cards, then begin.</li>
         <li>Buy from the shop (reroll costs 2 gold). 3 copies fuse into ★★.</li>
-        <li>Tap a bench monster, then tap a hex on your half to place it (max 5). Tap a placed monster to return it to the bench. Drag works too.</li>
-        <li>2+ of the same Type grant an ATK bonus.</li>
-        <li>Press <strong>FIGHT</strong> — units slide toward foes, lunge to attack, and cast Type abilities at full mana.</li>
-        <li>HP = DEF (min 500); damage = ATK ÷ 4. Use 1x/2x speed during fights.</li>
-        <li>Surviving enemies deal LP damage (200 × Level). Earn gold after each round. 0 LP ends the duel.</li>
+        <li>Board size = your level (1–9). Buy XP for 4 gold, or earn 2 XP each round.</li>
+        <li>Traits: unique Types on the board activate at 2 / 4 / 6 (bronze / silver / gold). Tap a trait for details.</li>
+        <li>Tap your level to see shop odds. Higher levels roll stronger monsters.</li>
+        <li>Press <strong>FIGHT</strong> — units slide, lunge, and cast Type abilities. Use 1x/2x speed.</li>
+        <li>Earn interest (+1 per 10 gold, max +5) and streak bonuses. 0 LP ends the duel.</li>
       </ol>
       <button type="button" class="btn btn-primary btn-wide" id="btnCloseHow">Got it</button>
+    </div>
+  </div>
+
+  <div class="overlay" id="traitOverlay">
+    <div class="modal">
+      <h2 id="traitTitle">Trait</h2>
+      <p id="traitDesc"></p>
+      <button type="button" class="btn btn-primary btn-wide" id="btnCloseTrait">Close</button>
+    </div>
+  </div>
+
+  <div class="overlay" id="oddsOverlay">
+    <div class="modal">
+      <h2 id="oddsTitle">Shop Odds</h2>
+      <div id="oddsBody"></div>
+      <button type="button" class="btn btn-primary btn-wide" id="btnCloseOdds" style="margin-top:12px">Close</button>
     </div>
   </div>
 
@@ -889,34 +1015,91 @@
   const API_SETS = ["Legend of Blue Eyes White Dragon", "Metal Raiders"];
   const HEX_ROWS = 4;
   const HEX_COLS = 7;
-  const MAX_BOARD = 5;
   const ATTACK_MS = 1000;
   const MOVE_MS = 380;
-  const TICK_MS = 50;
+  const TRAIT_THRESHOLDS = [2, 4, 6];
+
+  /** XP needed to go from level L → L+1 (index = current level). Level 9 is max. */
+  const XP_TO_NEXT = [0, 2, 2, 6, 10, 20, 40, 60, 80, 0];
+
+  /**
+   * Shop odds by player level for monster Level buckets:
+   * [Lv1–2, Lv3–4, Lv5–6, Lv7–8+]
+   */
+  const SHOP_ODDS = {
+    1: [75, 25, 0, 0],
+    2: [65, 30, 5, 0],
+    3: [50, 35, 15, 0],
+    4: [40, 35, 20, 5],
+    5: [30, 35, 25, 10],
+    6: [24, 30, 30, 16],
+    7: [18, 25, 32, 25],
+    8: [14, 20, 33, 33],
+    9: [10, 18, 32, 40],
+  };
+
+  const TRAIT_INFO = {
+    Dragon: {
+      emoji: "🐉",
+      lines: ["2 Bronze: +15% ATK", "4 Silver: +30% ATK", "6 Gold: +50% ATK"],
+    },
+    Spellcaster: {
+      emoji: "🔮",
+      lines: ["2: +20 mana / attack", "4: +40 mana / attack", "6: +60 mana / attack"],
+    },
+    Warrior: {
+      emoji: "⚔️",
+      lines: ["2: +20% HP", "4: +40% HP", "6: +60% HP"],
+    },
+    Fiend: {
+      emoji: "😈",
+      lines: ["2: Heal 10% of damage dealt", "4: Heal 20%", "6: Heal 30%"],
+    },
+    Beast: {
+      emoji: "🐾",
+      lines: ["2: +15% attack speed", "4: +30% AS", "6: +50% AS"],
+    },
+    "Winged Beast": {
+      emoji: "🦅",
+      lines: ["2: +15% attack speed", "4: +30% AS", "6: +50% AS"],
+    },
+    Machine: {
+      emoji: "🤖",
+      lines: ["2: Start with 15% HP shield", "4: 30% shield", "6: 50% shield"],
+    },
+    Zombie: {
+      emoji: "💀",
+      lines: ["2: Revive at 20% HP", "4: Revive at 35%", "6: Revive at 50%"],
+    },
+    _other: {
+      emoji: "🃏",
+      lines: ["2: +10% ATK & HP", "4: +20% ATK & HP", "6: +30% ATK & HP"],
+    },
+  };
 
   const RACE_META = {
-    Dragon: { emoji: "🐉", bonusAtk: 300 },
-    Spellcaster: { emoji: "🔮", bonusAtk: 250 },
-    Warrior: { emoji: "⚔️", bonusAtk: 280 },
-    Fiend: { emoji: "😈", bonusAtk: 320 },
-    Beast: { emoji: "🐾", bonusAtk: 240 },
-    "Winged Beast": { emoji: "🦅", bonusAtk: 270 },
-    Machine: { emoji: "🤖", bonusAtk: 260 },
-    Zombie: { emoji: "💀", bonusAtk: 290 },
-    Aqua: { emoji: "💧", bonusAtk: 230 },
-    Pyro: { emoji: "🔥", bonusAtk: 270 },
-    Thunder: { emoji: "⚡", bonusAtk: 260 },
-    Rock: { emoji: "🪨", bonusAtk: 220 },
-    Plant: { emoji: "🌿", bonusAtk: 220 },
-    Insect: { emoji: "🐛", bonusAtk: 230 },
-    Reptile: { emoji: "🦎", bonusAtk: 240 },
-    Fairy: { emoji: "✨", bonusAtk: 250 },
-    Dinosaur: { emoji: "🦕", bonusAtk: 280 },
-    Sea: { emoji: "🌊", bonusAtk: 230 },
-    "Sea Serpent": { emoji: "🐍", bonusAtk: 270 },
-    Fish: { emoji: "🐟", bonusAtk: 220 },
-    BeastWarrior: { emoji: "🦁", bonusAtk: 270 },
-    "Beast-Warrior": { emoji: "🦁", bonusAtk: 270 },
+    Dragon: { emoji: "🐉" },
+    Spellcaster: { emoji: "🔮" },
+    Warrior: { emoji: "⚔️" },
+    Fiend: { emoji: "😈" },
+    Beast: { emoji: "🐾" },
+    "Winged Beast": { emoji: "🦅" },
+    Machine: { emoji: "🤖" },
+    Zombie: { emoji: "💀" },
+    Aqua: { emoji: "💧" },
+    Pyro: { emoji: "🔥" },
+    Thunder: { emoji: "⚡" },
+    Rock: { emoji: "🪨" },
+    Plant: { emoji: "🌿" },
+    Insect: { emoji: "🐛" },
+    Reptile: { emoji: "🦎" },
+    Fairy: { emoji: "✨" },
+    Dinosaur: { emoji: "🦕" },
+    Sea: { emoji: "🌊" },
+    "Sea Serpent": { emoji: "🐍" },
+    Fish: { emoji: "🐟" },
+    BeastWarrior: { emoji: "🦁" },
+    "Beast-Warrior": { emoji: "🦁" },
   };
 
   function costFromLevel(level) {
@@ -969,6 +1152,10 @@
     lp: 8000,
     gold: 10,
     round: 1,
+    level: 1,
+    xp: 0,
+    winStreak: 0,
+    lossStreak: 0,
     phase: "menu", // menu | shop | fight | end
     shop: [],
     bench: [null, null, null, null, null],
@@ -989,10 +1176,11 @@
     lp: $("lp"), gold: $("gold"), round: $("round"),
     shop: $("shop"), bench: $("bench"),
     playerBoard: $("playerBoard"), enemyBoard: $("enemyBoard"),
-    bonuses: $("bonuses"), log: $("log"),
+    traitBar: $("traitBar"), log: $("log"),
     sellBar: $("sellBar"), shopBlock: $("shopBlock"), shopActions: $("shopActions"),
     howOverlay: $("howOverlay"), endOverlay: $("endOverlay"),
     startOverlay: $("startOverlay"),
+    traitOverlay: $("traitOverlay"), oddsOverlay: $("oddsOverlay"),
     endTitle: $("endTitle"), endMsg: $("endMsg"), toast: $("toast"),
     fallbackNotice: $("fallbackNotice"),
     loadStatus: $("loadStatus"),
@@ -1005,14 +1193,122 @@
     resultsTitle: $("resultsTitle"),
     resultsMsg: $("resultsMsg"),
     arena: $("arena"),
+    levelNum: $("levelNum"),
+    xpText: $("xpText"),
+    xpFill: $("xpFill"),
+    boardCap: $("boardCap"),
+    btnBuyXp: $("btnBuyXp"),
   };
 
   function raceMeta(race) {
     if (RACE_META[race]) return RACE_META[race];
-    let hash = 0;
-    const s = String(race || "Unknown");
-    for (let i = 0; i < s.length; i++) hash = (hash * 31 + s.charCodeAt(i)) >>> 0;
-    return { emoji: "🃏", bonusAtk: 200 + (hash % 9) * 15 };
+    return { emoji: (TRAIT_INFO[race] && TRAIT_INFO[race].emoji) || "🃏" };
+  }
+
+  function boardCap() {
+    return Math.max(1, Math.min(9, state.level || 1));
+  }
+
+  function xpNeeded() {
+    return XP_TO_NEXT[state.level] || 0;
+  }
+
+  function addXp(amount) {
+    if (state.level >= 9) return;
+    state.xp += amount;
+    while (state.level < 9 && state.xp >= xpNeeded()) {
+      state.xp -= xpNeeded();
+      state.level += 1;
+      toast("Level " + state.level + "!");
+      logLine('<span class="sys">⬆ Level ' + state.level + " — board size " + boardCap() + "</span>");
+    }
+    if (state.level >= 9) state.xp = 0;
+  }
+
+  function shopOddsForLevel(lv) {
+    return SHOP_ODDS[lv] || SHOP_ODDS[1];
+  }
+
+  function bucketForMonsterLevel(level) {
+    const lv = Number(level) || 1;
+    if (lv <= 2) return 0;
+    if (lv <= 4) return 1;
+    if (lv <= 6) return 2;
+    return 3;
+  }
+
+  /** Unique monsters per Type (copies of same baseId don't stack). */
+  function uniqueTypeCounts(side) {
+    const sets = {};
+    allUnits(side).forEach((u) => {
+      if (!u || u.dead) return;
+      if (!sets[u.type]) sets[u.type] = new Set();
+      sets[u.type].add(u.baseId);
+    });
+    const counts = {};
+    Object.keys(sets).forEach((t) => { counts[t] = sets[t].size; });
+    return counts;
+  }
+
+  function traitTier(count) {
+    if (count >= 6) return 3;
+    if (count >= 4) return 2;
+    if (count >= 2) return 1;
+    return 0;
+  }
+
+  function traitTierName(tier) {
+    return ["inactive", "bronze", "silver", "gold"][tier] || "inactive";
+  }
+
+  function isNamedTrait(type) {
+    return !!(TRAIT_INFO[type] && type !== "_other");
+  }
+
+  function traitBonusesFor(unit) {
+    const counts = uniqueTypeCounts(unit.side);
+    const n = counts[unit.type] || 0;
+    const tier = traitTier(n);
+    const named = isNamedTrait(unit.type);
+    const b = {
+      atkPct: 0,
+      hpPct: 0,
+      manaOnHit: 10,
+      lifesteal: 0,
+      asPct: 0,
+      startShieldPct: 0,
+      revivePct: unit.type === "Zombie" ? 0.3 : 0,
+    };
+    if (tier < 1) return b;
+
+    if (unit.type === "Dragon") {
+      b.atkPct = [0, 0.15, 0.3, 0.5][tier];
+    } else if (unit.type === "Spellcaster") {
+      b.manaOnHit = [10, 20, 40, 60][tier];
+    } else if (unit.type === "Warrior") {
+      b.hpPct = [0, 0.2, 0.4, 0.6][tier];
+    } else if (unit.type === "Fiend") {
+      b.lifesteal = [0, 0.1, 0.2, 0.3][tier];
+    } else if (unit.type === "Beast" || unit.type === "Winged Beast") {
+      b.asPct = [0, 0.15, 0.3, 0.5][tier];
+    } else if (unit.type === "Machine") {
+      b.startShieldPct = [0, 0.15, 0.3, 0.5][tier];
+    } else if (unit.type === "Zombie") {
+      b.revivePct = [0.3, 0.2, 0.35, 0.5][tier];
+    } else if (!named) {
+      const p = [0, 0.1, 0.2, 0.3][tier];
+      b.atkPct = p;
+      b.hpPct = p;
+    }
+    return b;
+  }
+
+  function streakGoldBonus() {
+    const s = Math.max(state.winStreak, state.lossStreak);
+    if (s >= 4) return 3;
+    if (s >= 3) return 2;
+    if (s >= 2) return 1;
+    return 0;
   }
 
   function uid() { return state.uid++; }
@@ -1077,8 +1373,32 @@
   }
 
   function shopPoolForRound(round) {
+    // Soft floor for enemy scaling; player shop uses odds instead
     const maxCost = Math.min(5, 1 + Math.floor((round + 1) / 2));
     return state.roster.filter((c) => c.cost <= maxCost);
+  }
+
+  function pickShopCard() {
+    const odds = shopOddsForLevel(state.level);
+    const total = odds.reduce((a, b) => a + b, 0) || 1;
+    let r = Math.random() * total;
+    let bucket = 0;
+    for (let i = 0; i < odds.length; i++) {
+      r -= odds[i];
+      if (r <= 0) { bucket = i; break; }
+    }
+    let pool = state.roster.filter((c) => bucketForMonsterLevel(c.level) === bucket);
+    if (!pool.length) {
+      // fallback: nearest non-empty bucket
+      for (let d = 1; d <= 3 && !pool.length; d++) {
+        pool = state.roster.filter((c) => {
+          const b = bucketForMonsterLevel(c.level);
+          return b === bucket - d || b === bucket + d;
+        });
+      }
+    }
+    if (!pool.length) pool = state.roster.slice();
+    return pool[Math.floor(Math.random() * pool.length)];
   }
 
   function weightedPick(pool) {
@@ -1093,9 +1413,8 @@
   }
 
   function rollShop() {
-    const pool = shopPoolForRound(state.round);
-    if (!pool.length) { state.shop = []; return; }
-    state.shop = Array.from({ length: 5 }, () => makeInstance(weightedPick(pool), 1));
+    if (!state.roster.length) { state.shop = []; return; }
+    state.shop = Array.from({ length: 5 }, () => makeInstance(pickShopCard(), 1));
   }
 
   function firstEmptyBench() {
@@ -1155,20 +1474,16 @@
     return true;
   }
 
-  function typeCounts(side) {
-    const counts = {};
-    allUnits(side).forEach((c) => {
-      counts[c.type] = (counts[c.type] || 0) + 1;
-    });
-    return counts;
-  }
-
   function effectiveAtk(unit) {
     if (!unit) return 0;
-    const counts = typeCounts(unit.side);
-    let atk = unit.atk;
-    if ((counts[unit.type] || 0) >= 2) atk += raceMeta(unit.type).bonusAtk;
-    return atk;
+    const b = traitBonusesFor(unit);
+    return Math.round(unit.atk * (1 + b.atkPct));
+  }
+
+  function effectiveMaxHp(unit) {
+    if (!unit) return 500;
+    const b = traitBonusesFor(unit);
+    return Math.max(500, Math.round(Math.max(500, unit.def) * (1 + b.hpPct)));
   }
 
   function escapeHtml(s) {
@@ -1349,30 +1664,75 @@
       el.playerBoard.querySelectorAll(".hex").forEach((hex) => {
         const r = +hex.dataset.row;
         const c = +hex.dataset.col;
-        if (!getCell(r, c) && playerCount() < MAX_BOARD) hex.classList.add("valid-target");
+        if (!getCell(r, c) && playerCount() < boardCap()) hex.classList.add("valid-target");
         else if (getCell(r, c) && getCell(r, c).side === "player") hex.classList.add("valid-target");
       });
     }
   }
 
-  function renderBonuses() {
-    const counts = typeCounts("player");
-    el.bonuses.innerHTML = "";
-    Object.keys(counts).forEach((t) => {
-      if (counts[t] >= 2) {
-        const meta = raceMeta(t);
-        const tag = document.createElement("span");
-        tag.className = "bonus-tag";
-        tag.textContent = meta.emoji + " " + t + " +" + meta.bonusAtk + " ATK";
-        el.bonuses.appendChild(tag);
-      }
+  function renderTraits() {
+    const counts = uniqueTypeCounts("player");
+    const types = Object.keys(counts).sort((a, b) => counts[b] - counts[a] || a.localeCompare(b));
+    el.traitBar.innerHTML = "";
+    if (!types.length) {
+      const empty = document.createElement("span");
+      empty.className = "hint";
+      empty.textContent = "Traits appear when you place monsters";
+      el.traitBar.appendChild(empty);
+      return;
+    }
+    types.forEach((t) => {
+      const n = counts[t];
+      const tier = traitTier(n);
+      const next = TRAIT_THRESHOLDS.find((th) => n < th) || 6;
+      const info = TRAIT_INFO[t] || TRAIT_INFO._other;
+      const chip = document.createElement("button");
+      chip.type = "button";
+      chip.className = "trait-chip " + traitTierName(tier) + (tier < 1 ? " inactive" : "");
+      chip.innerHTML = '<span class="timg">' + info.emoji + "</span><span>" +
+        escapeHtml(t) + " " + n + "/" + next + "</span>";
+      chip.addEventListener("click", () => showTraitPopup(t, n, tier));
+      el.traitBar.appendChild(chip);
     });
+  }
+
+  function showTraitPopup(type, count, tier) {
+    const info = TRAIT_INFO[type] || TRAIT_INFO._other;
+    $("traitTitle").textContent = info.emoji + " " + type;
+    const active = tier > 0 ? ("Active: " + ["", "Bronze", "Silver", "Gold"][tier] + " (" + count + ")") : ("Inactive (" + count + " unique)");
+    $("traitDesc").innerHTML = "<p style='margin:0 0 10px;color:var(--cyan);font-weight:700'>" + active +
+      "</p><p style='margin:0 0 6px;color:var(--muted);font-size:0.8rem'>Only unique monsters count.</p><ul style='margin:0;padding-left:1.1em'>" +
+      info.lines.map((l) => "<li style='margin-bottom:4px'>" + l + "</li>").join("") + "</ul>";
+    el.traitOverlay.classList.add("open");
+  }
+
+  function showOddsPopup() {
+    const odds = shopOddsForLevel(state.level);
+    const labels = ["Level 1–2", "Level 3–4", "Level 5–6", "Level 7–8+"];
+    $("oddsTitle").textContent = "Shop Odds · Lv " + state.level;
+    $("oddsBody").innerHTML = labels.map((lab, i) =>
+      "<div style='display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line);font-weight:700'>" +
+      "<span>" + lab + "</span><span style='color:var(--gold)'>" + odds[i] + "%</span></div>"
+    ).join("") +
+      "<p style='margin:12px 0 0;font-size:0.82rem;color:var(--muted)'>Higher player levels roll stronger monsters more often.</p>";
+    el.oddsOverlay.classList.add("open");
   }
 
   function renderHUD() {
     el.lp.textContent = state.lp;
     el.gold.textContent = state.gold;
     el.round.textContent = state.round;
+    el.levelNum.textContent = String(state.level);
+    el.boardCap.textContent = String(boardCap());
+    const need = xpNeeded();
+    if (state.level >= 9) {
+      el.xpText.textContent = "MAX";
+      el.xpFill.style.width = "100%";
+    } else {
+      el.xpText.textContent = state.xp + "/" + need + " XP";
+      el.xpFill.style.width = Math.min(100, (state.xp / Math.max(1, need)) * 100) + "%";
+    }
+    el.btnBuyXp.disabled = state.phase !== "shop" || state.gold < 4 || state.level >= 9;
     el.fallbackNotice.classList.toggle("show", !!state.usedFallback);
     const canSell = !!(state.selected && state.selected.from === "bench" && state.bench[state.selected.index]);
     el.sellBar.classList.toggle("show", canSell);
@@ -1388,14 +1748,15 @@
     el.btnSpeed.textContent = state.fightSpeed + "x";
     el.shopBlock.style.opacity = state.phase === "fight" ? "0.45" : "1";
     el.shopActions.style.opacity = state.phase === "fight" ? "0.45" : "1";
+    $("levelRow").style.opacity = state.phase === "fight" ? "0.45" : "1";
   }
 
   function render() {
     renderHUD();
+    renderTraits();
     renderShop();
     renderBoards();
     renderBench();
-    renderBonuses();
   }
 
   function buyCard(index) {
@@ -1466,7 +1827,7 @@
         card.side = "player";
         setCell(row, col, card);
       } else if (!unit) {
-        if (playerCount() >= MAX_BOARD) { toast("Max " + MAX_BOARD + " on board"); return; }
+        if (playerCount() >= boardCap()) { toast("Max " + boardCap() + " on board (level up!)"); return; }
         state.bench[state.selected.index] = null;
         card.side = "player";
         setCell(row, col, card);
@@ -1584,7 +1945,7 @@
           state.bench[src.index] = occ;
           occ.side = null;
         } else {
-          if (playerCount() >= MAX_BOARD) { toast("Max " + MAX_BOARD + " on board"); render(); return; }
+          if (playerCount() >= boardCap()) { toast("Max " + boardCap() + " on board (level up!)"); render(); return; }
           state.bench[src.index] = null;
         }
         unit.side = "player";
@@ -1859,11 +2220,17 @@
       if (!opts.noMana) gainMana(target, 5);
     }
     syncCombatBars(target);
-    if (opts.lifesteal && attacker && dmg > 0) {
-      const heal = Math.round(dmg * opts.lifesteal);
-      attacker.hp = Math.min(attacker.maxHp, attacker.hp + heal);
-      showFloatText(attacker.uid, "+" + heal, true);
-      syncCombatBars(attacker);
+    let steal = opts.lifesteal || 0;
+    if (attacker && !attacker.dead) {
+      steal = Math.max(steal, traitBonusesFor(attacker).lifesteal || 0);
+    }
+    if (steal > 0 && attacker && dmg > 0) {
+      const heal = Math.round(dmg * steal);
+      if (heal > 0) {
+        attacker.hp = Math.min(attacker.maxHp, attacker.hp + heal);
+        showFloatText(attacker.uid, "+" + heal, true);
+        syncCombatBars(attacker);
+      }
     }
     if (target.hp <= 0) {
       handleDeath(target, attacker);
@@ -1872,10 +2239,11 @@
   }
 
   function handleDeath(unit, killer) {
-    if (unit.canRevive && !unit.revived) {
+    const revivePct = traitBonusesFor(unit).revivePct;
+    if (unit.type === "Zombie" && !unit.revived && revivePct > 0) {
       unit.revived = true;
       unit.canRevive = false;
-      unit.hp = Math.max(1, Math.round(unit.maxHp * 0.3));
+      unit.hp = Math.max(1, Math.round(unit.maxHp * revivePct));
       unit.mana = 0;
       showAbilityName(unit, "Undying");
       showFloatText(unit.uid, "REVIVE", true);
@@ -1902,7 +2270,9 @@
 
   function attackInterval(unit) {
     let ms = ATTACK_MS;
-    if ((unit.hasteUntil || 0) > performance.now()) ms = ATTACK_MS / 1.5;
+    const asPct = traitBonusesFor(unit).asPct || 0;
+    if (asPct > 0) ms = ATTACK_MS / (1 + asPct);
+    if ((unit.hasteUntil || 0) > performance.now()) ms = ms / 1.5;
     return ms;
   }
 
@@ -1982,7 +2352,8 @@
     startLunge(unit, target);
     const dmg = Math.max(1, Math.round(effectiveAtk(unit) / 4));
     dealDamage(unit, target, dmg);
-    gainMana(unit, 10);
+    const manaGain = traitBonusesFor(unit).manaOnHit || 10;
+    gainMana(unit, manaGain);
     if (!unit.dead && unit.mana >= 100) {
       castAbilityFixed(unit, closestEnemy(unit) || target);
     }
@@ -2022,10 +2393,11 @@
     state.fightSpeed = 1;
     placeEnemy();
     allUnits().forEach((u) => {
-      u.maxHp = Math.max(500, u.def);
+      const tb = traitBonusesFor(u);
+      u.maxHp = effectiveMaxHp(u);
       u.hp = u.maxHp;
       u.mana = 0;
-      u.shield = 0;
+      u.shield = Math.round(u.maxHp * (tb.startShieldPct || 0));
       u.stunUntil = 0;
       u.hasteUntil = 0;
       u.dead = false;
@@ -2143,6 +2515,15 @@
     }
 
     // Clear enemy; gather player survivors and reseat on player half
+    // Update streaks before reseating
+    if (victory) {
+      state.winStreak += 1;
+      state.lossStreak = 0;
+    } else {
+      state.lossStreak += 1;
+      state.winStreak = 0;
+    }
+
     const survivorsP = allUnits("player").filter((u) => !u.dead).map((u) => {
       setCell(u.row, u.col, null);
       u.maxHp = Math.max(500, u.def);
@@ -2198,14 +2579,28 @@
       return;
     }
 
-    const gained = 4 + Math.min(state.round, 6);
+    const base = 4 + Math.min(state.round, 6);
+    const interest = Math.min(5, Math.floor(state.gold / 10));
+    const streak = streakGoldBonus();
+    const gained = base + interest + streak;
     state.gold += gained;
-    logLine('<span class="sys">Round clear! +' + gained + "🪙</span>");
+    addXp(2);
+    const parts = ["base " + base];
+    if (interest) parts.push("interest +" + interest);
+    if (streak) parts.push("streak +" + streak);
+    logLine('<span class="sys">Income +' + gained + "🪙 (" + parts.join(", ") + ") · +2 XP</span>");
     toast("+" + gained + " gold");
     state.round += 1;
     state.phase = "shop";
     state.fightSpeed = 1;
     rollShop();
+    render();
+  }
+
+  function buyXp() {
+    if (state.phase !== "shop" || state.gold < 4 || state.level >= 9) return;
+    state.gold -= 4;
+    addXp(4);
     render();
   }
 
@@ -2282,19 +2677,25 @@
     state.lp = 8000;
     state.gold = 10;
     state.round = 1;
+    state.level = 1;
+    state.xp = 0;
+    state.winStreak = 0;
+    state.lossStreak = 0;
     state.phase = "shop";
     state.bench = [null, null, null, null, null];
     state.grid = {};
     state.selected = null;
     el.log.innerHTML = "";
     el.endOverlay.classList.remove("open");
+    el.resultsBanner.classList.remove("show");
+    el.traitOverlay.classList.remove("open");
+    el.oddsOverlay.classList.remove("open");
     el.startOverlay.classList.remove("open");
     el.app.classList.add("visible");
     rollShop();
     const modeLabel = state.mode === "classic" && !usedFallback ? "Classic" : "Original";
-    logLine('<span class="sys">Duel start (' + modeLabel + ") — 8000 LP · 10 gold · " + roster.length + " monsters</span>");
+    logLine('<span class="sys">Duel start (' + modeLabel + ") — Lv1 · 8000 LP · 10 gold · " + roster.length + " monsters</span>");
     render();
-    // Relayout hexes after app visible (needs width)
     requestAnimationFrame(() => renderBoards());
   }
 
@@ -2359,6 +2760,18 @@
   $("btnResultsOk").addEventListener("click", dismissResults);
   $("btnSell").addEventListener("click", sellSelected);
   $("btnRestart").addEventListener("click", showStartScreen);
+  el.btnBuyXp.addEventListener("click", buyXp);
+  $("btnLevel").addEventListener("click", () => {
+    if (state.phase === "shop") showOddsPopup();
+  });
+  $("btnCloseTrait").addEventListener("click", () => el.traitOverlay.classList.remove("open"));
+  $("btnCloseOdds").addEventListener("click", () => el.oddsOverlay.classList.remove("open"));
+  el.traitOverlay.addEventListener("click", (e) => {
+    if (e.target === el.traitOverlay) el.traitOverlay.classList.remove("open");
+  });
+  el.oddsOverlay.addEventListener("click", (e) => {
+    if (e.target === el.oddsOverlay) el.oddsOverlay.classList.remove("open");
+  });
   window.addEventListener("resize", () => {
     if (state.phase === "shop" || state.phase === "fight") renderBoards();
   });
