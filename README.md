@@ -11,13 +11,10 @@ Open `index.html` in a browser (or serve the folder locally). No build step or f
 
 ## Play
 
-- Start with **8000 LP** and **10 gold**
-- Shop cost by Level: 1–2 → 1🪙, 3–4 → 2🪙, 5–6 → 3🪙, 7 → 4🪙, 8+ → 5🪙
-- Bench holds 5; place up to 5 units on a **4×7 hex board** (your half)
-- **3 copies** of the same monster fuse into a stronger ★★ card
-- **2+ of the same Type** grant an ATK type bonus
-- Tokens use Type emoji + Attribute color rings (no card images)
-- **FIGHT**: units slide toward foes, lunge to attack, and cast Type abilities at full mana
-- HP = DEF (min 500); basic damage = ATK ÷ 4; blue mana bar; 1x/2x speed control
-- Surviving enemies deal LP damage (200 × Level each); results banner after each fight
-- Earn gold after each round — **0 LP** ends the duel 
+- Start with **8000 LP** and **10 gold** at **Level 1** (board slots = level, up to 9)
+- **Buy XP** (4🪙 → 4 XP) or earn **+2 XP** after each round; tap level for shop odds
+- Shop weights stronger monsters as you level; card cost still follows monster Level
+- Bench holds 5; place on a **4×7 hex board** (your half)
+- **3 copies** fuse into ★★; trait bar counts **unique** Types (2/4/6 → bronze/silver/gold)
+- **FIGHT**: slide, lunge, mana ultimates; 1x/2x speed; results banner
+- Income: base gold + interest (≤5) + win/loss streak bonus — **0 LP** ends the duel 
