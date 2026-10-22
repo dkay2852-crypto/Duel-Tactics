@@ -36,7 +36,8 @@
       --bench-h: 52px;
       --fight-h: 52px;
       --econ-h: 44px;
-      --shop-h: 78px;
+      --shop-h: 100px;
+      --board-tilt: 50deg;
     }
 
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -225,12 +226,14 @@
       position: relative;
       display: flex;
       flex-direction: column;
+      perspective: 920px;
+      perspective-origin: 50% 18%;
       background:
         radial-gradient(ellipse at 50% 30%, rgba(40, 70, 50, 0.35), transparent 55%),
         linear-gradient(180deg, rgba(20, 36, 28, 0.95), rgba(12, 24, 36, 0.95));
       border: 1px solid #2a5040;
       border-radius: 14px;
-      padding: 4px 2px;
+      padding: 4px 2px 10px;
       overflow: hidden;
     }
     .hex-stage {
@@ -241,11 +244,16 @@
       justify-content: center;
       position: relative;
       width: 100%;
+      transform: rotateX(var(--board-tilt));
+      transform-style: preserve-3d;
+      transform-origin: 50% 55%;
+      will-change: transform;
     }
     .hex-board {
       position: relative;
       width: 100%;
       flex: 0 0 auto;
+      transform-style: preserve-3d;
     }
     .hex-board + .hex-board { margin-top: 2px; }
     .combat-layer {
@@ -253,7 +261,8 @@
       inset: 0;
       pointer-events: none;
       z-index: 12;
-      overflow: hidden;
+      overflow: visible;
+      transform-style: preserve-3d;
     }
     .combat-token {
       position: absolute;
@@ -261,9 +270,11 @@
       will-change: transform;
       pointer-events: none;
       z-index: 2;
+      transform-style: preserve-3d;
     }
-    .combat-token .token { cursor: default; animation: none; }
-    .combat-token.dying .token { animation: tokenDie 0.45s ease forwards; }
+    .combat-token .token { cursor: default; }
+    .combat-token.dying .token.holo { animation: none; }
+    .combat-token.dying .holo-billboard { animation: holoShatter 0.55s steps(6, end) forwards; }
     .combat-token .ability-tag {
       position: absolute; left: 50%; top: -12px; transform: translateX(-50%);
       white-space: nowrap; font-size: 0.5rem; font-weight: 800; color: #fff;
@@ -282,8 +293,7 @@
       position: absolute;
       width: var(--hex-w);
       height: var(--hex-h);
-      clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-      background: rgba(30, 55, 48, 0.85);
+      background: transparent;
       border: none;
       display: flex;
       align-items: center;
@@ -291,14 +301,19 @@
       cursor: pointer;
       touch-action: manipulation;
       transition: filter 0.12s;
+      transform-style: preserve-3d;
+      overflow: visible;
     }
     .hex::before {
       content: "";
       position: absolute;
-      inset: 2px;
+      inset: 0;
       clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-      background: linear-gradient(160deg, rgba(60, 100, 80, 0.45), rgba(20, 40, 35, 0.7));
+      background:
+        linear-gradient(160deg, rgba(60, 100, 80, 0.55), rgba(20, 40, 35, 0.85)),
+        rgba(30, 55, 48, 0.9);
       pointer-events: none;
+      z-index: 0;
     }
     .hex.enemy-hex::before {
       background: linear-gradient(160deg, rgba(90, 50, 60, 0.4), rgba(35, 20, 30, 0.7));
@@ -334,7 +349,7 @@
     }
     .token:active { cursor: grabbing; }
     .token.selected { outline: 2px solid var(--cyan); outline-offset: 1px; }
-    .token.dragging { opacity: 0.85; z-index: 100; transform: scale(1.08); pointer-events: none; }
+    .token.dragging { opacity: 0.85; z-index: 100; pointer-events: none; }
     .token .ring {
       position: absolute; inset: 0; border-radius: 50%;
       border: 2px solid #888; pointer-events: none;
@@ -352,7 +367,7 @@
       color: var(--gold); line-height: 1; z-index: 1; letter-spacing: -1px;
     }
     .token .bars {
-      position: absolute; left: 10%; right: 10%; bottom: 2px; z-index: 2;
+      position: absolute; left: 10%; right: 10%; bottom: 2px; z-index: 5;
       display: flex; flex-direction: column; gap: 1px;
     }
     .token .hp-bar, .token .mana-bar {
@@ -367,7 +382,7 @@
       background: linear-gradient(90deg, #2060e0, #50c8ff); border-radius: 2px;
     }
     .token.star2 { box-shadow: 0 0 8px rgba(232, 184, 74, 0.55), 0 2px 6px rgba(0,0,0,0.45); }
-    .token.hit { animation: tokenHit 0.28s ease; }
+    .token.hit .holo-billboard, .token.hit { animation: holoHitFlash 0.28s ease; }
     .token.stunned { filter: grayscale(0.4) brightness(1.15); }
     .token .item-icons {
       position: absolute;
@@ -378,17 +393,93 @@
       display: flex;
       flex-direction: column;
       gap: 0;
-      z-index: 3;
+      z-index: 6;
       font-size: 0.42rem;
       line-height: 1;
       pointer-events: none;
-      max-height: 55%;
+      max-height: 40%;
       overflow: hidden;
     }
-    .token .bars { z-index: 5; }
+    /* Hologram billboard (board / combat) */
+    .token.holo {
+      width: calc(var(--hex-w) * 0.7);
+      height: calc(var(--hex-w) * 1.05);
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
+      transform: rotateX(calc(-1 * var(--board-tilt))) translateZ(14px);
+      transform-style: preserve-3d;
+      animation: holoRise 0.42s cubic-bezier(0.2, 0.85, 0.3, 1) both;
+    }
+    .token.holo.star2 { box-shadow: none; }
+    .token.holo .holo-shadow {
+      position: absolute;
+      left: 12%;
+      right: 12%;
+      bottom: 2%;
+      height: 18%;
+      border-radius: 50%;
+      background: radial-gradient(ellipse at center, rgba(0,0,0,0.55) 0%, transparent 70%);
+      transform: rotateX(80deg) translateZ(-2px);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .token.holo .holo-billboard {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      height: 78%;
+      border-radius: 4px;
+      overflow: hidden;
+      background: #0a1520;
+      border: 1px solid rgba(140, 210, 255, 0.55);
+      box-shadow:
+        0 0 10px rgba(80, 180, 255, 0.55),
+        0 0 2px rgba(180, 230, 255, 0.8),
+        inset 0 0 12px rgba(60, 160, 255, 0.25);
+      transform-origin: 50% 100%;
+    }
+    .token.holo .holo-art {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 20%;
+      display: block;
+      image-rendering: auto;
+    }
+    .token.holo .holo-billboard .emoji {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+      font-size: calc(var(--hex-w) * 0.42);
+      background: linear-gradient(160deg, #1a3048, #0c1828);
+    }
+    .token.holo .stars {
+      position: absolute;
+      left: 0; right: 0; bottom: 1px;
+      text-align: center;
+      font-size: calc(var(--hex-w) * 0.16);
+      text-shadow: 0 1px 2px #000;
+      z-index: 3;
+    }
+    .token.holo .bars {
+      top: -10px;
+      bottom: auto;
+      left: 4%;
+      right: 4%;
+    }
+    .token.holo .hp-bar, .token.holo .mana-bar { height: 3px; }
+    .token.holo.attacking .holo-billboard {
+      animation: holoLean 0.22s ease;
+    }
     .ghost-token {
       position: fixed; z-index: 200; pointer-events: none; opacity: 0.9;
-      transform: translate(-50%, -50%) scale(1.1);
+      transform: translate(-50%, -50%) scale(1.05);
+    }
+    .ghost-token.holo {
+      transform: translate(-50%, -50%) rotateX(calc(-1 * var(--board-tilt))) scale(1.05);
     }
 
     .bench-wrap {
@@ -422,6 +513,58 @@
     .bench-slot.valid-target { border-color: var(--gold); background: rgba(232, 184, 74, 0.12); }
     .bench-slot .token { width: 36px; height: 36px; }
     .bench-slot .token .emoji { font-size: 0.95rem; }
+    .bench-slot .bench-card {
+      width: 100%;
+      height: 100%;
+      min-height: 46px;
+      display: flex;
+      flex-direction: column;
+      border-radius: 6px;
+      overflow: hidden;
+      background: #142433;
+      border: 1px solid var(--gold-dim);
+      pointer-events: none;
+    }
+    .bench-slot .bench-art, .bench-slot .bench-emoji {
+      flex: 1 1 auto;
+      min-height: 0;
+      width: 100%;
+      object-fit: cover;
+      object-position: center 18%;
+      display: block;
+    }
+    .bench-slot .bench-emoji {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      background: #1a3040;
+    }
+    .bench-slot .bench-meta {
+      flex: 0 0 auto;
+      padding: 1px 2px 2px;
+      background: rgba(0,0,0,0.55);
+      text-align: center;
+    }
+    .bench-slot .bench-meta .n {
+      display: block;
+      font-size: 0.45rem;
+      font-weight: 800;
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      line-height: 1.1;
+    }
+    .bench-slot .bench-meta .s {
+      display: block;
+      font-size: 0.42rem;
+      font-weight: 800;
+      color: var(--gold);
+      line-height: 1.1;
+    }
+    .bench-slot .bench-meta .s .atk { color: #ff8a8a; }
+    .bench-slot .bench-meta .s .def { color: #8ab8ff; }
     .item-bench {
       display: flex; flex-wrap: nowrap; gap: 4px;
       overflow-x: auto; -webkit-overflow-scrolling: touch;
@@ -634,14 +777,35 @@
     .card.attr-FIRE { background: linear-gradient(165deg, #ffe8d8, #b03828); border-color: #801818; color: #200808; }
     .card.attr-WIND { background: linear-gradient(165deg, #e8f8e0, #408838); border-color: #204818; color: #0c1c08; }
     .card.attr-DIVINE { background: linear-gradient(165deg, #fff6d0, #c89820); border-color: #806010; color: #201808; }
-    .card .emoji { font-size: 1.05rem; text-align: center; line-height: 1.05; margin-top: 10px; }
+    .card .art-wrap {
+      flex: 1 1 auto;
+      min-height: 42px;
+      margin-top: 12px;
+      border-radius: 4px;
+      overflow: hidden;
+      background: rgba(0,0,0,0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .card .card-art {
+      width: 100%;
+      height: 100%;
+      max-height: 52px;
+      object-fit: cover;
+      object-position: center 18%;
+      display: block;
+    }
+    .card .emoji {
+      font-size: 1.15rem; text-align: center; line-height: 1.05;
+    }
     .card .name {
       font-size: 12px;
       font-weight: 800;
       text-align: center;
       line-height: 1.15;
-      min-height: 1.35em;
-      max-height: 2.4em;
+      min-height: 1.2em;
+      max-height: 2.3em;
       overflow: hidden;
       width: 100%;
       padding: 0 1px;
@@ -818,6 +982,50 @@
     }
     .ts-stats b { color: var(--gold); }
     .ts-items { font-size: 0.8rem; color: #e8d8ff; }
+    .ts-art {
+      width: 100%;
+      max-height: 220px;
+      object-fit: contain;
+      border-radius: 10px;
+      margin: 0 0 10px;
+      background: #0a1520;
+      box-shadow: 0 0 16px rgba(80,180,255,0.35);
+    }
+    .card-view-modal { text-align: center; }
+    .card-view-modal img {
+      width: min(260px, 70vw);
+      height: auto;
+      border-radius: 12px;
+      box-shadow: 0 8px 28px rgba(0,0,0,0.55), 0 0 18px rgba(80,180,255,0.35);
+      background: #0a1520;
+    }
+    .card-view-modal .cv-emoji {
+      font-size: 4rem;
+      line-height: 1.2;
+      margin: 12px 0;
+    }
+    .card-view-modal .cv-name {
+      font-family: "Bungee", cursive;
+      font-size: 1.05rem;
+      color: var(--gold);
+      margin: 10px 0 4px;
+    }
+    .card-view-modal .cv-sub {
+      color: var(--muted);
+      font-weight: 700;
+      font-size: 0.82rem;
+      margin-bottom: 8px;
+    }
+    .card-view-modal .cv-stats {
+      display: flex;
+      justify-content: center;
+      gap: 18px;
+      font-weight: 800;
+      margin-bottom: 14px;
+    }
+    .card-view-modal .cv-stats .atk { color: #ff8a8a; }
+    .card-view-modal .cv-stats .def { color: #8ab8ff; }
+    .card-view-actions { display: grid; gap: 8px; }
 
     .toast {
       position: fixed; left: 50%; bottom: calc(18px + var(--safe-b));
@@ -846,6 +1054,44 @@
     }
     @keyframes tokenDie {
       to { transform: scale(0.3); opacity: 0; }
+    }
+    @keyframes holoRise {
+      0% {
+        opacity: 0;
+        transform: rotateX(calc(-1 * var(--board-tilt))) translateZ(0) translateY(18px) scale(0.7);
+        filter: brightness(2.2) drop-shadow(0 0 12px #5ec8ff);
+      }
+      60% { filter: brightness(1.3) drop-shadow(0 0 10px #5ec8ff); }
+      100% {
+        opacity: 1;
+        transform: rotateX(calc(-1 * var(--board-tilt))) translateZ(14px) translateY(0) scale(1);
+        filter: none;
+      }
+    }
+    @keyframes holoLean {
+      0% { transform: rotateX(0); }
+      40% { transform: rotateX(28deg) scaleY(1.04); filter: brightness(1.25); }
+      100% { transform: rotateX(0); }
+    }
+    @keyframes holoHitFlash {
+      0%, 100% { filter: brightness(1); }
+      30% { filter: brightness(3.2) contrast(1.4); }
+      55% { filter: brightness(1.6); }
+    }
+    @keyframes holoShatter {
+      0% { opacity: 1; filter: brightness(1); transform: scale(1); }
+      15% { filter: brightness(2.8); }
+      35% {
+        opacity: 1;
+        filter: brightness(3.5) contrast(2);
+        clip-path: polygon(0 0, 35% 0, 30% 40%, 0 45%, 0 0, 55% 0, 100% 0, 100% 30%, 60% 35%, 55% 0, 0 55%, 40% 50%, 45% 100%, 0 100%, 70% 40%, 100% 45%, 100% 100%, 65% 100%);
+      }
+      100% {
+        opacity: 0;
+        transform: scale(1.35) translateY(-8px);
+        filter: brightness(4);
+        clip-path: polygon(0 0, 0 0, 10% 20%, 0 0, 40% 0, 50% 0, 100% 0, 90% 10%, 50% 15%, 40% 0, 0 60%, 20% 50%, 25% 100%, 0 100%, 80% 30%, 100% 40%, 100% 100%, 70% 100%);
+      }
     }
     @keyframes abilityPop {
       0% { opacity: 0; transform: translateX(-50%) translateY(4px); }
@@ -1281,6 +1527,19 @@
     </div>
   </div>
 
+  <div class="overlay" id="cardViewOverlay">
+    <div class="modal card-view-modal">
+      <div id="cardViewArt"></div>
+      <div class="cv-name" id="cardViewName"></div>
+      <div class="cv-sub" id="cardViewSub"></div>
+      <div class="cv-stats" id="cardViewStats"></div>
+      <div class="card-view-actions">
+        <button type="button" class="btn btn-primary btn-wide" id="btnCardViewBuy" style="display:none">Buy</button>
+        <button type="button" class="btn btn-ghost btn-wide" id="btnCardViewClose">Close</button>
+      </div>
+    </div>
+  </div>
+
   <div class="overlay" id="endOverlay">
     <div class="modal">
       <h2 id="endTitle">Defeat</h2>
@@ -1322,7 +1581,7 @@
 (function () {
   "use strict";
 
-  const CACHE_KEY = "duelTacticsClassicV1";
+  const CACHE_KEY = "duelTacticsClassicV2";
   const CACHE_MS = 7 * 24 * 60 * 60 * 1000;
   const API_SETS = ["Legend of Blue Eyes White Dragon", "Metal Raiders"];
   const HEX_ROWS = 4;
@@ -1673,6 +1932,12 @@
     btnLockShop: $("btnLockShop"),
     tokenStatsOverlay: $("tokenStatsOverlay"),
     tokenStatsBody: $("tokenStatsBody"),
+    cardViewOverlay: $("cardViewOverlay"),
+    cardViewArt: $("cardViewArt"),
+    cardViewName: $("cardViewName"),
+    cardViewSub: $("cardViewSub"),
+    cardViewStats: $("cardViewStats"),
+    btnCardViewBuy: $("btnCardViewBuy"),
   };
 
   function raceMeta(race) {
@@ -1963,6 +2228,9 @@
       atkCd: 0,
       moveCd: 0,
       items: [],
+      imgSmall: base.imgSmall || null,
+      imgCropped: base.imgCropped || null,
+      apiId: base.apiId || null,
     };
   }
 
@@ -2198,29 +2466,121 @@
     }
   }
 
-  function createTokenEl(unit) {
+  function cardArtSrc(card, kind) {
+    if (!card) return null;
+    if (kind === "cropped") return card.imgCropped || card.imgSmall || null;
+    return card.imgSmall || card.imgCropped || null;
+  }
+
+  function bindArtFallback(img, emoji) {
+    if (!img) return;
+    img.addEventListener("error", () => {
+      const fb = document.createElement("div");
+      fb.className = img.dataset.fallbackClass || "emoji";
+      fb.textContent = emoji || "🃏";
+      if (img.parentNode) img.parentNode.replaceChild(fb, img);
+    }, { once: true });
+  }
+
+  function createTokenEl(unit, opts) {
+    opts = opts || {};
+    const asHolo = opts.holo !== false; // board default holo
     const meta = raceMeta(unit.type);
     const attr = String(unit.attribute || "DARK").toUpperCase();
     const tok = document.createElement("div");
-    tok.className = "token attr-" + attr + (unit.stars === 2 ? " star2" : "");
+    tok.className = "token attr-" + attr + (unit.stars === 2 ? " star2" : "") + (asHolo ? " holo" : "");
     tok.dataset.uid = String(unit.uid);
     const hpPct = Math.max(0, Math.min(100, ((unit.hp || unit.maxHp) / (unit.maxHp || 1)) * 100));
     const manaPct = Math.max(0, Math.min(100, (unit.mana || 0)));
     const icons = unitItems(unit).map((it) => itemDef(it.defId).emoji).join("");
-    tok.innerHTML =
-      (icons ? '<div class="item-icons">' + icons + "</div>" : "") +
-      '<div class="ring"></div>' +
-      '<div class="emoji">' + meta.emoji + "</div>" +
-      '<div class="stars">' + (unit.stars === 2 ? "★★" : "★") + "</div>" +
-      '<div class="bars">' +
-        '<div class="hp-bar"><div class="hp-fill" style="width:' + hpPct + '%"></div></div>' +
-        '<div class="mana-bar"><div class="mana-fill" style="width:' + manaPct + '%"></div></div>' +
-      "</div>";
+    const src = cardArtSrc(unit, "cropped");
+    let face;
+    if (src) {
+      face = '<img class="holo-art" src="' + src + '" alt="" draggable="false" data-fallback-class="emoji" />';
+    } else {
+      face = '<div class="emoji">' + meta.emoji + "</div>";
+    }
+    if (asHolo) {
+      tok.innerHTML =
+        (icons ? '<div class="item-icons">' + icons + "</div>" : "") +
+        '<div class="holo-shadow"></div>' +
+        '<div class="holo-billboard">' + face +
+          '<div class="stars">' + (unit.stars === 2 ? "★★" : "★") + "</div>" +
+        "</div>" +
+        '<div class="bars">' +
+          '<div class="hp-bar"><div class="hp-fill" style="width:' + hpPct + '%"></div></div>' +
+          '<div class="mana-bar"><div class="mana-fill" style="width:' + manaPct + '%"></div></div>' +
+        "</div>";
+      const img = tok.querySelector("img.holo-art");
+      bindArtFallback(img, meta.emoji);
+    } else {
+      tok.innerHTML =
+        (icons ? '<div class="item-icons">' + icons + "</div>" : "") +
+        '<div class="ring"></div>' +
+        '<div class="emoji">' + meta.emoji + "</div>" +
+        '<div class="stars">' + (unit.stars === 2 ? "★★" : "★") + "</div>" +
+        '<div class="bars">' +
+          '<div class="hp-bar"><div class="hp-fill" style="width:' + hpPct + '%"></div></div>' +
+          '<div class="mana-bar"><div class="mana-fill" style="width:' + manaPct + '%"></div></div>' +
+        "</div>";
+    }
     if (state.selected && state.selected.from === "hex" &&
         state.selected.row === unit.row && state.selected.col === unit.col) {
       tok.classList.add("selected");
     }
     return tok;
+  }
+
+  function createBenchCardEl(card) {
+    const meta = raceMeta(card.type);
+    const wrap = document.createElement("div");
+    wrap.className = "bench-card token";
+    wrap.dataset.uid = String(card.uid || "");
+    const src = cardArtSrc(card, "small");
+    const short = card.name.length > 8 ? card.name.slice(0, 7) + "…" : card.name;
+    if (src) {
+      wrap.innerHTML =
+        '<img class="bench-art" src="' + src + '" alt="" draggable="false" data-fallback-class="bench-emoji" />' +
+        '<div class="bench-meta"><span class="n">' + escapeHtml(short) + "</span>" +
+        '<span class="s"><span class="atk">' + card.atk + '</span>/<span class="def">' + card.def + "</span></span></div>";
+      bindArtFallback(wrap.querySelector("img"), meta.emoji);
+    } else {
+      wrap.innerHTML =
+        '<div class="bench-emoji">' + meta.emoji + "</div>" +
+        '<div class="bench-meta"><span class="n">' + escapeHtml(short) + "</span>" +
+        '<span class="s"><span class="atk">' + card.atk + '</span>/<span class="def">' + card.def + "</span></span></div>";
+    }
+    return wrap;
+  }
+
+  function openCardView(card, opts) {
+    opts = opts || {};
+    if (!card || !el.cardViewOverlay) return;
+    state.cardViewShopIndex = opts.shopIndex != null ? opts.shopIndex : null;
+    const meta = raceMeta(card.type);
+    const attr = String(card.attribute || "DARK").toUpperCase();
+    const src = cardArtSrc(card, "small");
+    if (src) {
+      el.cardViewArt.innerHTML = '<img src="' + src + '" alt="" />';
+      bindArtFallback(el.cardViewArt.querySelector("img"), meta.emoji);
+    } else {
+      el.cardViewArt.innerHTML = '<div class="cv-emoji">' + meta.emoji + "</div>";
+    }
+    el.cardViewName.textContent = card.name + (card.stars === 2 ? " ★★" : "");
+    el.cardViewSub.textContent = card.type + " · " + attr + " · Cost " + card.cost + "🪙";
+    el.cardViewStats.innerHTML =
+      '<span class="atk">ATK ' + card.atk + '</span><span class="def">DEF ' + card.def + "</span>";
+    if (el.btnCardViewBuy) {
+      const canBuy = state.cardViewShopIndex != null && state.phase === "shop";
+      el.btnCardViewBuy.style.display = canBuy ? "" : "none";
+      el.btnCardViewBuy.textContent = "Buy · " + card.cost + "🪙";
+    }
+    el.cardViewOverlay.classList.add("open");
+  }
+
+  function closeCardView() {
+    if (el.cardViewOverlay) el.cardViewOverlay.classList.remove("open");
+    state.cardViewShopIndex = null;
   }
 
   function showTokenStats(unit) {
@@ -2231,11 +2591,15 @@
       const d = itemDef(it.defId);
       return d.emoji + " " + d.name;
     });
+    const src = cardArtSrc(unit, "small");
+    const art = src
+      ? '<img class="ts-art" src="' + src + '" alt="" />'
+      : '<div class="ts-head"><span class="ts-emoji">' + meta.emoji + "</span></div>";
     el.tokenStatsBody.innerHTML =
-      '<div class="ts-head"><span class="ts-emoji">' + meta.emoji + "</span>" +
+      art +
       "<div><strong>" + escapeHtml(unit.name) + "</strong>" +
       '<div class="ts-sub">' + escapeHtml(unit.type) + " · " + attr +
-      " · " + (unit.stars === 2 ? "★★" : "★") + "</div></div></div>" +
+      " · " + (unit.stars === 2 ? "★★" : "★") + "</div></div>" +
       '<div class="ts-stats">' +
       "<div>ATK <b>" + unit.atk + "</b></div>" +
       "<div>DEF <b>" + unit.def + "</b></div>" +
@@ -2243,16 +2607,22 @@
       "<div>Cost <b>" + (unit.cost || 0) + "🪙</b></div>" +
       "</div>" +
       (items.length ? '<div class="ts-items">' + items.map(escapeHtml).join(" · ") + "</div>" : "");
+    const img = el.tokenStatsBody.querySelector("img.ts-art");
+    bindArtFallback(img, meta.emoji);
     el.tokenStatsOverlay.classList.add("open");
   }
 
   function cardHTML(card) {
     const meta = raceMeta(card.type);
     const attr = String(card.attribute || "DARK").toUpperCase();
+    const src = cardArtSrc(card, "small");
+    const art = src
+      ? '<div class="art-wrap"><img class="card-art" src="' + src + '" alt="" draggable="false" data-fallback-class="emoji" /></div>'
+      : '<div class="art-wrap"><div class="emoji">' + meta.emoji + "</div></div>";
     return (
       '<div class="card attr-' + attr + (card.stars === 2 ? " star2" : "") + '">' +
       '<span class="cost-badge">' + card.cost + "</span>" +
-      '<div class="emoji">' + meta.emoji + "</div>" +
+      art +
       '<div class="name">' + escapeHtml(card.name) + "</div>" +
       '<div class="stats"><span class="atk">' + card.atk + '</span><span class="type-ico">' +
       meta.emoji + '</span><span class="def">' + card.def + "</span></div>" +
@@ -2273,6 +2643,10 @@
       const s = Math.max(0.72, Math.min(1, sx, sy));
       node.style.transform = "scale(" + s.toFixed(3) + ")";
     });
+    el.shop.querySelectorAll("img.card-art").forEach((img) => {
+      const metaEmoji = img.closest(".card") && img.closest(".card").querySelector(".type-ico");
+      bindArtFallback(img, metaEmoji ? metaEmoji.textContent : "🃏");
+    });
   }
 
   function renderShop() {
@@ -2282,7 +2656,7 @@
       wrap.className = "zone" + (card ? " filled" : "");
       if (card) {
         wrap.innerHTML = cardHTML(card);
-        wrap.addEventListener("click", () => buyCard(i));
+        wrap.addEventListener("click", () => openCardView(card, { shopIndex: i }));
       }
       el.shop.appendChild(wrap);
     });
@@ -2301,7 +2675,7 @@
         slot.classList.add("valid-target");
       }
       if (card) {
-        slot.appendChild(createTokenEl(Object.assign({}, card, { row: null, col: null, hp: card.hp || card.maxHp, maxHp: card.maxHp })));
+        slot.appendChild(createBenchCardEl(card));
       }
       slot.addEventListener("click", () => onBenchTap(i));
       slot.addEventListener("pointerdown", (e) => onBenchPointerDown(e, i));
@@ -2538,7 +2912,7 @@
     }
 
     if (state.selected && state.selected.from === "bench" && state.selected.index === index) {
-      showTokenStats(card);
+      openCardView(card);
       return;
     }
     state.selected = { from: "bench", index };
@@ -2935,14 +3309,15 @@
       const wrap = document.createElement("div");
       wrap.className = "combat-token";
       wrap.dataset.uid = String(u.uid);
-      const tok = createTokenEl(u);
+      const tok = createTokenEl(u, { holo: true });
       wrap.appendChild(tok);
       el.combatLayer.appendChild(wrap);
       const pos = hexCenterInArena(u.row, u.col);
-      const half = (tok.offsetWidth || 40) / 2;
+      const halfW = (tok.offsetWidth || 40) / 2;
+      const halfH = (tok.offsetHeight || 48) / 2;
       state.combatVisuals[u.uid] = {
-        wrap, tok, x: pos.x, y: pos.y, half,
-        lungeX: 0, lungeY: 0, lungeT: 0,
+        wrap, tok, x: pos.x, y: pos.y, half: halfW, halfW, halfH,
+        lungeX: 0, lungeY: 0, lungeT: 0, lean: 0,
       };
       applyCombatTransform(u.uid);
       syncCombatBars(u);
@@ -2952,10 +3327,13 @@
   function applyCombatTransform(uid) {
     const v = state.combatVisuals[uid];
     if (!v) return;
-    const half = v.half || 20;
+    const halfW = v.halfW || v.half || 20;
+    const halfH = v.halfH || v.half || 20;
+    const lean = v.lean || 0;
     v.wrap.style.transform =
-      "translate(" + (v.x - half) + "px," + (v.y - half) + "px) translate(" +
-      v.lungeX.toFixed(1) + "px," + v.lungeY.toFixed(1) + "px)";
+      "translate(" + (v.x - halfW) + "px," + (v.y - halfH) + "px) " +
+      "translate(" + v.lungeX.toFixed(1) + "px," + v.lungeY.toFixed(1) + "px) " +
+      "rotateX(calc(-1 * var(--board-tilt))) translateZ(14px) rotateX(" + lean.toFixed(1) + "deg)";
   }
 
   function syncCombatBars(unit) {
@@ -2993,7 +3371,7 @@
 
   function flashHit(unit) {
     const v = state.combatVisuals[unit.uid];
-    if (!v) return;
+    if (!v || !v.tok) return;
     v.tok.classList.remove("hit");
     void v.tok.offsetWidth;
     v.tok.classList.add("hit");
@@ -3010,6 +3388,12 @@
     va.lungeX = (dx / len) * dist;
     va.lungeY = (dy / len) * dist;
     va.lungeT = 180 / state.fightSpeed;
+    va.lean = 26;
+    if (va.tok) {
+      va.tok.classList.remove("attacking");
+      void va.tok.offsetWidth;
+      va.tok.classList.add("attacking");
+    }
     applyCombatTransform(attacker.uid);
   }
 
@@ -3105,10 +3489,11 @@
     const v = state.combatVisuals[unit.uid];
     if (v) {
       v.wrap.classList.add("dying");
+      if (v.tok) v.tok.classList.add("shattering");
       setTimeout(() => {
         if (v.wrap.parentNode) v.wrap.remove();
         delete state.combatVisuals[unit.uid];
-      }, 450 / state.fightSpeed);
+      }, 560 / state.fightSpeed);
     }
     if (killer) {
       logLine('<span class="' + (killer.side === "player" ? "win" : "dmg") + '">' +
@@ -3224,10 +3609,11 @@
           v.lungeX = 0;
           v.lungeY = 0;
           v.lungeT = 0;
+          v.lean = 0;
         } else if (v.lungeT < 90 / state.fightSpeed) {
-          // snap back halfway through
           v.lungeX *= 0.7;
           v.lungeY *= 0.7;
+          v.lean *= 0.65;
         }
       }
       applyCombatTransform(uidNum);
@@ -3671,9 +4057,13 @@
     if (typeof raw.atk !== "number" || raw.atk < 0) return null;
     if (typeof raw.def !== "number" || raw.def < 0) return null;
     if (typeof raw.level !== "number" || raw.level < 1) return null;
-    const id = "api_" + (raw.id != null ? raw.id : String(raw.name).toLowerCase().replace(/\W+/g, "_"));
+    const apiId = raw.id != null ? raw.id : null;
+    const id = "api_" + (apiId != null ? apiId : String(raw.name).toLowerCase().replace(/\W+/g, "_"));
+    const imgSmall = apiId != null ? ("images/small/" + apiId + ".jpg") : null;
+    const imgCropped = apiId != null ? ("images/cropped/" + apiId + ".jpg") : null;
     return {
       id,
+      apiId,
       name: raw.name,
       type: raw.race || "Warrior",
       attribute: String(raw.attribute || "DARK").toUpperCase(),
@@ -3681,6 +4071,8 @@
       atk: raw.atk,
       def: raw.def,
       cost: costFromLevel(raw.level),
+      imgSmall,
+      imgCropped,
     };
   }
 
@@ -3852,6 +4244,19 @@
   if (el.tokenStatsOverlay) {
     el.tokenStatsOverlay.addEventListener("click", (e) => {
       if (e.target === el.tokenStatsOverlay) el.tokenStatsOverlay.classList.remove("open");
+    });
+  }
+  if ($("btnCardViewClose")) $("btnCardViewClose").addEventListener("click", closeCardView);
+  if (el.cardViewOverlay) {
+    el.cardViewOverlay.addEventListener("click", (e) => {
+      if (e.target === el.cardViewOverlay) closeCardView();
+    });
+  }
+  if (el.btnCardViewBuy) {
+    el.btnCardViewBuy.addEventListener("click", () => {
+      const idx = state.cardViewShopIndex;
+      closeCardView();
+      if (idx != null) buyCard(idx);
     });
   }
   $("btnResultsOk").addEventListener("click", dismissResults);
