@@ -17,4 +17,6 @@ Open `index.html` in a browser (or serve the folder locally). No build step or f
 - Bench holds 5; place on a **4×7 hex board** (your half)
 - **3 copies** fuse into ★★; trait bar counts **unique** Types (2/4/6 → bronze/silver/gold)
 - **FIGHT**: slide, lunge, mana ultimates; 1x/2x speed; results banner
-- Income: base gold + interest (≤5) + win/loss streak bonus — **0 LP** ends the duel 
+- Income: base gold + interest (≤5) + win/loss streak bonus — **0 LP** ends the duel
+- **Items** after rounds 2 / 5 / 9 / 13 (pick 1 of 3 Equip Spells; max 3 per monster)
+- **Duelist ladder** from Weevil to Yami Yugi — beat Yugi to win; end screen shows a run summary 
