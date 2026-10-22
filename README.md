@@ -1,13 +1,19 @@
 # Duel Tactics
 
-A single-file mobile auto-battler themed as the Season 1 **Duelist Kingdom** tournament — Star Chips, an island map, and area type bonuses — with a one-screen iPhone portrait layout (`100dvh`, safe-area insets, no page scrolling).
+A single-file mobile auto-battler themed as the Season 1 **Duelist Kingdom** tournament — Star Chips, an island map, and area type bonuses — with a one-screen iPhone portrait layout (`100dvh`, safe-area insets, no page scrolling). Classic mode uses locally cached card art under `images/` (YGOPRODeck; emoji fallback). The hex field is a CSS 3D hologram tabletop.
 
 Open `index.html` in a browser (or serve the folder locally). No build step or frameworks required.
 
 ## Card modes
 
-- **Classic cards** (default): loads monster data at runtime from the public [YGOPRODeck API](https://db.ygoprodeck.com/api-guide/) for *Legend of Blue Eyes White Dragon* and *Metal Raiders*. Results are cached in `localStorage` for 7 days. No card images are loaded.
+- **Classic cards** (default): loads monster data at runtime from the public [YGOPRODeck API](https://db.ygoprodeck.com/api-guide/) for *Legend of Blue Eyes White Dragon* and *Metal Raiders*. Results are cached in `localStorage` for 7 days. Card art is stored locally under `images/small/` and `images/cropped/` (YGOPRODeck asks not to hotlink); emoji art is the fallback if a file is missing.
 - **Original**: built-in fantasy roster (also used if the Classic fetch fails).
+
+## Board & art
+
+- Shop and bench show card art with name and ATK/DEF; tap a card for a full-size view.
+- The hex field uses CSS `perspective` / `rotateX(~50deg)` as a tabletop. Monsters are upright hologram billboards (cropped art, soft shadow, faint blue glow) with HP/mana bars above.
+- Place / attack / hit / death use CSS 3D transforms only (no 3D library) so it stays smooth on iPhone.
 
 ## Play
 
