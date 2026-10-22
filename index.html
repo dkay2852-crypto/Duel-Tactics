@@ -1,0 +1,1156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>Duel Tactics</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Exo+2:wght@500;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #071018;
+      --deep: #0c1a28;
+      --panel: #132636;
+      --panel-2: #1a3347;
+      --line: #2a4d66;
+      --gold: #e8b84a;
+      --gold-dim: #a87820;
+      --cyan: #3ec7c2;
+      --rose: #e85a6b;
+      --mint: #5ecf8a;
+      --fog: #c8d9e6;
+      --muted: #7a93a8;
+      --card-face: #f4ebe0;
+      --card-ink: #1a2430;
+      --safe-b: env(safe-area-inset-bottom, 0px);
+      --safe-t: env(safe-area-inset-top, 0px);
+      --tap: 48px;
+    }
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      background:
+        radial-gradient(ellipse 120% 80% at 50% -10%, #1a3a52 0%, transparent 55%),
+        radial-gradient(ellipse 80% 50% at 100% 100%, #1a2838 0%, transparent 45%),
+        linear-gradient(165deg, #081420 0%, #0c1a28 40%, #0a1520 100%);
+      color: var(--fog);
+      font-family: "Exo 2", sans-serif;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.07;
+      background-image:
+        repeating-linear-gradient(0deg, transparent, transparent 27px, #fff 27px, #fff 28px),
+        repeating-linear-gradient(90deg, transparent, transparent 27px, #fff 27px, #fff 28px);
+      mask-image: radial-gradient(ellipse at center, black 20%, transparent 75%);
+    }
+
+    .app {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: calc(10px + var(--safe-t)) 12px calc(16px + var(--safe-b));
+      position: relative;
+      z-index: 1;
+    }
+
+    header.top {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: start;
+      margin-bottom: 10px;
+      animation: fadeDown 0.5s ease both;
+    }
+
+    .brand {
+      font-family: "Bungee", cursive;
+      font-size: clamp(1.55rem, 6.5vw, 1.9rem);
+      line-height: 1.05;
+      letter-spacing: 0.02em;
+      color: var(--gold);
+      text-shadow: 0 2px 0 #6a4a10, 0 0 24px rgba(232, 184, 74, 0.25);
+      margin: 0;
+    }
+
+    .brand span {
+      display: block;
+      font-size: 0.55em;
+      color: var(--cyan);
+      letter-spacing: 0.18em;
+      text-shadow: none;
+      margin-top: 2px;
+    }
+
+    .hud {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      justify-content: flex-end;
+    }
+
+    .pill {
+      background: rgba(19, 38, 54, 0.92);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 8px 12px;
+      min-height: var(--tap);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 700;
+      font-size: 0.92rem;
+    }
+
+    .pill .label { color: var(--muted); font-size: 0.72rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; }
+    .pill.lp .val { color: var(--rose); }
+    .pill.gold .val { color: var(--gold); }
+    .pill.round .val { color: var(--cyan); }
+
+    .btn {
+      appearance: none;
+      border: none;
+      font-family: inherit;
+      font-weight: 800;
+      font-size: 1rem;
+      min-height: var(--tap);
+      padding: 12px 18px;
+      border-radius: 14px;
+      cursor: pointer;
+      transition: transform 0.12s ease, filter 0.12s ease, box-shadow 0.12s ease;
+      touch-action: manipulation;
+      user-select: none;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn:disabled { opacity: 0.4; pointer-events: none; }
+    .btn-primary {
+      background: linear-gradient(180deg, #f0c45a, #c99220);
+      color: #1a1408;
+      box-shadow: 0 4px 0 #7a5a10, 0 8px 20px rgba(232, 184, 74, 0.25);
+    }
+    .btn-secondary {
+      background: linear-gradient(180deg, #2a4a60, #1a3347);
+      color: var(--fog);
+      border: 1px solid var(--line);
+      box-shadow: 0 3px 0 #0a1520;
+    }
+    .btn-danger {
+      background: linear-gradient(180deg, #e8707a, #b83848);
+      color: #fff;
+      box-shadow: 0 4px 0 #6a2030;
+    }
+    .btn-ghost {
+      background: transparent;
+      color: var(--cyan);
+      border: 1px solid var(--cyan);
+      min-height: 44px;
+      padding: 10px 14px;
+      font-size: 0.9rem;
+    }
+    .btn-wide { width: 100%; }
+
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin: 10px 0;
+    }
+    .actions .btn-primary { grid-column: 1 / -1; }
+
+    section.block {
+      background: rgba(13, 26, 40, 0.85);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 12px;
+      margin-bottom: 10px;
+      animation: riseIn 0.45s ease both;
+    }
+    section.block:nth-of-type(2) { animation-delay: 0.05s; }
+    section.block:nth-of-type(3) { animation-delay: 0.1s; }
+
+    .block-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      gap: 8px;
+    }
+    .block-head h2 {
+      margin: 0;
+      font-size: 0.78rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 700;
+    }
+    .hint { font-size: 0.75rem; color: var(--muted); }
+
+    .zones {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 5px;
+      min-height: 108px;
+    }
+
+    .zone {
+      background:
+        linear-gradient(160deg, rgba(30, 60, 80, 0.5), rgba(12, 28, 40, 0.7));
+      border: 1.5px dashed var(--line);
+      border-radius: 10px;
+      min-height: 108px;
+      position: relative;
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+      transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+    }
+    .zone.filled {
+      border-style: solid;
+      border-color: var(--gold-dim);
+      background: transparent;
+    }
+    .zone.selected {
+      border-color: var(--cyan);
+      box-shadow: 0 0 0 2px rgba(62, 199, 194, 0.35);
+    }
+    .zone.empty-label {
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      font-size: 0.62rem;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+      opacity: 0.55;
+      align-self: center;
+    }
+
+    .card {
+      width: 100%;
+      border-radius: 9px;
+      background: linear-gradient(165deg, #fff8ee 0%, #e8dcc8 100%);
+      color: var(--card-ink);
+      border: 2px solid #8a7040;
+      padding: 4px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      animation: cardPop 0.28s ease both;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.35);
+      min-height: 100px;
+    }
+    .card.star2 {
+      border-color: #c9a227;
+      background: linear-gradient(165deg, #fff4d6 0%, #e8c878 55%, #d4a84a 100%);
+      box-shadow: 0 0 12px rgba(232, 184, 74, 0.45), 0 3px 8px rgba(0,0,0,0.35);
+    }
+    .card.shop-card { min-height: 118px; }
+    .card.selected {
+      outline: 3px solid var(--cyan);
+      outline-offset: 1px;
+    }
+    .card .emoji {
+      font-size: 1.35rem;
+      text-align: center;
+      line-height: 1.1;
+      filter: drop-shadow(0 1px 0 rgba(0,0,0,0.15));
+    }
+    .card .name {
+      font-size: 0.58rem;
+      font-weight: 800;
+      text-align: center;
+      line-height: 1.15;
+      min-height: 1.7em;
+    }
+    .card .meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.55rem;
+      font-weight: 700;
+      color: #5a4a30;
+    }
+    .card .stats {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.62rem;
+      font-weight: 800;
+      background: rgba(0,0,0,0.08);
+      border-radius: 4px;
+      padding: 2px 3px;
+      margin-top: auto;
+    }
+    .card .atk { color: #b83030; }
+    .card .def { color: #2050a0; }
+    .card .cost-badge {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      background: var(--gold);
+      color: #1a1408;
+      font-size: 0.62rem;
+      font-weight: 800;
+      border-radius: 6px;
+      padding: 2px 5px;
+      line-height: 1.2;
+    }
+    .card .stars {
+      text-align: center;
+      font-size: 0.48rem;
+      letter-spacing: -0.5px;
+      color: #c99220;
+      line-height: 1;
+    }
+    .type-chip {
+      font-size: 0.5rem;
+      text-align: center;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      opacity: 0.85;
+    }
+
+    .shop-row {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 5px;
+    }
+
+    .bonuses {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+      min-height: 28px;
+    }
+    .bonus-tag {
+      background: rgba(62, 199, 194, 0.15);
+      border: 1px solid rgba(62, 199, 194, 0.4);
+      color: var(--cyan);
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 4px 8px;
+      border-radius: 8px;
+      animation: fadeDown 0.3s ease both;
+    }
+
+    .log {
+      max-height: 120px;
+      overflow-y: auto;
+      font-size: 0.78rem;
+      line-height: 1.35;
+      color: var(--fog);
+      background: rgba(0,0,0,0.25);
+      border-radius: 10px;
+      padding: 8px 10px;
+      -webkit-overflow-scrolling: touch;
+    }
+    .log p { margin: 0 0 4px; }
+    .log .dmg { color: var(--rose); font-weight: 700; }
+    .log .win { color: var(--mint); }
+    .log .sys { color: var(--gold); }
+
+    .battle-strip {
+      display: none;
+      margin-bottom: 10px;
+    }
+    .battle-strip.active { display: block; animation: riseIn 0.35s ease; }
+    .vs-row {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 6px;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .vs-label {
+      font-family: "Bungee", cursive;
+      color: var(--rose);
+      font-size: 1.1rem;
+    }
+    .mini-zones {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 3px;
+    }
+    .mini-zones .zone { min-height: 72px; }
+    .mini-zones .card { min-height: 68px; }
+    .mini-zones .card .name { font-size: 0.5rem; }
+    .mini-zones .card .emoji { font-size: 1.05rem; }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(4, 10, 16, 0.78);
+      backdrop-filter: blur(4px);
+      z-index: 50;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      padding: 16px;
+      padding-bottom: calc(16px + var(--safe-b));
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+    .overlay.open { opacity: 1; pointer-events: auto; }
+    .modal {
+      background: linear-gradient(180deg, #1a3347, #0f2030);
+      border: 1px solid var(--line);
+      border-radius: 20px 20px 16px 16px;
+      padding: 20px 18px;
+      width: min(440px, 100%);
+      max-height: 85vh;
+      overflow-y: auto;
+      transform: translateY(24px);
+      transition: transform 0.28s ease;
+      box-shadow: 0 -8px 40px rgba(0,0,0,0.5);
+    }
+    .overlay.open .modal { transform: translateY(0); }
+    .modal h2 {
+      font-family: "Bungee", cursive;
+      color: var(--gold);
+      margin: 0 0 10px;
+      font-size: 1.35rem;
+    }
+    .modal p, .modal li {
+      color: var(--fog);
+      font-size: 0.92rem;
+      line-height: 1.45;
+    }
+    .modal ol { padding-left: 1.2em; margin: 0 0 14px; }
+    .modal li { margin-bottom: 6px; }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: calc(24px + var(--safe-b));
+      transform: translateX(-50%) translateY(20px);
+      background: var(--panel-2);
+      border: 1px solid var(--gold);
+      color: var(--gold);
+      padding: 12px 18px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      z-index: 60;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s, transform 0.25s;
+      max-width: 90vw;
+      text-align: center;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .sell-bar {
+      display: none;
+      margin-top: 8px;
+    }
+    .sell-bar.show { display: block; }
+
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes riseIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes cardPop {
+      from { opacity: 0; transform: scale(0.88); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-4px); }
+      75% { transform: translateX(4px); }
+    }
+    .shake { animation: shake 0.35s ease; }
+
+    @media (min-width: 500px) {
+      .zones, .shop-row { gap: 8px; }
+      .card .name { font-size: 0.65rem; }
+      .card .emoji { font-size: 1.55rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="top">
+      <h1 class="brand">Duel Tactics<span>AUTO · DUEL</span></h1>
+      <div class="hud">
+        <div class="pill lp"><span class="label">LP</span><span class="val" id="lp">8000</span></div>
+        <div class="pill gold"><span class="label">Gold</span><span class="val" id="gold">10</span></div>
+        <div class="pill round"><span class="label">Rnd</span><span class="val" id="round">1</span></div>
+      </div>
+    </header>
+
+    <div class="actions" id="shopActions">
+      <button type="button" class="btn btn-ghost" id="btnHow">How to Play</button>
+      <button type="button" class="btn btn-secondary" id="btnReroll">Reroll · 2🪙</button>
+      <button type="button" class="btn btn-primary" id="btnBattle">⚔️ Start Battle</button>
+    </div>
+
+    <div class="battle-strip" id="battleStrip">
+      <div class="vs-row">
+        <div>
+          <div class="hint">You</div>
+          <div class="mini-zones" id="playerBattle"></div>
+        </div>
+        <div class="vs-label">VS</div>
+        <div>
+          <div class="hint" style="text-align:right">Opponent</div>
+          <div class="mini-zones" id="enemyBattle"></div>
+        </div>
+      </div>
+      <div class="pill" style="width:100%;justify-content:space-between;margin-bottom:8px">
+        <span>Enemy LP <strong id="enemyLp" style="color:var(--rose)">8000</strong></span>
+        <span id="battleStatus" class="hint">Battling…</span>
+      </div>
+    </div>
+
+    <section class="block" id="shopBlock">
+      <div class="block-head">
+        <h2>Shop</h2>
+        <span class="hint">Tap a card to buy</span>
+      </div>
+      <div class="shop-row" id="shop"></div>
+    </section>
+
+    <section class="block">
+      <div class="block-head">
+        <h2>Field · 5 Zones</h2>
+        <span class="hint">Tap bench → tap zone</span>
+      </div>
+      <div class="zones" id="field"></div>
+      <div class="bonuses" id="bonuses"></div>
+      <div class="sell-bar" id="sellBar">
+        <button type="button" class="btn btn-danger btn-wide" id="btnSell">Sell selected · 1🪙</button>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="block-head">
+        <h2>Bench · 5</h2>
+        <span class="hint">3 copies fuse ★★</span>
+      </div>
+      <div class="zones" id="bench"></div>
+    </section>
+
+    <section class="block">
+      <div class="block-head"><h2>Duel Log</h2></div>
+      <div class="log" id="log"></div>
+    </section>
+  </div>
+
+  <div class="overlay" id="howOverlay" role="dialog" aria-modal="true">
+    <div class="modal">
+      <h2>How to Play</h2>
+      <ol>
+        <li>Buy monsters from the shop with gold. Reroll the shop for 2 gold.</li>
+        <li>Place up to 5 monsters on the field from your bench. Sell extras if needed.</li>
+        <li>Buy 3 copies of the same monster to fuse them into a stronger ★★ version.</li>
+        <li>2+ monsters of the same type grant a type bonus (e.g. Dragons +300 ATK).</li>
+        <li>Start Battle — monsters clash left to right. Higher ATK wins; leftover damage hits Life Points.</li>
+        <li>Earn gold after each round. Reach 0 LP and the duel is over.</li>
+      </ol>
+      <button type="button" class="btn btn-primary btn-wide" id="btnCloseHow">Got it</button>
+    </div>
+  </div>
+
+  <div class="overlay" id="endOverlay">
+    <div class="modal">
+      <h2 id="endTitle">Defeat</h2>
+      <p id="endMsg">Your Life Points hit zero.</p>
+      <button type="button" class="btn btn-primary btn-wide" id="btnRestart">Play Again</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+(function () {
+  "use strict";
+
+  const TYPES = {
+    Dragon:     { emoji: "🐉", bonusAtk: 300, label: "Dragon Synergy +300 ATK" },
+    Spellcaster:{ emoji: "🔮", bonusAtk: 250, label: "Spellcaster Synergy +250 ATK" },
+    Warrior:    { emoji: "⚔️", bonusAtk: 280, label: "Warrior Synergy +280 ATK" },
+    Fiend:      { emoji: "😈", bonusAtk: 320, label: "Fiend Synergy +320 ATK" },
+    Machine:    { emoji: "🤖", bonusAtk: 260, label: "Machine Synergy +260 ATK" },
+  };
+
+  /** Original roster — no licensed names */
+  const ROSTER = [
+    { id: "ember_wyrm", name: "Ember Wyrm", type: "Dragon", level: 4, atk: 1600, def: 1200, cost: 2 },
+    { id: "storm_drake", name: "Storm Drake", type: "Dragon", level: 5, atk: 2000, def: 1400, cost: 3 },
+    { id: "iron_scale", name: "Iron Scale", type: "Dragon", level: 3, atk: 1200, def: 1800, cost: 2 },
+    { id: "void_serpent", name: "Void Serpent", type: "Dragon", level: 7, atk: 2600, def: 1800, cost: 5 },
+    { id: "ash_hatchling", name: "Ash Hatchling", type: "Dragon", level: 1, atk: 600, def: 500, cost: 1 },
+    { id: "arc_mage", name: "Arc Mage", type: "Spellcaster", level: 4, atk: 1500, def: 1300, cost: 2 },
+    { id: "hex_adept", name: "Hex Adept", type: "Spellcaster", level: 3, atk: 1100, def: 900, cost: 1 },
+    { id: "rune_seer", name: "Rune Seer", type: "Spellcaster", level: 5, atk: 1800, def: 1600, cost: 3 },
+    { id: "shadow_channel", name: "Shadow Channeler", type: "Spellcaster", level: 6, atk: 2200, def: 1500, cost: 4 },
+    { id: "spark_apprentice", name: "Spark Apprentice", type: "Spellcaster", level: 2, atk: 800, def: 700, cost: 1 },
+    { id: "blade_guard", name: "Blade Guard", type: "Warrior", level: 4, atk: 1700, def: 1400, cost: 2 },
+    { id: "shield_knight", name: "Shield Knight", type: "Warrior", level: 3, atk: 1000, def: 1900, cost: 2 },
+    { id: "dual_swords", name: "Dual Swordsman", type: "Warrior", level: 5, atk: 2100, def: 1200, cost: 3 },
+    { id: "banner_captain", name: "Banner Captain", type: "Warrior", level: 6, atk: 2300, def: 1800, cost: 4 },
+    { id: "militia_scout", name: "Militia Scout", type: "Warrior", level: 1, atk: 700, def: 400, cost: 1 },
+    { id: "night_imp", name: "Night Imp", type: "Fiend", level: 2, atk: 900, def: 500, cost: 1 },
+    { id: "soul_siphon", name: "Soul Siphon", type: "Fiend", level: 4, atk: 1600, def: 1000, cost: 2 },
+    { id: "grin_mask", name: "Grinning Mask", type: "Fiend", level: 5, atk: 1900, def: 1300, cost: 3 },
+    { id: "abyss_howler", name: "Abyss Howler", type: "Fiend", level: 7, atk: 2500, def: 1600, cost: 5 },
+    { id: "whisper_shade", name: "Whisper Shade", type: "Fiend", level: 3, atk: 1300, def: 800, cost: 2 },
+    { id: "cog_golem", name: "Cog Golem", type: "Machine", level: 4, atk: 1400, def: 2000, cost: 2 },
+    { id: "pulse_drone", name: "Pulse Drone", type: "Machine", level: 2, atk: 850, def: 850, cost: 1 },
+    { id: "gear_titan", name: "Gear Titan", type: "Machine", level: 7, atk: 2700, def: 2200, cost: 5 },
+    { id: "circuit_scout", name: "Circuit Scout", type: "Machine", level: 3, atk: 1250, def: 1100, cost: 2 },
+    { id: "bolt_cannon", name: "Bolt Cannon", type: "Machine", level: 6, atk: 2400, def: 1500, cost: 4 },
+  ];
+
+  const state = {
+    lp: 8000,
+    enemyLp: 8000,
+    gold: 10,
+    round: 1,
+    phase: "shop", // shop | battle | end
+    shop: [],
+    field: [null, null, null, null, null],
+    bench: [null, null, null, null, null],
+    selected: null, // { from: 'field'|'bench'|'shop', index }
+    uid: 1,
+  };
+
+  const $ = (id) => document.getElementById(id);
+  const el = {
+    lp: $("lp"), gold: $("gold"), round: $("round"),
+    shop: $("shop"), field: $("field"), bench: $("bench"),
+    bonuses: $("bonuses"), log: $("log"),
+    sellBar: $("sellBar"), battleStrip: $("battleStrip"),
+    playerBattle: $("playerBattle"), enemyBattle: $("enemyBattle"),
+    enemyLp: $("enemyLp"), battleStatus: $("battleStatus"),
+    shopBlock: $("shopBlock"), shopActions: $("shopActions"),
+    howOverlay: $("howOverlay"), endOverlay: $("endOverlay"),
+    endTitle: $("endTitle"), endMsg: $("endMsg"), toast: $("toast"),
+  };
+
+  function uid() { return state.uid++; }
+
+  function makeInstance(base, stars) {
+    stars = stars || 1;
+    const mult = stars === 2 ? 1.6 : 1;
+    return {
+      uid: uid(),
+      baseId: base.id,
+      name: base.name,
+      type: base.type,
+      level: base.level,
+      cost: base.cost,
+      stars,
+      atk: Math.round(base.atk * mult),
+      def: Math.round(base.def * mult),
+    };
+  }
+
+  function shopPoolForRound(round) {
+    const maxCost = Math.min(5, 1 + Math.floor((round + 1) / 2));
+    return ROSTER.filter((c) => c.cost <= maxCost);
+  }
+
+  function weightedPick(pool) {
+    // Cheaper cards more common
+    const weights = pool.map((c) => 6 - c.cost);
+    const total = weights.reduce((a, b) => a + b, 0);
+    let r = Math.random() * total;
+    for (let i = 0; i < pool.length; i++) {
+      r -= weights[i];
+      if (r <= 0) return pool[i];
+    }
+    return pool[pool.length - 1];
+  }
+
+  function rollShop() {
+    const pool = shopPoolForRound(state.round);
+    state.shop = Array.from({ length: 5 }, () => makeInstance(weightedPick(pool), 1));
+  }
+
+  function firstEmpty(arr) {
+    const i = arr.findIndex((x) => !x);
+    return i === -1 ? null : i;
+  }
+
+  function countOwned(baseId, stars) {
+    let n = 0;
+    [...state.field, ...state.bench].forEach((c) => {
+      if (c && c.baseId === baseId && c.stars === stars) n++;
+    });
+    return n;
+  }
+
+  function findCopies(baseId, stars) {
+    const locs = [];
+    state.field.forEach((c, i) => {
+      if (c && c.baseId === baseId && c.stars === stars) locs.push({ from: "field", index: i });
+    });
+    state.bench.forEach((c, i) => {
+      if (c && c.baseId === baseId && c.stars === stars) locs.push({ from: "bench", index: i });
+    });
+    return locs;
+  }
+
+  function removeAt(from, index) {
+    if (from === "field") state.field[index] = null;
+    else state.bench[index] = null;
+  }
+
+  function getAt(from, index) {
+    return from === "field" ? state.field[index] : state.bench[index];
+  }
+
+  function tryFuse(baseId) {
+    // Fuse 1★ → 2★ only
+    const locs = findCopies(baseId, 1);
+    if (locs.length < 3) return false;
+    const take = locs.slice(0, 3);
+    const base = ROSTER.find((r) => r.id === baseId);
+    take.forEach((l) => removeAt(l.from, l.index));
+    const fused = makeInstance(base, 2);
+    // Prefer placing on first emptied slot among the three, else bench/field empty
+    let placed = false;
+    for (const l of take) {
+      if (!getAt(l.from, l.index)) {
+        if (l.from === "field") state.field[l.index] = fused;
+        else state.bench[l.index] = fused;
+        placed = true;
+        break;
+      }
+    }
+    if (!placed) {
+      const bi = firstEmpty(state.bench);
+      const fi = firstEmpty(state.field);
+      if (bi !== null) state.bench[bi] = fused;
+      else if (fi !== null) state.field[fi] = fused;
+    }
+    toast(`Fusion! ${fused.name} ★★`);
+    logLine(`<span class="sys">⚡ ${fused.name} fused into ★★!</span>`);
+    return true;
+  }
+
+  function typeCounts(board) {
+    const counts = {};
+    board.forEach((c) => {
+      if (!c) return;
+      counts[c.type] = (counts[c.type] || 0) + 1;
+    });
+    return counts;
+  }
+
+  function effectiveAtk(card, board) {
+    if (!card) return 0;
+    const counts = typeCounts(board);
+    let atk = card.atk;
+    if ((counts[card.type] || 0) >= 2) {
+      atk += TYPES[card.type].bonusAtk;
+    }
+    return atk;
+  }
+
+  function toast(msg) {
+    el.toast.textContent = msg;
+    el.toast.classList.add("show");
+    clearTimeout(toast._t);
+    toast._t = setTimeout(() => el.toast.classList.remove("show"), 1800);
+  }
+
+  function logLine(html) {
+    const p = document.createElement("p");
+    p.innerHTML = html;
+    el.log.prepend(p);
+  }
+
+  function cardHTML(card, opts) {
+    opts = opts || {};
+    if (!card) return "";
+    const t = TYPES[card.type];
+    const stars = "★".repeat(card.level);
+    const starClass = card.stars === 2 ? " star2" : "";
+    const sel = opts.selected ? " selected" : "";
+    const shop = opts.shop ? " shop-card" : "";
+    const cost = opts.shop ? `<span class="cost-badge">${card.cost}🪙</span>` : "";
+    const bonusNote = opts.showBonusAtk != null
+      ? `<span class="atk">${opts.showBonusAtk}</span>`
+      : `<span class="atk">${card.atk}</span>`;
+    return `
+      <div class="card${starClass}${sel}${shop}" data-uid="${card.uid}">
+        ${cost}
+        <div class="emoji">${t.emoji}${card.stars === 2 ? "✨" : ""}</div>
+        <div class="name">${card.name}${card.stars === 2 ? " ★★" : ""}</div>
+        <div class="stars">${stars}</div>
+        <div class="type-chip">${card.type}</div>
+        <div class="stats">
+          ${bonusNote}
+          <span class="def">${card.def}</span>
+        </div>
+      </div>`;
+  }
+
+  function isSelected(from, index) {
+    return state.selected && state.selected.from === from && state.selected.index === index;
+  }
+
+  function renderZones(container, arr, from) {
+    container.innerHTML = "";
+    arr.forEach((card, i) => {
+      const zone = document.createElement("div");
+      zone.className = "zone" + (card ? " filled" : "") + (isSelected(from, i) ? " selected" : "");
+      if (card) {
+        const atk = from === "field" ? effectiveAtk(card, state.field) : card.atk;
+        zone.innerHTML = cardHTML(card, {
+          selected: isSelected(from, i),
+          showBonusAtk: from === "field" ? atk : null,
+        });
+      } else {
+        zone.innerHTML = `<span class="empty-label">${from === "field" ? "ZONE" : "BENCH"}</span>`;
+      }
+      zone.addEventListener("click", () => onZoneClick(from, i));
+      container.appendChild(zone);
+    });
+  }
+
+  function renderShop() {
+    el.shop.innerHTML = "";
+    state.shop.forEach((card, i) => {
+      const wrap = document.createElement("div");
+      wrap.className = "zone" + (card ? " filled" : "");
+      if (card) {
+        wrap.innerHTML = cardHTML(card, { shop: true, selected: isSelected("shop", i) });
+        wrap.addEventListener("click", () => buyCard(i));
+      }
+      el.shop.appendChild(wrap);
+    });
+  }
+
+  function renderBonuses() {
+    const counts = typeCounts(state.field);
+    el.bonuses.innerHTML = "";
+    Object.keys(TYPES).forEach((t) => {
+      if ((counts[t] || 0) >= 2) {
+        const tag = document.createElement("span");
+        tag.className = "bonus-tag";
+        tag.textContent = TYPES[t].emoji + " " + TYPES[t].label;
+        el.bonuses.appendChild(tag);
+      }
+    });
+  }
+
+  function renderHUD() {
+    el.lp.textContent = state.lp;
+    el.gold.textContent = state.gold;
+    el.round.textContent = state.round;
+    el.enemyLp.textContent = state.enemyLp;
+    const canSell = !!(state.selected && (state.selected.from === "field" || state.selected.from === "bench"));
+    el.sellBar.classList.toggle("show", canSell);
+    if (canSell) {
+      const card = getAt(state.selected.from, state.selected.index);
+      const refund = card ? Math.max(1, Math.floor(card.cost * card.stars)) : 1;
+      $("btnSell").textContent = `Sell selected · ${refund}🪙`;
+    }
+    $("btnReroll").disabled = state.phase !== "shop" || state.gold < 2;
+    $("btnBattle").disabled = state.phase !== "shop" || !state.field.some(Boolean);
+  }
+
+  function render() {
+    renderHUD();
+    renderShop();
+    renderZones(el.field, state.field, "field");
+    renderZones(el.bench, state.bench, "bench");
+    renderBonuses();
+  }
+
+  function buyCard(index) {
+    if (state.phase !== "shop") return;
+    const card = state.shop[index];
+    if (!card) return;
+    if (state.gold < card.cost) {
+      toast("Not enough gold");
+      return;
+    }
+    const slot = firstEmpty(state.bench);
+    if (slot === null) {
+      toast("Bench is full");
+      return;
+    }
+    state.gold -= card.cost;
+    state.bench[slot] = card;
+    state.shop[index] = null;
+    logLine(`Bought <strong>${card.name}</strong> (−${card.cost}🪙)`);
+    tryFuse(card.baseId);
+    // Keep fusing if multiple triples somehow
+    while (tryFuse(card.baseId)) { /* noop */ }
+    // Also check all for cascades after fuse freed slots
+    ROSTER.forEach((r) => { while (tryFuse(r.id)) {} });
+    state.selected = null;
+    render();
+  }
+
+  function onZoneClick(from, index) {
+    if (state.phase !== "shop") return;
+    const card = getAt(from, index);
+
+    if (state.selected) {
+      const sel = state.selected;
+      // Same cell → deselect
+      if (sel.from === from && sel.index === index) {
+        state.selected = null;
+        render();
+        return;
+      }
+      // Move / swap between field and bench
+      if ((sel.from === "bench" || sel.from === "field") && (from === "bench" || from === "field")) {
+        const a = getAt(sel.from, sel.index);
+        const b = getAt(from, index);
+        if (sel.from === "field") state.field[sel.index] = b;
+        else state.bench[sel.index] = b;
+        if (from === "field") state.field[index] = a;
+        else state.bench[index] = a;
+        state.selected = null;
+        render();
+        return;
+      }
+    }
+
+    if (card) {
+      state.selected = { from, index };
+      render();
+    } else if (state.selected && state.selected.from === "bench" && from === "field") {
+      // Place from bench to empty field
+      state.field[index] = state.bench[state.selected.index];
+      state.bench[state.selected.index] = null;
+      state.selected = null;
+      render();
+    }
+  }
+
+  function sellSelected() {
+    if (!state.selected) return;
+    const { from, index } = state.selected;
+    const card = getAt(from, index);
+    if (!card) return;
+    removeAt(from, index);
+    const refund = Math.max(1, Math.floor(card.cost * card.stars));
+    state.gold += refund;
+    toast(`Sold for ${refund}🪙`);
+    logLine(`Sold ${card.name} (+${refund}🪙)`);
+    state.selected = null;
+    render();
+  }
+
+  function reroll() {
+    if (state.phase !== "shop" || state.gold < 2) return;
+    state.gold -= 2;
+    rollShop();
+    toast("Shop refreshed");
+    render();
+  }
+
+  function sleep(ms) {
+    return new Promise((r) => setTimeout(r, ms));
+  }
+
+  function buildEnemyBoard(round) {
+    const count = Math.min(5, 1 + Math.floor(round / 1.5));
+    const pool = shopPoolForRound(round + 1);
+    const board = [null, null, null, null, null];
+    // Prefer stronger cards as rounds climb
+    const sorted = [...pool].sort((a, b) => b.atk - a.atk);
+    for (let i = 0; i < count; i++) {
+      let base;
+      if (round >= 4 && Math.random() < 0.35) {
+        base = sorted[Math.min(i, sorted.length - 1)];
+      } else {
+        base = weightedPick(pool);
+      }
+      let stars = 1;
+      if (round >= 3 && Math.random() < 0.15 + round * 0.03) stars = 2;
+      const mon = makeInstance(base, stars);
+      // Flat round scaling so AI pressures LP
+      mon.atk += (round - 1) * 80;
+      mon.def += (round - 1) * 40;
+      board[i] = mon;
+    }
+    return board;
+  }
+
+  function renderMiniBoard(container, board, isPlayer) {
+    container.innerHTML = "";
+    board.forEach((card) => {
+      const zone = document.createElement("div");
+      zone.className = "zone" + (card ? " filled" : "");
+      if (card) {
+        const atk = effectiveAtk(card, board);
+        zone.innerHTML = cardHTML(card, { showBonusAtk: atk });
+      }
+      container.appendChild(zone);
+    });
+  }
+
+  async function startBattle() {
+    if (state.phase !== "shop") return;
+    if (!state.field.some(Boolean)) {
+      toast("Place at least one monster");
+      return;
+    }
+    state.phase = "battle";
+    state.selected = null;
+    state.enemyLp = 8000;
+    const playerBoard = state.field.map((c) => (c ? { ...c } : null));
+    const enemyBoard = buildEnemyBoard(state.round);
+
+    el.shopBlock.style.display = "none";
+    el.shopActions.style.display = "none";
+    el.battleStrip.classList.add("active");
+    renderMiniBoard(el.playerBattle, playerBoard, true);
+    renderMiniBoard(el.enemyBattle, enemyBoard, false);
+    renderHUD();
+    el.battleStatus.textContent = "Clash!";
+    logLine(`<span class="sys">—— Round ${state.round} Battle ——</span>`);
+
+    await sleep(600);
+
+    for (let i = 0; i < 5; i++) {
+      const p = playerBoard[i];
+      const e = enemyBoard[i];
+      if (!p && !e) continue;
+
+      const pAtk = p ? effectiveAtk(p, playerBoard) : 0;
+      const eAtk = e ? effectiveAtk(e, enemyBoard) : 0;
+
+      // Highlight columns
+      const pZones = el.playerBattle.children;
+      const eZones = el.enemyBattle.children;
+      if (pZones[i]) pZones[i].classList.add("selected");
+      if (eZones[i]) eZones[i].classList.add("selected");
+
+      await sleep(450);
+
+      if (p && e) {
+        if (pAtk > eAtk) {
+          const dmg = pAtk - eAtk;
+          state.enemyLp = Math.max(0, state.enemyLp - dmg);
+          logLine(`<span class="win">${p.name} (${pAtk}) beats ${e.name} (${eAtk})</span> → <span class="dmg">${dmg} dmg</span> to foe`);
+          enemyBoard[i] = null;
+        } else if (eAtk > pAtk) {
+          const dmg = eAtk - pAtk;
+          state.lp = Math.max(0, state.lp - dmg);
+          logLine(`<span class="dmg">${e.name} (${eAtk}) beats ${p.name} (${pAtk})</span> → you take <span class="dmg">${dmg}</span>`);
+          playerBoard[i] = null;
+          el.lp.classList.add("shake");
+          setTimeout(() => el.lp.classList.remove("shake"), 400);
+        } else {
+          logLine(`${p.name} and ${e.name} clash equally — both destroyed`);
+          playerBoard[i] = null;
+          enemyBoard[i] = null;
+        }
+      } else if (p && !e) {
+        // Direct attack
+        const dmg = pAtk;
+        state.enemyLp = Math.max(0, state.enemyLp - dmg);
+        logLine(`<span class="win">${p.name} direct attack!</span> <span class="dmg">${dmg}</span> to foe`);
+      } else if (!p && e) {
+        const dmg = eAtk;
+        state.lp = Math.max(0, state.lp - dmg);
+        logLine(`<span class="dmg">${e.name} direct attack!</span> you take <span class="dmg">${dmg}</span>`);
+        el.lp.classList.add("shake");
+        setTimeout(() => el.lp.classList.remove("shake"), 400);
+      }
+
+      renderMiniBoard(el.playerBattle, playerBoard, true);
+      renderMiniBoard(el.enemyBattle, enemyBoard, false);
+      renderHUD();
+      el.battleStatus.textContent = `Lane ${i + 1}`;
+
+      if (state.lp <= 0) break;
+      await sleep(350);
+    }
+
+    await sleep(500);
+    endBattle();
+  }
+
+  function incomeForRound(round) {
+    // Base 4 + round, capped interest-ish
+    return 4 + Math.min(round, 6);
+  }
+
+  function endBattle() {
+    el.battleStrip.classList.remove("active");
+    el.shopBlock.style.display = "";
+    el.shopActions.style.display = "";
+
+    if (state.lp <= 0) {
+      state.phase = "end";
+      el.endTitle.textContent = "Defeat";
+      el.endMsg.textContent = `You survived ${state.round} round${state.round === 1 ? "" : "s"}. Your Life Points hit zero.`;
+      el.endOverlay.classList.add("open");
+      render();
+      return;
+    }
+
+    const gained = incomeForRound(state.round);
+    state.gold += gained;
+    logLine(`<span class="sys">Victory! +${gained}🪙 · Enemy had ${state.enemyLp} LP left</span>`);
+    toast(`+${gained} gold`);
+    state.round += 1;
+    state.phase = "shop";
+    rollShop();
+    render();
+  }
+
+  function restart() {
+    state.lp = 8000;
+    state.enemyLp = 8000;
+    state.gold = 10;
+    state.round = 1;
+    state.phase = "shop";
+    state.field = [null, null, null, null, null];
+    state.bench = [null, null, null, null, null];
+    state.selected = null;
+    el.log.innerHTML = "";
+    el.endOverlay.classList.remove("open");
+    el.battleStrip.classList.remove("active");
+    el.shopBlock.style.display = "";
+    el.shopActions.style.display = "";
+    rollShop();
+    logLine('<span class="sys">Duel start — 8000 LP · 10 gold. Build your field!</span>');
+    render();
+  }
+
+  // Wire UI
+  $("btnHow").addEventListener("click", () => el.howOverlay.classList.add("open"));
+  $("btnCloseHow").addEventListener("click", () => el.howOverlay.classList.remove("open"));
+  el.howOverlay.addEventListener("click", (e) => {
+    if (e.target === el.howOverlay) el.howOverlay.classList.remove("open");
+  });
+  $("btnReroll").addEventListener("click", reroll);
+  $("btnBattle").addEventListener("click", () => { startBattle(); });
+  $("btnSell").addEventListener("click", sellSelected);
+  $("btnRestart").addEventListener("click", restart);
+
+  // First launch: show how-to once
+  restart();
+  el.howOverlay.classList.add("open");
+})();
+  </script>
+</body>
+</html>
