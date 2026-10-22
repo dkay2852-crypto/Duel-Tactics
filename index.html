@@ -31,7 +31,7 @@
       --tap: 44px;
       --hex-w: 48px;
       --hex-h: calc(var(--hex-w) * 1.12);
-      --top-h: 48px;
+      --top-h: 52px;
       --trait-h: 40px;
       --bench-h: 52px;
       --fight-h: 52px;
@@ -107,38 +107,61 @@
       align-items: center;
       gap: 4px;
       min-height: var(--tap);
-      padding: 0 10px;
+      padding: 0 8px;
       border-radius: 12px;
       background: rgba(19, 38, 54, 0.95);
       border: 1px solid #6a3040;
       font-weight: 800;
-      font-size: 0.95rem;
+      font-size: 0.82rem;
       color: var(--rose);
+      flex: 0 0 auto;
     }
-    .lp-heart .heart { font-size: 1rem; line-height: 1; }
+    .lp-heart .heart { font-size: 0.9rem; line-height: 1; }
+    .lp-heart .lp-tag {
+      font-size: 0.55rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .lp-heart.foe {
+      border-color: #4a6080;
+      color: #8ec8f0;
+      flex-direction: row-reverse;
+    }
+    .lp-heart.foe .lp-tag { color: #6a88a8; }
+    .lp-heart.shake { animation: lpShake 0.4s ease; }
+    @keyframes lpShake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-3px); }
+      75% { transform: translateX(3px); }
+    }
     .top-mid {
       flex: 1;
       min-width: 0;
       display: flex;
       flex-direction: column;
       justify-content: center;
+      align-items: center;
       gap: 1px;
+      text-align: center;
     }
     .top-mid .round-line {
       font-size: 0.68rem;
       font-weight: 800;
       letter-spacing: 0.1em;
       text-transform: uppercase;
-      color: var(--muted);
+      color: var(--gold);
     }
     .top-mid .duelist-line {
       font-family: "Bungee", cursive;
-      font-size: 0.78rem;
+      font-size: 0.68rem;
       color: #f0b8c0;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
       line-height: 1.15;
+      max-width: 100%;
     }
     .btn-menu {
       flex: 0 0 auto;
@@ -1209,6 +1232,22 @@
     .btn-duel-huge:disabled {
       opacity: 0.55; animation: none; cursor: wait;
     }
+    .btn-continue-run {
+      flex: 0 0 auto;
+      min-height: 48px;
+      border-radius: 14px;
+      border: 3px solid #5ec8ff;
+      background: linear-gradient(180deg, #1a4060, #0c2840);
+      color: #d8f0ff;
+      font-family: "Bungee", cursive;
+      font-size: 1rem;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      touch-action: manipulation;
+      display: none;
+    }
+    .btn-continue-run.show { display: block; }
+    .btn-continue-run:active { filter: brightness(1.1); }
     @keyframes duelGlow {
       0%, 100% { box-shadow: 0 6px 0 #a87810, 0 0 18px rgba(255, 200, 40, 0.4); }
       50% { box-shadow: 0 6px 0 #a87810, 0 0 28px rgba(255, 220, 80, 0.75); }
@@ -1887,16 +1926,18 @@
     .star-chips {
       display: inline-flex;
       align-items: center;
-      gap: 2px;
-      min-height: var(--tap);
-      padding: 0 8px;
-      border-radius: 12px;
-      background: rgba(232, 184, 74, 0.12);
-      border: 1px solid var(--gold-dim);
-      font-size: 0.85rem;
+      justify-content: center;
+      gap: 1px;
+      min-height: 0;
+      padding: 0 4px;
+      border-radius: 8px;
+      background: transparent;
+      border: none;
+      font-size: 0.62rem;
       letter-spacing: -1px;
       color: var(--gold);
       text-shadow: 0 1px 0 #6a4a10;
+      line-height: 1;
     }
     .star-chips .chip-on { filter: drop-shadow(0 0 3px rgba(232,184,74,0.65)); }
     .star-chips .chip-off { opacity: 0.22; filter: grayscale(1); }
@@ -2183,7 +2224,8 @@
           <span class="mode-sub">Beat Pegasus to unlock</span>
         </button>
       </div>
-      <button type="button" class="btn-duel-huge" id="btnStart">▶ Duel!</button>
+      <button type="button" class="btn-continue-run" id="btnContinue">▶ Continue</button>
+      <button type="button" class="btn-duel-huge" id="btnStart">▶ New Run</button>
       <button type="button" class="home-load-error" id="homeLoadError">Couldn't load cards, tap to retry</button>
     </div>
 
@@ -2211,14 +2253,20 @@
 
   <div class="app" id="app">
     <header class="top-bar">
-      <div class="lp-heart" aria-label="Life Points">
+      <div class="lp-heart" id="lpYouWrap" aria-label="Your Life Points">
+        <span class="lp-tag">You</span>
         <span class="heart" aria-hidden="true">♥</span>
-        <span id="lp">8000</span>
+        <span id="lp">4000</span>
       </div>
-      <div class="star-chips" id="starChips" aria-label="Star Chips" title="Star Chips"></div>
       <div class="top-mid">
-        <div class="round-line"><span id="duelistRound">R1</span><span id="round" hidden>1</span></div>
+        <div class="round-line">Round <span id="duelistRound">1</span><span id="round" hidden>1</span></div>
         <div class="duelist-line" id="duelistName">Weevil Underwood</div>
+        <div class="star-chips" id="starChips" aria-label="Star Chips" title="Star Chips"></div>
+      </div>
+      <div class="lp-heart foe" id="lpFoeWrap" aria-label="Duelist Life Points">
+        <span class="lp-tag">Foe</span>
+        <span class="heart" aria-hidden="true">♥</span>
+        <span id="enemyLp">4000</span>
       </div>
       <button type="button" class="btn-menu" id="btnMenu" aria-label="Menu">☰</button>
     </header>
@@ -2295,14 +2343,13 @@
       <h2>How to Play</h2>
       <ol>
         <li>Welcome to <strong>Duelist Kingdom</strong> — start with <strong>2 Star Chips</strong>.</li>
-        <li>Win a duel: +1 Star Chip. Lose: −1. Hit 0 chips or 0 LP and the run ends.</li>
-        <li>Reach <strong>10 Star Chips</strong> to unlock Pegasus's Castle.</li>
-        <li>Between rounds, tap the glowing island spot. Each area boosts matching Types by +30% ATK.</li>
-        <li>Buy, fuse (3→★★→★★★), place on hexes, then <strong>FIGHT</strong> for a DUEL!</li>
-        <li>Cost follows ATK+DEF. HP = DEF×1.5, damage = ATK÷4. Tap any monster for the Guide.</li>
-        <li>Board size = your level (1–9). Lock the shop to keep offers between rounds.</li>
-        <li>Tournament path: Weevil → Rex → Mako → Mai → Keith → Bonz → Panik → Castle (Kaiba, Yugi, Pegasus).</li>
-        <li>Tap a token for stats. Drag to place. Items draft after rounds 2, 5, 9, 13.</li>
+        <li>Each duel is a mini-match: you and the duelist start at <strong>4000 LP</strong>. Shop, then fight — usually 5–8 rounds.</li>
+        <li>Loser of a fight loses LP = (2 + survivors' cost + round×2) × 100. Hit 0 LP to end the duel.</li>
+        <li>Your board, bench, gold, level, and items carry across rounds and duels. LP resets to 4000 each new duel.</li>
+        <li>Win a duel: +1 Star Chip. Lose a duel: −1. Hit 0 chips and the run ends. Reach <strong>10 ★</strong> for the Castle.</li>
+        <li>Buy, fuse (3→★★→★★★), place on hexes, then <strong>FIGHT</strong>. Progress saves every round — use Continue on the home screen.</li>
+        <li>Cost follows ATK+DEF. HP = DEF×1.5, damage = ATK÷4. Board size = your level (1–9).</li>
+        <li>Path: Weevil → Rex → Mako → Mai → Keith → Bonz → Panik → Castle (Kaiba, Yugi, Pegasus).</li>
       </ol>
       <button type="button" class="btn btn-primary btn-wide" id="btnCloseHow">Got it</button>
     </div>
@@ -2724,6 +2771,8 @@
   }
 
   const META_KEY = "duelTacticsMetaV1";
+  const SAVE_KEY = "duelTacticsRunV1";
+  const DUEL_START_LP = 4000;
   const DEFAULT_META = {
     bestStarChips: 0,
     wins: 0,
@@ -2751,15 +2800,126 @@
     return next;
   }
 
+  function cloneUnit(u) {
+    if (!u) return null;
+    const copy = Object.assign({}, u);
+    copy.items = (u.items || []).map((it) => Object.assign({}, it));
+    return copy;
+  }
+
+  function serializeRun() {
+    const grid = {};
+    Object.keys(state.grid || {}).forEach((k) => {
+      const u = state.grid[k];
+      if (u && u.side === "player" && !u.dead) grid[k] = cloneUnit(u);
+    });
+    return {
+      v: 1,
+      lp: state.lp,
+      enemyLp: state.enemyLp,
+      gold: state.gold,
+      round: state.round,
+      duelRound: state.duelRound,
+      duelIndex: state.duelIndex,
+      starChips: state.starChips,
+      level: state.level,
+      xp: state.xp,
+      winStreak: state.winStreak,
+      lossStreak: state.lossStreak,
+      phase: state.phase === "fight" ? "shop" : state.phase,
+      shop: (state.shop || []).map((c) => (c ? cloneUnit(c) : null)),
+      bench: (state.bench || []).map((c) => (c ? cloneUnit(c) : null)),
+      shopLocked: !!state.shopLocked,
+      grid,
+      itemBench: (state.itemBench || []).map((it) => Object.assign({}, it)),
+      itemsPicked: (state.itemsPicked || []).slice(),
+      strongestEver: state.strongestEver ? Object.assign({}, state.strongestEver) : null,
+      homeMode: state.homeMode,
+      uid: state.uid,
+      fightSpeed: state.fightSpeed,
+      soundOn: state.soundOn,
+    };
+  }
+
+  function saveRun() {
+    if (state.phase === "menu" || state.phase === "end") return;
+    try { localStorage.setItem(SAVE_KEY, JSON.stringify(serializeRun())); } catch (_) {}
+  }
+
+  function clearSavedRun() {
+    try { localStorage.removeItem(SAVE_KEY); } catch (_) {}
+  }
+
+  function readSavedRun() {
+    try {
+      const raw = localStorage.getItem(SAVE_KEY);
+      if (!raw) return null;
+      const data = JSON.parse(raw);
+      if (!data || data.v !== 1) return null;
+      return data;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function hasSavedRun() {
+    const data = readSavedRun();
+    return !!(data && (data.phase === "shop" || data.phase === "map"));
+  }
+
+  function applySavedRun(data) {
+    if (!data) return false;
+    state.lp = data.lp | 0;
+    state.enemyLp = data.enemyLp | 0;
+    state.gold = data.gold | 0;
+    state.round = Math.max(1, data.round | 0);
+    state.duelRound = Math.max(1, data.duelRound | 0);
+    state.duelIndex = Math.max(0, data.duelIndex | 0);
+    state.starChips = Math.max(0, data.starChips | 0);
+    state.level = Math.max(1, data.level | 0);
+    state.xp = Math.max(0, data.xp | 0);
+    state.winStreak = data.winStreak | 0;
+    state.lossStreak = data.lossStreak | 0;
+    state.phase = data.phase === "map" ? "map" : "shop";
+    state.shop = Array.isArray(data.shop) ? data.shop.map((c) => (c ? cloneUnit(c) : null)) : [];
+    state.bench = Array.isArray(data.bench)
+      ? data.bench.map((c) => (c ? cloneUnit(c) : null))
+      : [null, null, null, null, null, null, null, null, null];
+    while (state.bench.length < 9) state.bench.push(null);
+    state.shopLocked = !!data.shopLocked;
+    state.grid = {};
+    Object.keys(data.grid || {}).forEach((k) => {
+      const u = data.grid[k];
+      if (u) state.grid[k] = cloneUnit(u);
+    });
+    state.itemBench = Array.isArray(data.itemBench)
+      ? data.itemBench.map((it) => Object.assign({}, it))
+      : [];
+    state.itemsPicked = Array.isArray(data.itemsPicked) ? data.itemsPicked.slice() : [];
+    state.strongestEver = data.strongestEver ? Object.assign({}, data.strongestEver) : null;
+    state.homeMode = data.homeMode === "castle" ? "castle" : "kingdom";
+    state.uid = Math.max(1, data.uid | 0);
+    state.fightSpeed = data.fightSpeed || 1;
+    state.soundOn = data.soundOn !== false;
+    state.selected = null;
+    state.selectedItem = null;
+    state.awaitingItemDraft = false;
+    state.pendingResult = null;
+    state.combatVisuals = {};
+    return true;
+  }
+
   const state = {
     roster: [],
     cardsReady: false,
     cardsError: false,
     homeMode: "kingdom", // kingdom | castle
     homeTab: "duel", // duel | records | binder
-    lp: 8000,
+    lp: DUEL_START_LP,
+    enemyLp: DUEL_START_LP,
     gold: 10,
-    round: 1,
+    round: 1, // global economy / item-draft round (whole tournament)
+    duelRound: 1, // round within the current duel
     duelIndex: 0,
     starChips: 2,
     level: 1,
@@ -2782,10 +2942,10 @@
     pendingResult: null,
     itemBench: [],
     selectedItem: null, // index in itemBench
-    enemyLp: 8000,
     itemsPicked: [],
     strongestEver: null, // { name, atk, imgSmall }
     awaitingItemDraft: false,
+    preFightArmy: null, // snapshot of player board units before combat
   };
 
   const $ = (id) => document.getElementById(id);
@@ -2817,6 +2977,10 @@
     endTitle: $("endTitle"), endMsg: $("endMsg"), toast: $("toast"),
     runSummary: $("runSummary"),
     btnStart: $("btnStart"),
+    btnContinue: $("btnContinue"),
+    enemyLp: $("enemyLp"),
+    lpYouWrap: $("lpYouWrap"),
+    lpFoeWrap: $("lpFoeWrap"),
     btnFight: $("btnFight"),
     fightBar: $("fightBar"),
     btnSpeed: $("btnSpeed"),
@@ -3716,7 +3880,8 @@
       "<li>Battle HP = DEF×1.5 (min 600). Attack damage = ATK÷4. ★★ ×1.8, ★★★ ×3.2 to HP and damage.</li>" +
       "<li>Roles: high DEF = Tank (melee). High ATK = Attacker (melee, or range 2 for Spellcaster / Thunder / Machine). Else Fighter.</li>" +
       "<li>Buy 3 copies to fuse ★★, then 3 ★★ into ★★★. Place on hexes, then FIGHT.</li>" +
-      "<li>Win duels for Star Chips. Reach 10 ★ to open Pegasus's Castle. 0 LP or 0 chips ends the run.</li>" +
+      "<li>Each duel is multi-round at 4000 LP. Win/lose the duel for ±1 Star Chip. Reach 10 ★ for the Castle; 0 chips ends the run.</li>" +
+      "<li>Your build carries between rounds and duels. Progress auto-saves every round.</li>" +
       "<li>Shop odds favor cheap units early; 4- and 5-cost monsters are rare until level 7+.</li>" +
       "</ol></div>"
     );
@@ -3884,6 +4049,7 @@
 
   function renderHUD() {
     el.lp.textContent = state.lp;
+    if (el.enemyLp) el.enemyLp.textContent = state.enemyLp;
     el.gold.textContent = state.gold;
     el.round.textContent = state.round;
     renderStarChips();
@@ -3968,7 +4134,7 @@
 
   function renderDuelist() {
     const d = currentDuelist();
-    if (el.duelistRound) el.duelistRound.textContent = "R" + state.round;
+    if (el.duelistRound) el.duelistRound.textContent = String(state.duelRound || 1);
     if (el.duelistName) {
       el.duelistName.textContent = d.name;
       el.duelistName.title = d.name + (d.theme ? " · " + d.theme : "");
@@ -4340,7 +4506,13 @@
   function placeEnemy() {
     clearEnemy();
     const duelist = currentDuelist();
-    const count = Math.min(boardCap() + 1, Math.min(7, 1 + Math.floor(state.round * 0.7) + (duelist.boss ? 1 : 0)));
+    const dr = Math.max(1, state.duelRound | 0);
+    const di = Math.max(0, state.duelIndex | 0);
+    // Weevil (0) easiest; later ladder slots + duel rounds add units/stars
+    const count = Math.min(
+      7,
+      1 + Math.floor(dr * 0.9) + Math.floor(di * 0.4) + (duelist.boss ? 1 : 0)
+    );
     const pool = themedPool(duelist);
     const sorted = [...pool].sort((a, b) => b.atk - a.atk);
     const slots = [];
@@ -4353,25 +4525,44 @@
         const tmp = slots[i]; slots[i] = slots[j]; slots[j] = tmp;
       }
     }
-    const scale = (state.round - 1) * 90 + (duelist.boss ? 200 : 0);
+    const scale = (dr - 1) * 80 + di * 110 + (duelist.boss ? 280 : 0);
     for (let i = 0; i < count; i++) {
-      let base = (state.round >= 4 && Math.random() < 0.4)
+      let base = (dr >= 3 && Math.random() < 0.35 + di * 0.04)
         ? sorted[Math.min(i, sorted.length - 1)]
         : pool[Math.floor(Math.random() * pool.length)];
       let stars = 1;
-      if (state.round >= 3 && Math.random() < 0.12 + state.round * 0.04) stars = 2;
+      if (dr >= 2 && Math.random() < 0.1 + dr * 0.08 + di * 0.03) stars = 2;
+      if (dr >= 5 && Math.random() < 0.08 + di * 0.02) stars = 3;
       if (duelist.boss && i === 0 && sorted.length) {
         base = sorted[0];
-        stars = state.round >= 8 ? 2 : 1;
+        stars = dr >= 4 ? 2 : 1;
+        if (dr >= 7) stars = 3;
+      }
+      // Prefer signature / theme monsters early in the enemy list
+      if (i < 2 && sorted.length) {
+        const sig = sorted[Math.min(i, sorted.length - 1)];
+        if (sig && Math.random() < 0.55 + di * 0.04) base = sig;
       }
       const mon = makeInstance(base, stars);
       mon.atk += scale;
-      mon.def += Math.floor(scale * 0.5);
-      mon.maxHp = Math.max(500, mon.def);
+      mon.def += Math.floor(scale * 0.55);
+      mon.maxHp = battleHpFromDef(mon.def, stars);
       mon.hp = mon.maxHp;
       mon.side = "enemy";
       setCell(slots[i].row, slots[i].col, mon);
     }
+  }
+
+  function unitEffectiveCost(u) {
+    if (!u) return 0;
+    const c = Number(u.cost) || costFromStats(u.atk, u.def);
+    const s = Math.max(1, Number(u.stars) || 1);
+    return c * s;
+  }
+
+  function fightLpDamage(survivorUnits, duelRound) {
+    const costSum = (survivorUnits || []).reduce((n, u) => n + unitEffectiveCost(u), 0);
+    return (2 + costSum + Math.max(1, duelRound | 0) * 2) * 100;
   }
 
   /* —— Combat (TFT-style) —— */
@@ -4645,12 +4836,7 @@
       }
     }
 
-    if (unit.side === "player") {
-      returnItemsToBench(unit);
-    }
-    if (unit.side === "enemy") {
-      state.enemyLp = Math.max(0, state.enemyLp - 200 * (unit.level || 1));
-    }
+    // Items stay on the unit — board is restored from pre-fight snapshot after combat.
 
     unit.dead = true;
     unit.hp = 0;
@@ -4793,13 +4979,46 @@
     });
   }
 
+  function snapshotPlayerArmy() {
+    const list = [];
+    for (let r = HEX_ROWS; r < HEX_ROWS * 2; r++) {
+      for (let c = 0; c < HEX_COLS; c++) {
+        const u = getCell(r, c);
+        if (u && u.side === "player") {
+          list.push({ row: r, col: c, unit: cloneUnit(u) });
+        }
+      }
+    }
+    return list;
+  }
+
+  function restorePlayerArmy(snap) {
+    for (let r = HEX_ROWS; r < HEX_ROWS * 2; r++) {
+      for (let c = 0; c < HEX_COLS; c++) setCell(r, c, null);
+    }
+    (snap || []).forEach((entry) => {
+      const u = cloneUnit(entry.unit);
+      u.maxHp = effectiveMaxHp(u);
+      u.hp = u.maxHp;
+      u.mana = 0;
+      u.shield = 0;
+      u.stunUntil = 0;
+      u.hasteUntil = 0;
+      u.dead = false;
+      u.side = "player";
+      u.row = entry.row;
+      u.col = entry.col;
+      setCell(entry.row, entry.col, u);
+    });
+  }
+
   async function startFight() {
     if (state.phase !== "shop" || playerCount() < 1) return;
     state.phase = "fight";
     state.selected = null;
     state.selectedItem = null;
     state.fightSpeed = 1;
-    state.enemyLp = 8000;
+    state.preFightArmy = snapshotPlayerArmy();
     placeEnemy();
     allUnits().forEach((u) => {
       const tb = traitBonusesFor(u);
@@ -4815,17 +5034,18 @@
       u.moveCd = Math.random() * 100;
     });
     const d = currentDuelist();
-    logLine('<span class="sys">—— Duel vs ' + escapeHtml(d.name) + " ——</span>");
+    logLine('<span class="sys">—— Round ' + state.duelRound + " vs " +
+      escapeHtml(d.name) + " ——</span>");
     render();
     if (el.btnFight) el.btnFight.style.display = "none";
     if (el.boardCount) el.boardCount.style.visibility = "hidden";
-    if (el.duelFlash) {
+    if (el.duelFlash && state.duelRound === 1) {
       el.duelFlash.classList.remove("show");
       void el.duelFlash.offsetWidth;
       el.duelFlash.classList.add("show");
+      await sleep(850 / state.fightSpeed);
+      el.duelFlash.classList.remove("show");
     }
-    await sleep(850 / state.fightSpeed);
-    if (el.duelFlash) el.duelFlash.classList.remove("show");
     requestAnimationFrame(() => { mountCombatTokens(); });
     await sleep(80);
     mountCombatTokens();
@@ -4919,115 +5139,136 @@
       state.combatTimer = null;
     }
 
-    const survivors = allUnits("enemy").filter((u) => !u.dead);
-    let lpDmg = 0;
-    survivors.forEach((e) => {
-      lpDmg += 200 * (e.level || 1);
-    });
+    const enemySurvivors = allUnits("enemy").filter((u) => !u.dead);
+    const playerSurvivors = allUnits("player").filter((u) => !u.dead);
+    const playerWonRound = enemySurvivors.length === 0 && playerSurvivors.length > 0;
+    const playerTakesHit = !playerWonRound && enemySurvivors.length > 0;
+    // Mutual wipe still chips the duelist (board clear)
+    const foeTakesHit = playerWonRound || enemySurvivors.length === 0;
 
-    const playerAlive = allUnits("player").some((u) => !u.dead);
-    const victory = survivors.length === 0 && playerAlive;
-
-    if (lpDmg > 0) {
-      state.lp = Math.max(0, state.lp - lpDmg);
-      logLine('<span class="dmg">Survivors deal ' + lpDmg + " LP damage</span>");
-      el.lp.classList.add("shake");
-      setTimeout(() => el.lp.classList.remove("shake"), 400);
-    } else if (victory) {
-      logLine('<span class="win">Board wiped — no LP damage!</span>');
+    let playerLpDmg = 0;
+    let foeLpDmg = 0;
+    if (playerTakesHit) {
+      playerLpDmg = fightLpDamage(enemySurvivors, state.duelRound);
+      state.lp = Math.max(0, state.lp - playerLpDmg);
+      logLine('<span class="dmg">You take ' + playerLpDmg + " LP (" +
+        enemySurvivors.length + " survivors)</span>");
+      if (el.lpYouWrap) {
+        el.lpYouWrap.classList.remove("shake");
+        void el.lpYouWrap.offsetWidth;
+        el.lpYouWrap.classList.add("shake");
+      }
+    }
+    if (foeTakesHit) {
+      foeLpDmg = fightLpDamage(playerSurvivors, state.duelRound);
+      state.enemyLp = Math.max(0, state.enemyLp - foeLpDmg);
+      logLine('<span class="win">' + escapeHtml(currentDuelist().name) + " takes " +
+        foeLpDmg + " LP</span>");
+      if (el.lpFoeWrap) {
+        el.lpFoeWrap.classList.remove("shake");
+        void el.lpFoeWrap.offsetWidth;
+        el.lpFoeWrap.classList.add("shake");
+      }
     }
 
-    let chipDelta = 0;
-    if (victory) {
+    if (playerWonRound) {
       state.winStreak += 1;
       state.lossStreak = 0;
-      state.starChips += 1;
-      chipDelta = 1;
-      // Clearing Panik with <10 chips opens the castle gate
-      if (state.duelIndex === 6 && state.starChips < 10) {
-        state.starChips = 10;
-        logLine('<span class="sys">★ Star Chips fill the gate — Pegasus Castle unlocks!</span>');
-      }
-      logLine('<span class="win">★ Star Chip +1 (' + state.starChips + "/10)</span>");
-    } else {
+    } else if (playerTakesHit) {
       state.lossStreak += 1;
       state.winStreak = 0;
-      state.starChips = Math.max(0, state.starChips - 1);
-      chipDelta = -1;
-      logLine('<span class="dmg">★ Star Chip −1 (' + state.starChips + "/10)</span>");
     }
 
-    const survivorsP = allUnits("player").filter((u) => !u.dead).map((u) => {
-      setCell(u.row, u.col, null);
-      u.maxHp = Math.max(500, u.def);
-      u.hp = u.maxHp;
-      u.mana = 0;
-      u.shield = 0;
-      u.stunUntil = 0;
-      u.hasteUntil = 0;
-      u.dead = false;
-      u.side = "player";
-      return u;
-    });
     clearEnemy();
     clearCombatLayer();
     el.arena.querySelectorAll(".hex .token").forEach((t) => { t.style.visibility = ""; });
+    restorePlayerArmy(state.preFightArmy);
+    state.preFightArmy = null;
 
-    const homeSlots = [];
-    for (let r = HEX_ROWS; r < HEX_ROWS * 2; r++) {
-      for (let c = 0; c < HEX_COLS; c++) homeSlots.push({ row: r, col: c });
-    }
-    homeSlots.sort((a, b) => b.row - a.row || a.col - b.col);
-    survivorsP.forEach((u, i) => {
-      const slot = homeSlots[i];
-      if (slot) setCell(slot.row, slot.col, u);
-    });
-
-    // Leave fight phase so screen-space holos can remount under the results banner
     state.phase = "shop";
     renderBoards();
 
     const duelist = currentDuelist();
-    const beatBoss = victory && duelist.boss;
+    const duelOver = state.lp <= 0 || state.enemyLp <= 0;
+    const duelVictory = state.enemyLp <= 0 && state.lp > 0;
+    const duelDefeat = state.lp <= 0;
+    let chipDelta = 0;
+    if (duelOver) {
+      if (duelVictory) {
+        state.starChips += 1;
+        chipDelta = 1;
+        if (state.duelIndex === 6 && state.starChips < 10) {
+          state.starChips = 10;
+          logLine('<span class="sys">★ Star Chips fill the gate — Pegasus Castle unlocks!</span>');
+        }
+        logLine('<span class="win">★ Star Chip +1 (' + state.starChips + "/10)</span>");
+      } else if (duelDefeat) {
+        state.starChips = Math.max(0, state.starChips - 1);
+        chipDelta = -1;
+        logLine('<span class="dmg">★ Star Chip −1 (' + state.starChips + "/10)</span>");
+      }
+    }
+
     const streak = streakGoldBonus();
     const baseGold = 4 + Math.min(state.round, 6);
     const interest = Math.min(5, Math.floor(state.gold / 10));
     const previewGold = baseGold + interest + streak;
+    const beatBoss = duelVictory && !!duelist.boss;
 
     state.pendingResult = {
-      victory,
-      lpDmg,
+      victory: playerWonRound,
+      duelVictory,
+      duelDefeat,
+      duelOver,
+      playerLpDmg,
+      foeLpDmg,
+      lpDmg: playerLpDmg,
       chipDelta,
       previewGold,
       streak,
-      gameOver: state.lp <= 0 || state.starChips <= 0,
+      gameOver: (duelDefeat && state.starChips <= 0) || beatBoss,
       beatBoss,
       completedRound: state.round,
+      completedDuelRound: state.duelRound,
       completedDuel: state.duelIndex,
     };
 
-    el.resultsBanner.classList.toggle("defeat", !state.pendingResult.victory && !beatBoss);
+    el.resultsBanner.classList.toggle("defeat", duelDefeat || (!duelOver && playerTakesHit));
     if (beatBoss) {
       el.resultsTitle.textContent = "Champion!";
       el.resultsMsg.textContent = "You defeated " + duelist.name + "!";
+    } else if (duelVictory) {
+      el.resultsTitle.textContent = "Duel Won!";
+      el.resultsMsg.textContent = "You defeated " + duelist.name +
+        " in " + state.duelRound + " round" + (state.duelRound === 1 ? "" : "s");
+    } else if (duelDefeat) {
+      el.resultsTitle.textContent = "Duel Lost";
+      el.resultsMsg.textContent = duelist.name + " reduced you to 0 LP";
     } else {
-      el.resultsTitle.textContent = state.pendingResult.victory ? "Victory!" : "Defeat";
-      el.resultsMsg.textContent = victory
-        ? ("Defeated " + duelist.name)
-        : (lpDmg > 0 ? ("−" + lpDmg + " Life Points") : "Your monsters fell");
+      el.resultsTitle.textContent = playerWonRound ? "Round Won!" : "Round Lost";
+      el.resultsMsg.textContent = playerTakesHit
+        ? ("−" + playerLpDmg + " LP  ·  Foe " + state.enemyLp + " LP")
+        : ("Foe −" + foeLpDmg + " LP  ·  You " + state.lp + " LP");
     }
     if (el.resultsRewards) {
       const chips = [];
-      chips.push('<span class="reward-chip">🪙 +' + previewGold + " gold</span>");
-      if (streak) chips.push('<span class="reward-chip">🔥 Streak +' + streak + "</span>");
-      if (chipDelta > 0) chips.push('<span class="reward-chip">★ Star Chip +1</span>');
-      if (chipDelta < 0) chips.push('<span class="reward-chip loss">★ Star Chip −1</span>');
+      if (!duelOver) {
+        chips.push('<span class="reward-chip">🪙 +' + previewGold + " gold next</span>");
+        if (streak) chips.push('<span class="reward-chip">🔥 Streak +' + streak + "</span>");
+      } else {
+        if (chipDelta > 0) chips.push('<span class="reward-chip">★ Star Chip +1</span>');
+        if (chipDelta < 0) chips.push('<span class="reward-chip loss">★ Star Chip −1</span>');
+        if (duelVictory && !beatBoss) {
+          chips.push('<span class="reward-chip">🪙 +' + previewGold + " gold</span>");
+        }
+      }
       el.resultsRewards.innerHTML = chips.join("");
     }
     el.resultsBanner.classList.add("show");
     el.fightBar.classList.remove("show");
     el.btnFight.style.display = "none";
-    renderStarChips();
+    renderHUD();
+    saveRun();
   }
 
   function fillRunSummary(won) {
@@ -5040,7 +5281,8 @@
       : "None";
     el.runSummary.innerHTML =
       "<div><span class='k'>Result:</span> <span class='v'>" + (won ? "Victory" : "Defeat") + "</span></div>" +
-      "<div><span class='k'>Duels survived:</span> <span class='v'>" + state.round + "</span></div>" +
+      "<div><span class='k'>Duels reached:</span> <span class='v'>" + (state.duelIndex + 1) + "/" + LADDER.length + "</span></div>" +
+      "<div><span class='k'>Rounds fought:</span> <span class='v'>" + state.round + "</span></div>" +
       "<div><span class='k'>Star Chips:</span> <span class='v'>" + state.starChips + "/10</span></div>" +
       "<div><span class='k'>Strongest monster:</span> <span class='v'>" + strong + "</span></div>" +
       "<div><span class='k'>Items used:</span> <span class='v'>" + items + "</span></div>" +
@@ -5049,6 +5291,7 @@
 
   function showEndScreen(won, msg) {
     state.phase = "end";
+    clearSavedRun();
     hideMap();
     el.endTitle.textContent = won ? "You Win!" : "Defeat";
     el.endMsg.textContent = msg;
@@ -5193,12 +5436,26 @@
     hideMap();
     state.phase = "shop";
     state.fightSpeed = 1;
+    state.lp = DUEL_START_LP;
+    state.enemyLp = DUEL_START_LP;
+    state.duelRound = 1;
     if (!state.shop || !state.shop.length) rollShop();
     toast(d.name + ': "' + (d.taunt || "Let's duel!") + '"');
     logLine('<span class="sys">🗺 ' + escapeHtml(currentArea().name) + " — vs " +
-      escapeHtml(d.name) + "</span>");
+      escapeHtml(d.name) + " · " + DUEL_START_LP + " LP</span>");
     render();
+    saveRun();
     requestAnimationFrame(() => renderBoards());
+  }
+
+  function advanceAfterRound() {
+    grantIncome();
+    state.round += 1;
+    state.duelRound += 1;
+    rollShop();
+    state.phase = "shop";
+    render();
+    saveRun();
   }
 
   function advanceAfterDuel(won) {
@@ -5207,8 +5464,10 @@
       state.duelIndex = Math.min(LADDER.length - 1, state.duelIndex + 1);
     }
     state.round += 1;
+    state.duelRound = 1;
     rollShop();
     showMap();
+    saveRun();
   }
 
   function dismissResults() {
@@ -5218,21 +5477,31 @@
     if (!res) return;
 
     if (res.beatBoss) {
+      clearSavedRun();
       showEndScreen(true, "You defeated Maximillion Pegasus and conquered Duelist Kingdom!");
       return;
     }
 
-    if (res.gameOver || state.lp <= 0 || state.starChips <= 0) {
-      const why = state.starChips <= 0
-        ? "You ran out of Star Chips."
-        : "Your Life Points hit zero.";
-      showEndScreen(false, "You survived " + res.completedRound + " duel" +
-        (res.completedRound === 1 ? "" : "s") + ". " + why);
+    if (res.duelDefeat && state.starChips <= 0) {
+      clearSavedRun();
+      showEndScreen(false, "You ran out of Star Chips after " +
+        (res.completedDuel + 1) + " duel" + (res.completedDuel === 0 ? "" : "s") + ".");
       return;
     }
 
     const afterRound = res.completedRound;
-    const cont = () => advanceAfterDuel(!!res.victory);
+    if (res.duelOver) {
+      const cont = () => advanceAfterDuel(!!res.duelVictory);
+      if (ITEM_DRAFT_ROUNDS.indexOf(afterRound) !== -1) {
+        openItemDraft(cont);
+        return;
+      }
+      cont();
+      return;
+    }
+
+    // Mid-duel: keep fighting the same duelist
+    const cont = () => advanceAfterRound();
     if (ITEM_DRAFT_ROUNDS.indexOf(afterRound) !== -1) {
       openItemDraft(cont);
       return;
@@ -5462,22 +5731,27 @@
     if (el.homeLoadError) {
       el.homeLoadError.classList.toggle("show", !!state.cardsError);
     }
+    if (el.btnContinue) {
+      el.btnContinue.classList.toggle("show", hasSavedRun());
+    }
     if (el.btnStart) {
       el.btnStart.disabled = !state.cardsReady && !state.cardsError ? true : false;
       if (!state.cardsReady && !state.cardsError) el.btnStart.textContent = "Loading…";
-      else el.btnStart.textContent = "▶ Duel!";
+      else el.btnStart.textContent = hasSavedRun() ? "▶ New Run" : "▶ Duel!";
     }
     setHomeTab(state.homeTab === "records" || state.homeTab === "binder" ? state.homeTab : "duel");
   }
 
   function beginDuel() {
     if (!state.cardsReady || !state.roster.length) return;
+    clearSavedRun();
     const meta = readMeta();
     const castleRun = state.homeMode === "castle" && meta.pegasusBeaten;
-    state.lp = 8000;
-    state.enemyLp = 8000;
+    state.lp = DUEL_START_LP;
+    state.enemyLp = DUEL_START_LP;
     state.gold = 10;
     state.round = 1;
+    state.duelRound = 1;
     state.duelIndex = castleRun ? 7 : 0;
     state.starChips = castleRun ? 10 : 2;
     state.level = 1;
@@ -5492,6 +5766,7 @@
     state.itemsPicked = [];
     state.strongestEver = null;
     state.awaitingItemDraft = false;
+    state.preFightArmy = null;
     state.grid = {};
     state.selected = null;
     el.log.innerHTML = "";
@@ -5506,9 +5781,44 @@
     el.app.classList.add("visible");
     rollShop();
     const label = castleRun ? "Pegasus's Castle" : "Duelist Kingdom";
-    logLine('<span class="sys">' + label + " — ★ " + state.starChips + " Star Chips · 8000 LP</span>");
+    logLine('<span class="sys">' + label + " — ★ " + state.starChips +
+      " Star Chips · " + DUEL_START_LP + " LP per duel</span>");
     render();
     showMap();
+    saveRun();
+  }
+
+  async function continueRun() {
+    playUiBlip();
+    if (!state.cardsReady) {
+      const ok = await ensureCardsLoaded(true);
+      if (!ok) return;
+    }
+    const data = readSavedRun();
+    if (!data || !applySavedRun(data)) {
+      toast("No saved run");
+      renderHome();
+      return;
+    }
+    el.log.innerHTML = "";
+    el.runSummary.innerHTML = "";
+    el.endOverlay.classList.remove("open");
+    el.resultsBanner.classList.remove("show");
+    el.traitOverlay.classList.remove("open");
+    el.oddsOverlay.classList.remove("open");
+    el.itemDraftOverlay.classList.remove("open");
+    if (el.settingsOverlay) el.settingsOverlay.classList.remove("open");
+    if (el.homeScreen) el.homeScreen.classList.remove("open");
+    el.app.classList.add("visible");
+    if (!state.shop || !state.shop.length) rollShop();
+    logLine('<span class="sys">Continued run — Round ' + state.duelRound +
+      " vs " + escapeHtml(currentDuelist().name) + "</span>");
+    render();
+    if (state.phase === "map") showMap();
+    else {
+      hideMap();
+      requestAnimationFrame(() => renderBoards());
+    }
   }
 
   async function ensureCardsLoaded(force) {
@@ -5547,6 +5857,9 @@
       if (!ok) return;
     }
     if (!state.cardsReady) return;
+    if (hasSavedRun() && !window.confirm("Start a new run? Your saved progress will be replaced.")) {
+      return;
+    }
     beginDuel();
   }
 
@@ -5584,6 +5897,9 @@
 
   // Wire UI
   el.btnStart.addEventListener("click", () => { onStart(); });
+  if (el.btnContinue) {
+    el.btnContinue.addEventListener("click", () => { continueRun(); });
+  }
   if (el.homeLoadError) {
     el.homeLoadError.addEventListener("click", () => { ensureCardsLoaded(true); });
   }
