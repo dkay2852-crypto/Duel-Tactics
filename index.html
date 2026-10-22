@@ -384,8 +384,8 @@
       filter: brightness(1.25);
     }
     .hex.drop-hover::before {
-      box-shadow: inset 0 0 0 3px #5ecfff, 0 0 14px rgba(90, 200, 255, 0.65);
-      filter: brightness(1.45);
+      box-shadow: inset 0 0 0 3px #7af0ff, 0 0 16px rgba(90, 220, 255, 0.8);
+      filter: brightness(1.55) saturate(1.2);
     }
     .hex.place-glow::before {
       animation: placeGlow 0.5s ease;
@@ -3795,7 +3795,7 @@
     const ah = Math.max(120, arena.clientHeight - padY);
 
     // Flat pointy-top grid: 7 cols × 8 rows (4+4) fill the board area
-    let w = aw / 7.35;
+    let w = aw / 7.05;
     const rowPitch = 1.15 * 0.78;
     const needH = rowPitch * 7.2 * w;
     if (needH > ah * 0.98) w = (ah * 0.98) / (rowPitch * 7.2);
