@@ -874,29 +874,475 @@
     .modal ol li { margin-bottom: 6px; }
     .modal p { color: var(--muted); font-size: 0.9rem; line-height: 1.4; }
 
-    .start-screen .modal { text-align: center; }
-    .start-brand {
-      font-family: "Bungee", cursive; font-size: 1.85rem; color: var(--gold); margin: 0;
-      text-shadow: 0 2px 0 #6a4a10;
+    /* —— Home menu (mobile game hub) —— */
+    .home {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 40;
+      width: 100%;
+      max-width: 480px;
+      margin: 0 auto;
+      height: 100%;
+      height: 100dvh;
+      padding:
+        calc(8px + var(--safe-t))
+        calc(12px + var(--safe-r))
+        calc(10px + var(--safe-b))
+        calc(12px + var(--safe-l));
+      flex-direction: column;
+      gap: 6px;
+      overflow: hidden;
+      background:
+        radial-gradient(ellipse 100% 60% at 50% 0%, #3a7bd5 0%, transparent 55%),
+        radial-gradient(ellipse 80% 50% at 0% 100%, #f7b73355 0%, transparent 50%),
+        linear-gradient(165deg, #1a4a8a 0%, #0d2b55 40%, #081e3d 100%);
     }
-    .start-sub {
-      font-size: 0.75rem; letter-spacing: 0.22em; text-transform: uppercase;
-      color: var(--cyan); margin: 4px 0 12px; font-weight: 800;
+    .home.open { display: flex; }
+    .home-main {
+      flex: 1 1 auto;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      overflow: hidden;
+      padding-bottom: 72px; /* room for fixed home nav */
     }
-    .mode-toggle {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 12px 0;
+    .home-top {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 44px;
+      gap: 8px;
     }
-    .mode-opt {
-      text-align: left; padding: 12px; border-radius: 12px;
-      border: 2px solid var(--line); background: rgba(0,0,0,0.25);
-      color: var(--fog); font-family: inherit; font-weight: 800; font-size: 0.9rem;
-      cursor: pointer; touch-action: manipulation;
+    .home-chips {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 44px;
+      padding: 0 14px;
+      border-radius: 16px;
+      border: 3px solid #f0d060;
+      background: linear-gradient(180deg, #fff6c8, #f0c040);
+      color: #5a3a00;
+      font-weight: 800;
+      font-size: 1rem;
+      box-shadow: 0 4px 0 #b8860b;
     }
-    .mode-opt small { display: block; font-size: 0.68rem; font-weight: 600; color: var(--muted); margin-top: 4px; }
-    .mode-opt.active { border-color: var(--gold); background: rgba(232, 184, 74, 0.12); }
-    .load-status { min-height: 1.2em; font-size: 0.78rem; font-weight: 700; color: var(--muted); }
-    .load-status.ok { color: var(--mint); }
-    .load-status.error { color: var(--rose); }
+    .home-chips .star { color: #c48a00; font-size: 1.15rem; }
+    .home-top-actions { display: flex; gap: 8px; }
+    .home-icon-btn {
+      width: 48px; height: 48px;
+      border-radius: 16px;
+      border: 3px solid #fff;
+      background: linear-gradient(180deg, #5ecfff, #2a7fd4);
+      color: #fff;
+      font-size: 1.35rem;
+      cursor: pointer;
+      box-shadow: 0 4px 0 #185a9a;
+      display: grid; place-items: center;
+      touch-action: manipulation;
+    }
+    .home-icon-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #185a9a; }
+    .home-logo {
+      flex: 0 0 auto;
+      text-align: center;
+      position: relative;
+      padding: 2px 0 4px;
+    }
+    .home-logo h1 {
+      margin: 0;
+      font-family: "Bungee", cursive;
+      font-size: clamp(1.55rem, 7.2vw, 2.05rem);
+      line-height: 1.05;
+      color: #ffe566;
+      text-shadow:
+        0 0 18px rgba(255, 220, 80, 0.75),
+        0 3px 0 #c48a00,
+        0 6px 0 #8a5a00;
+      letter-spacing: 0.02em;
+      animation: logoPulse 2.4s ease-in-out infinite;
+    }
+    @keyframes logoPulse {
+      0%, 100% { filter: brightness(1); transform: scale(1); }
+      50% { filter: brightness(1.12); transform: scale(1.02); }
+    }
+    .home-ribbon {
+      display: inline-block;
+      margin-top: 6px;
+      padding: 4px 16px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #e85a6b, #ff8a5c);
+      border: 2px solid #fff;
+      color: #fff;
+      font-weight: 800;
+      font-size: 0.72rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      box-shadow: 0 3px 0 #9a3040;
+    }
+    .home-hero {
+      flex: 1 1 auto;
+      min-height: 0;
+      border-radius: 20px;
+      border: 4px solid #fff;
+      background:
+        linear-gradient(135deg, rgba(20, 40, 80, 0.55), rgba(10, 20, 40, 0.35)),
+        radial-gradient(circle at 30% 40%, #3ec7c255, transparent 50%),
+        radial-gradient(circle at 70% 40%, #e85a6b55, transparent 50%),
+        linear-gradient(180deg, #1e4a8c, #0f2748);
+      box-shadow: 0 6px 0 #0a1a30, inset 0 0 40px rgba(0,0,0,0.25);
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      position: relative;
+      overflow: hidden;
+    }
+    .home-vs-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+    }
+    .home-vs-side {
+      flex: 1;
+      min-width: 0;
+      text-align: center;
+    }
+    .home-vs-side .who {
+      font-weight: 800;
+      font-size: 0.78rem;
+      color: #fff;
+      text-shadow: 0 1px 2px #000;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .home-vs-side .who.foe { color: #ffb0b8; }
+    .home-vs-art {
+      width: min(38vw, 132px);
+      aspect-ratio: 3 / 4;
+      border-radius: 14px;
+      border: 3px solid #f0d060;
+      background: #0a1524;
+      overflow: hidden;
+      box-shadow: 0 0 24px rgba(255, 210, 80, 0.35);
+      display: grid;
+      place-items: center;
+    }
+    .home-vs-art img {
+      width: 100%; height: 100%; object-fit: cover; display: block;
+    }
+    .home-vs-art .emoji-fallback {
+      font-size: 2.4rem;
+    }
+    .home-vs-badge {
+      font-family: "Bungee", cursive;
+      font-size: 1.5rem;
+      color: #fff;
+      text-shadow: 0 0 12px #ff6a6a, 0 2px 0 #800;
+      flex: 0 0 auto;
+    }
+    .home-best {
+      font-weight: 800;
+      font-size: 0.82rem;
+      color: #ffe9a0;
+      background: rgba(0,0,0,0.35);
+      border: 2px solid rgba(255,220,120,0.45);
+      border-radius: 999px;
+      padding: 4px 12px;
+    }
+    .home-modes {
+      flex: 0 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .mode-card {
+      position: relative;
+      min-height: 72px;
+      border-radius: 16px;
+      border: 3px solid #7aa8d4;
+      background: linear-gradient(180deg, #2a5a9a, #1a3a6a);
+      color: #e8f4ff;
+      font-family: inherit;
+      font-weight: 800;
+      font-size: 0.82rem;
+      line-height: 1.2;
+      padding: 10px 8px;
+      cursor: pointer;
+      touch-action: manipulation;
+      box-shadow: 0 4px 0 #0e2a4a;
+      text-align: left;
+    }
+    .mode-card .mode-title { display: block; font-size: 0.9rem; }
+    .mode-card .mode-sub {
+      display: block; margin-top: 4px;
+      font-size: 0.68rem; font-weight: 700; color: #a8c8e8; opacity: 0.95;
+    }
+    .mode-card.selected {
+      border-color: #f0d060;
+      background: linear-gradient(180deg, #f6d060, #e0a020);
+      color: #3a2800;
+      box-shadow: 0 4px 0 #a87810, 0 0 16px rgba(240, 200, 60, 0.45);
+    }
+    .mode-card.selected .mode-sub { color: #6a4a10; }
+    .mode-card.locked {
+      opacity: 0.72;
+      filter: saturate(0.7);
+    }
+    .mode-card .lock {
+      position: absolute;
+      top: 8px; right: 8px;
+      font-size: 1.1rem;
+    }
+    .btn-duel-huge {
+      flex: 0 0 auto;
+      min-height: 56px;
+      border: none;
+      border-radius: 18px;
+      border: 4px solid #fff8d0;
+      background: linear-gradient(180deg, #ffe566, #f0b400 55%, #e09800);
+      color: #3a2800;
+      font-family: "Bungee", cursive;
+      font-size: 1.35rem;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      box-shadow: 0 6px 0 #a87810, 0 0 22px rgba(255, 200, 40, 0.55);
+      touch-action: manipulation;
+      animation: duelGlow 1.8s ease-in-out infinite;
+    }
+    .btn-duel-huge:active { transform: translateY(3px); box-shadow: 0 3px 0 #a87810; }
+    .btn-duel-huge:disabled {
+      opacity: 0.55; animation: none; cursor: wait;
+    }
+    @keyframes duelGlow {
+      0%, 100% { box-shadow: 0 6px 0 #a87810, 0 0 18px rgba(255, 200, 40, 0.4); }
+      50% { box-shadow: 0 6px 0 #a87810, 0 0 28px rgba(255, 220, 80, 0.75); }
+    }
+    .home-load-error {
+      display: none;
+      flex: 0 0 auto;
+      text-align: center;
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 3px solid #ff8a9a;
+      background: rgba(80, 16, 28, 0.92);
+      color: #ffe0e6;
+      font-weight: 800;
+      font-size: 0.88rem;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+    .home-load-error.show { display: block; }
+    .home-nav {
+      position: absolute;
+      left: calc(12px + var(--safe-l));
+      right: calc(12px + var(--safe-r));
+      bottom: calc(8px + var(--safe-b));
+      z-index: 3;
+      display: grid;
+      grid-template-columns: 1fr 72px 1fr;
+      align-items: end;
+      gap: 6px;
+      min-height: 58px;
+      pointer-events: none;
+    }
+    .home-nav > * { pointer-events: auto; }
+    .home-nav-btn {
+      min-height: 48px;
+      border-radius: 16px;
+      border: 3px solid #fff;
+      background: linear-gradient(180deg, #4a8ad4, #2a5a9a);
+      color: #fff;
+      font-family: inherit;
+      font-weight: 800;
+      font-size: 0.78rem;
+      cursor: pointer;
+      box-shadow: 0 4px 0 #163a6a;
+      touch-action: manipulation;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+    }
+    .home-nav-btn .ico { font-size: 1.15rem; line-height: 1; }
+    .home-nav-btn.active {
+      background: linear-gradient(180deg, #6ecfff, #3a8ad4);
+      border-color: #ffe566;
+    }
+    .home-nav-duel {
+      width: 72px; height: 72px;
+      margin-bottom: 4px;
+      border-radius: 50%;
+      border: 4px solid #fff;
+      background: linear-gradient(180deg, #ffe566, #f0a800);
+      color: #3a2800;
+      font-family: "Bungee", cursive;
+      font-size: 0.72rem;
+      line-height: 1.1;
+      cursor: pointer;
+      box-shadow: 0 5px 0 #a87810, 0 0 18px rgba(255, 200, 40, 0.5);
+      touch-action: manipulation;
+    }
+    .home-panel {
+      display: none;
+      position: absolute;
+      left: 0; right: 0; top: 0;
+      bottom: calc(68px + var(--safe-b));
+      z-index: 2;
+      padding:
+        calc(8px + var(--safe-t))
+        calc(12px + var(--safe-r))
+        8px
+        calc(12px + var(--safe-l));
+      flex-direction: column;
+      gap: 8px;
+      background:
+        linear-gradient(165deg, #1a4a8a 0%, #0d2b55 40%, #081e3d 100%);
+      overflow: hidden;
+    }
+    .home-panel.open { display: flex; }
+    .home-panel h2 {
+      margin: 0;
+      font-family: "Bungee", cursive;
+      font-size: 1.15rem;
+      color: #ffe566;
+      text-shadow: 0 2px 0 #8a5a00;
+    }
+    .home-panel-body {
+      flex: 1;
+      min-height: 0;
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+      border-radius: 16px;
+      border: 3px solid #fff;
+      background: rgba(8, 24, 48, 0.75);
+      padding: 12px;
+    }
+    .records-grid {
+      display: grid;
+      gap: 10px;
+    }
+    .record-card {
+      border-radius: 14px;
+      border: 3px solid #f0d060;
+      background: linear-gradient(180deg, #2a5a9a, #1a3a6a);
+      padding: 12px;
+    }
+    .record-card .rk {
+      font-size: 0.68rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #a8c8e8;
+      font-weight: 800;
+    }
+    .record-card .rv {
+      margin-top: 4px;
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: #ffe566;
+    }
+    .binder-search {
+      width: 100%;
+      min-height: 44px;
+      border-radius: 12px;
+      border: 3px solid #7aa8d4;
+      background: #0a1a30;
+      color: #fff;
+      padding: 0 12px;
+      font: inherit;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .binder-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    .binder-card {
+      border-radius: 12px;
+      border: 3px solid #5a8ab8;
+      background: #12283c;
+      overflow: hidden;
+      cursor: pointer;
+      touch-action: manipulation;
+      text-align: left;
+      padding: 0;
+      color: inherit;
+      font: inherit;
+    }
+    .binder-card .ba {
+      aspect-ratio: 1;
+      background: #0a1524;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+    }
+    .binder-card .ba img { width: 100%; height: 100%; object-fit: cover; }
+    .binder-card .bm { padding: 5px 6px 7px; }
+    .binder-card .bn {
+      font-size: 0.65rem;
+      font-weight: 800;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .binder-card .bs {
+      font-size: 0.62rem;
+      font-weight: 700;
+      color: #a8c8e8;
+    }
+    .binder-card .bs .atk { color: #ff8a8a; }
+    .binder-card .bs .def { color: #8ab8ff; }
+    .binder-empty {
+      text-align: center;
+      color: #a8c8e8;
+      font-weight: 700;
+      padding: 24px 8px;
+    }
+    .settings-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 12px;
+      border-radius: 14px;
+      border: 3px solid #5a8ab8;
+      background: #12283c;
+      margin-bottom: 8px;
+      font-weight: 800;
+    }
+    .settings-row button {
+      min-height: 40px;
+      min-width: 72px;
+      border-radius: 12px;
+      border: 2px solid #fff;
+      background: linear-gradient(180deg, #5ecfff, #2a7fd4);
+      color: #fff;
+      font-weight: 800;
+      font-family: inherit;
+      cursor: pointer;
+    }
+    .settings-danger {
+      width: 100%;
+      min-height: 48px;
+      margin-top: 8px;
+      border-radius: 14px;
+      border: 3px solid #ff8a9a;
+      background: linear-gradient(180deg, #e85a6b, #a03040);
+      color: #fff;
+      font-weight: 800;
+      font-family: inherit;
+      font-size: 0.95rem;
+      cursor: pointer;
+    }
 
     .menu-backdrop {
       position: fixed; inset: 0; z-index: 60;
@@ -1370,25 +1816,67 @@
   </style>
 </head>
 <body>
-  <div class="overlay start-screen open" id="startOverlay">
-    <div class="modal">
-      <p class="start-brand">Duel Tactics</p>
-      <p class="start-sub">Duelist Kingdom</p>
-      <p style="margin-top:0">Collect Star Chips. Conquer the island. Challenge Pegasus.</p>
-      <div class="mode-toggle" role="group" aria-label="Card mode">
-        <button type="button" class="mode-opt active" id="modeClassic" data-mode="classic">
-          Classic cards
-          <small>LOB + Metal Raiders via API</small>
+  <div class="home open" id="homeScreen">
+    <div class="home-main" id="homeMain">
+      <div class="home-top">
+        <div class="home-chips" id="homeChips" aria-label="Star Chips"><span class="star">★</span><span id="homeChipCount">0</span></div>
+        <div class="home-top-actions">
+          <button type="button" class="home-icon-btn" id="btnHomeHow" aria-label="How to Play" title="How to Play">📖</button>
+          <button type="button" class="home-icon-btn" id="btnHomeSettings" aria-label="Settings" title="Settings">⚙</button>
+        </div>
+      </div>
+      <div class="home-logo">
+        <h1>DUEL TACTICS</h1>
+        <span class="home-ribbon">Duelist Kingdom</span>
+      </div>
+      <div class="home-hero" id="homeHero">
+        <div class="home-vs-row">
+          <div class="home-vs-side">
+            <div class="who">YOU</div>
+          </div>
+          <div class="home-vs-badge">VS</div>
+          <div class="home-vs-side">
+            <div class="who foe" id="homeFoeName">Weevil Underwood</div>
+          </div>
+        </div>
+        <div class="home-vs-art" id="homeSigArt"><span class="emoji-fallback">🐛</span></div>
+        <div class="home-best" id="homeBest">Best: 0 Star Chips</div>
+      </div>
+      <div class="home-modes" role="group" aria-label="Game mode">
+        <button type="button" class="mode-card selected" id="modeKingdom" data-mode="kingdom">
+          <span class="mode-title">Duelist Kingdom</span>
+          <span class="mode-sub">Main tournament run</span>
         </button>
-        <button type="button" class="mode-opt" id="modeOriginal" data-mode="original">
-          Original
-          <small>Built-in fantasy roster</small>
+        <button type="button" class="mode-card locked" id="modeCastle" data-mode="castle">
+          <span class="lock" aria-hidden="true">🔒</span>
+          <span class="mode-title">Pegasus's Castle</span>
+          <span class="mode-sub">Beat Pegasus to unlock</span>
         </button>
       </div>
-      <p class="load-status" id="loadStatus"></p>
-      <button type="button" class="btn btn-primary btn-wide" id="btnStart">Begin Duel</button>
-      <button type="button" class="btn btn-ghost btn-wide" id="btnStartHow" style="margin-top:8px">How to Play</button>
+      <button type="button" class="btn-duel-huge" id="btnStart">▶ Duel!</button>
+      <button type="button" class="home-load-error" id="homeLoadError">Couldn't load cards, tap to retry</button>
     </div>
+
+    <div class="home-panel" id="panelRecords">
+      <h2>Records</h2>
+      <div class="home-panel-body">
+        <div class="records-grid" id="recordsGrid"></div>
+      </div>
+    </div>
+
+    <div class="home-panel" id="panelBinder">
+      <h2>Card Binder</h2>
+      <div class="home-panel-body">
+        <input type="search" class="binder-search" id="binderSearch" placeholder="Search monsters…" autocomplete="off" />
+        <div class="binder-grid" id="binderGrid"></div>
+      </div>
+    </div>
+
+    <nav class="home-nav" aria-label="Home navigation">
+      <button type="button" class="home-nav-btn" id="navRecords"><span class="ico">🏆</span>Records</button>
+      <button type="button" class="home-nav-duel" id="navDuel">DUEL</button>
+      <button type="button" class="home-nav-btn" id="navBinder"><span class="ico">📇</span>Card Binder</button>
+    </nav>
   </div>
 
   <div class="app" id="app">
@@ -1405,7 +1893,6 @@
       <button type="button" class="btn-menu" id="btnMenu" aria-label="Menu">☰</button>
     </header>
 
-    <div class="notice" id="fallbackNotice">Classic API unavailable — using original roster.</div>
     <div class="area-banner" id="areaBanner"></div>
 
     <div class="trait-bar" id="traitBar" aria-label="Traits"></div>
@@ -1460,13 +1947,6 @@
     <h2>Menu <button type="button" class="btn-icon" id="btnCloseMenu" aria-label="Close">✕</button></h2>
     <div class="menu-section">
       <button type="button" class="btn btn-ghost btn-wide" id="btnHow">How to Play</button>
-    </div>
-    <div class="menu-section">
-      <label>Card mode</label>
-      <div class="mode-toggle" style="margin:0">
-        <button type="button" class="mode-opt active" id="menuModeClassic">Classic</button>
-        <button type="button" class="mode-opt" id="menuModeOriginal">Original</button>
-      </div>
     </div>
     <div class="menu-section">
       <label>Combat</label>
@@ -1545,7 +2025,23 @@
       <h2 id="endTitle">Defeat</h2>
       <p id="endMsg">Your Life Points hit zero.</p>
       <div class="summary-stats" id="runSummary"></div>
-      <button type="button" class="btn btn-primary btn-wide" id="btnRestart">Play Again</button>
+      <button type="button" class="btn btn-primary btn-wide" id="btnRestart">Home</button>
+    </div>
+  </div>
+
+  <div class="overlay" id="settingsOverlay" role="dialog" aria-modal="true">
+    <div class="modal">
+      <h2>Settings</h2>
+      <div class="settings-row">
+        <span>Sound</span>
+        <button type="button" id="btnToggleSound">On</button>
+      </div>
+      <div class="settings-row">
+        <span>Fight speed</span>
+        <button type="button" id="btnSettingsSpeed">1x</button>
+      </div>
+      <button type="button" class="settings-danger" id="btnResetProgress">Reset progress</button>
+      <button type="button" class="btn btn-ghost btn-wide" id="btnCloseSettings" style="margin-top:10px">Close</button>
     </div>
   </div>
 
@@ -1663,51 +2159,61 @@
     {
       name: "Weevil Underwood", theme: "Insects", area: "forest",
       types: ["Insect"], prefer: [/insect/i],
+      sig: [/basic insect/i, /great moth|perfectly ultimate/i, /insect/i],
       taunt: "Heh heh… my bugs will devour your deck!",
     },
     {
       name: "Rex Raptor", theme: "Dinosaurs", area: "wasteland",
       types: ["Dinosaur"], prefer: [/dinosaur|rex|rage/i],
+      sig: [/two-headed king rex|swamp king|uraby|dinosaur/i],
       taunt: "Rawr! Dinosaurs ruled once — and they will again!",
     },
     {
       name: "Mako Tsunami", theme: "Ocean", area: "ocean",
       types: ["Fish", "Sea Serpent", "Aqua"], prefer: [/fish|shark|sea|jelly|whale/i],
+      sig: [/fortress whale|jelly|shark|fish/i],
       taunt: "The sea answers only to me!",
     },
     {
       name: "Mai Valentine", theme: "Harpies", area: "mountain",
       types: ["Winged Beast"], prefer: [/harpie|bird|lady/i],
+      sig: [/harpie lady|harpie/i],
       taunt: "Don't blink, darling — Harpie Lady is already behind you.",
     },
     {
       name: "Bandit Keith", theme: "Machines", area: "wasteland",
       types: ["Machine"], prefer: [/machine|cannon|gear|metal/i],
+      sig: [/launcher spider|machine king|cannon|machine/i],
       taunt: "I never play fair… and I never lose.",
     },
     {
       name: "Bonz", theme: "Zombies", area: "graveyard",
       types: ["Zombie"], prefer: [/zombie|skull|bone|grave/i],
+      sig: [/pumpking|zombie|skull/i],
       taunt: "Welcome to my graveyard… you won't leave it.",
     },
     {
       name: "Panik", theme: "Shadows", area: "graveyard",
       types: ["Fiend"], prefer: [/fiend|shadow|dark|castle/i],
+      sig: [/castle of d|fiend|shadow/i],
       taunt: "In the dark, fear is my greatest monster!",
     },
     {
       name: "Seto Kaiba", theme: "Blue-Eyes", area: "castle", castle: true,
       types: ["Dragon"], prefer: [/blue-eyes|blue.eyes|white dragon/i],
+      sig: [/blue-eyes white dragon|blue.eyes/i],
       taunt: "I'll crush you with the power of Blue-Eyes!",
     },
     {
       name: "Yami Yugi", theme: "Dark Magician", area: "castle", castle: true,
       types: ["Spellcaster"], prefer: [/dark magician|magician of|kuriboh/i],
+      sig: [/dark magician(?! girl)|dark magician/i],
       taunt: "It's time to duel — heart of the cards!",
     },
     {
       name: "Maximillion Pegasus", theme: "Toon World", area: "castle", castle: true, boss: true, toon: true,
       types: ["Toon"], mixed: true, prefer: [/toon/i],
+      sig: [/toon|red-eyes|dragon capture/i],
       taunt: "Welcome to my Toon World — smile while you lose!",
     },
   ];
@@ -1811,44 +2317,40 @@
     return 5;
   }
 
-  const ORIGINAL_ROSTER = [
-    { id: "ember_wyrm", name: "Ember Wyrm", type: "Dragon", attribute: "FIRE", level: 4, atk: 1600, def: 1200 },
-    { id: "storm_drake", name: "Storm Drake", type: "Dragon", attribute: "WIND", level: 5, atk: 2000, def: 1400 },
-    { id: "iron_scale", name: "Iron Scale", type: "Dragon", attribute: "EARTH", level: 3, atk: 1200, def: 1800 },
-    { id: "void_serpent", name: "Void Serpent", type: "Dragon", attribute: "DARK", level: 7, atk: 2600, def: 1800 },
-    { id: "ash_hatchling", name: "Ash Hatchling", type: "Dragon", attribute: "FIRE", level: 1, atk: 600, def: 500 },
-    { id: "arc_mage", name: "Arc Mage", type: "Spellcaster", attribute: "LIGHT", level: 4, atk: 1500, def: 1300 },
-    { id: "hex_adept", name: "Hex Adept", type: "Spellcaster", attribute: "DARK", level: 3, atk: 1100, def: 900 },
-    { id: "rune_seer", name: "Rune Seer", type: "Spellcaster", attribute: "WATER", level: 5, atk: 1800, def: 1600 },
-    { id: "shadow_channel", name: "Shadow Channeler", type: "Spellcaster", attribute: "DARK", level: 6, atk: 2200, def: 1500 },
-    { id: "spark_apprentice", name: "Spark Apprentice", type: "Spellcaster", attribute: "LIGHT", level: 2, atk: 800, def: 700 },
-    { id: "blade_guard", name: "Blade Guard", type: "Warrior", attribute: "EARTH", level: 4, atk: 1700, def: 1400 },
-    { id: "shield_knight", name: "Shield Knight", type: "Warrior", attribute: "LIGHT", level: 3, atk: 1000, def: 1900 },
-    { id: "dual_swords", name: "Dual Swordsman", type: "Warrior", attribute: "WIND", level: 5, atk: 2100, def: 1200 },
-    { id: "banner_captain", name: "Banner Captain", type: "Warrior", attribute: "EARTH", level: 6, atk: 2300, def: 1800 },
-    { id: "militia_scout", name: "Militia Scout", type: "Warrior", attribute: "EARTH", level: 1, atk: 700, def: 400 },
-    { id: "night_imp", name: "Night Imp", type: "Fiend", attribute: "DARK", level: 2, atk: 900, def: 500 },
-    { id: "soul_siphon", name: "Soul Siphon", type: "Fiend", attribute: "DARK", level: 4, atk: 1600, def: 1000 },
-    { id: "grin_mask", name: "Grinning Mask", type: "Fiend", attribute: "DARK", level: 5, atk: 1900, def: 1300 },
-    { id: "abyss_howler", name: "Abyss Howler", type: "Fiend", attribute: "DARK", level: 7, atk: 2500, def: 1600 },
-    { id: "whisper_shade", name: "Whisper Shade", type: "Fiend", attribute: "DARK", level: 3, atk: 1300, def: 800 },
-    { id: "cog_golem", name: "Cog Golem", type: "Machine", attribute: "EARTH", level: 4, atk: 1400, def: 2000 },
-    { id: "pulse_drone", name: "Pulse Drone", type: "Machine", attribute: "LIGHT", level: 2, atk: 850, def: 850 },
-    { id: "gear_titan", name: "Gear Titan", type: "Machine", attribute: "EARTH", level: 7, atk: 2700, def: 2200 },
-    { id: "circuit_scout", name: "Circuit Scout", type: "Machine", attribute: "LIGHT", level: 3, atk: 1250, def: 1100 },
-    { id: "bolt_cannon", name: "Bolt Cannon", type: "Machine", attribute: "FIRE", level: 6, atk: 2400, def: 1500 },
-    { id: "briar_boar", name: "Briar Boar", type: "Beast", attribute: "EARTH", level: 3, atk: 1300, def: 1000 },
-    { id: "dusk_fang", name: "Dusk Fang", type: "Beast", attribute: "DARK", level: 5, atk: 1900, def: 1400 },
-    { id: "gale_talon", name: "Gale Talon", type: "Winged Beast", attribute: "WIND", level: 4, atk: 1600, def: 1100 },
-    { id: "sky_reaver", name: "Sky Reaver", type: "Winged Beast", attribute: "WIND", level: 6, atk: 2200, def: 1500 },
-    { id: "tomb_walker", name: "Tomb Walker", type: "Zombie", attribute: "DARK", level: 4, atk: 1500, def: 0 },
-    { id: "bone_captain", name: "Bone Captain", type: "Zombie", attribute: "EARTH", level: 5, atk: 1800, def: 1600 },
-  ].map((c) => Object.assign({}, c, { cost: costFromLevel(c.level) }));
+  const META_KEY = "duelTacticsMetaV1";
+  const DEFAULT_META = {
+    bestStarChips: 0,
+    wins: 0,
+    favoriteMonster: null, // { name, atk, imgSmall }
+    pegasusBeaten: false,
+    soundOn: true,
+    fightSpeed: 1,
+    lastMode: "kingdom", // kingdom | castle
+  };
+
+  function readMeta() {
+    try {
+      const raw = localStorage.getItem(META_KEY);
+      if (!raw) return Object.assign({}, DEFAULT_META);
+      const parsed = JSON.parse(raw);
+      return Object.assign({}, DEFAULT_META, parsed || {});
+    } catch (_) {
+      return Object.assign({}, DEFAULT_META);
+    }
+  }
+
+  function writeMeta(patch) {
+    const next = Object.assign(readMeta(), patch || {});
+    try { localStorage.setItem(META_KEY, JSON.stringify(next)); } catch (_) {}
+    return next;
+  }
 
   const state = {
-    mode: "classic",
-    roster: ORIGINAL_ROSTER.slice(),
-    usedFallback: false,
+    roster: [],
+    cardsReady: false,
+    cardsError: false,
+    homeMode: "kingdom", // kingdom | castle
+    homeTab: "duel", // duel | records | binder
     lp: 8000,
     gold: 10,
     round: 1,
@@ -1868,14 +2370,15 @@
     uid: 1,
     combatTimer: null,
     drag: null,
-    fightSpeed: 1,
+    fightSpeed: readMeta().fightSpeed || 1,
+    soundOn: readMeta().soundOn !== false,
     combatVisuals: {}, // uid -> { wrap, x, y, lungeX, lungeY, lungeT }
     pendingResult: null,
     itemBench: [],
     selectedItem: null, // index in itemBench
     enemyLp: 8000,
     itemsPicked: [],
-    strongestEver: null, // { name, atk }
+    strongestEver: null, // { name, atk, imgSmall }
     awaitingItemDraft: false,
   };
 
@@ -1888,15 +2391,25 @@
     traitBar: $("traitBar"), log: $("log"),
     sellBar: $("sellBar"), shopBlock: $("shopBlock"),
     howOverlay: $("howOverlay"), endOverlay: $("endOverlay"),
-    startOverlay: $("startOverlay"),
+    homeScreen: $("homeScreen"),
+    homeMain: $("homeMain"),
+    homeChipCount: $("homeChipCount"),
+    homeFoeName: $("homeFoeName"),
+    homeSigArt: $("homeSigArt"),
+    homeBest: $("homeBest"),
+    homeLoadError: $("homeLoadError"),
+    panelRecords: $("panelRecords"),
+    panelBinder: $("panelBinder"),
+    recordsGrid: $("recordsGrid"),
+    binderSearch: $("binderSearch"),
+    binderGrid: $("binderGrid"),
+    settingsOverlay: $("settingsOverlay"),
     traitOverlay: $("traitOverlay"), oddsOverlay: $("oddsOverlay"),
     itemDraftOverlay: $("itemDraftOverlay"),
     itemDraftGrid: $("itemDraftGrid"),
     itemBench: $("itemBench"),
     endTitle: $("endTitle"), endMsg: $("endMsg"), toast: $("toast"),
     runSummary: $("runSummary"),
-    fallbackNotice: $("fallbackNotice"),
-    loadStatus: $("loadStatus"),
     btnStart: $("btnStart"),
     btnFight: $("btnFight"),
     fightBar: $("fightBar"),
@@ -2155,8 +2668,32 @@
     if (!unit) return;
     const atk = effectiveAtk(unit);
     if (!state.strongestEver || atk > state.strongestEver.atk) {
-      state.strongestEver = { name: unit.name, atk: atk };
+      state.strongestEver = {
+        name: unit.name,
+        atk: atk,
+        imgSmall: unit.imgSmall || null,
+      };
     }
+  }
+
+  function playUiBlip() {
+    if (!state.soundOn) return;
+    try {
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!Ctx) return;
+      if (!state._audioCtx) state._audioCtx = new Ctx();
+      const ctx = state._audioCtx;
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.type = "square";
+      o.frequency.value = 660;
+      g.gain.value = 0.03;
+      o.connect(g);
+      g.connect(ctx.destination);
+      o.start();
+      g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.08);
+      o.stop(ctx.currentTime + 0.09);
+    } catch (_) {}
   }
 
   function allPlayerUnits() {
@@ -2776,7 +3313,6 @@
       el.xpFill.style.width = Math.min(100, (state.xp / Math.max(1, need)) * 100) + "%";
     }
     el.btnBuyXp.disabled = state.phase !== "shop" || state.gold < 4 || state.level >= 9;
-    if (el.fallbackNotice) el.fallbackNotice.classList.toggle("show", !!state.usedFallback);
     const canSell = !!(state.selected && state.selected.from === "bench" && state.bench[state.selected.index]);
     el.sellBar.classList.toggle("show", canSell);
     if (canSell) {
@@ -3175,10 +3711,15 @@
   }
 
   function cycleSpeed() {
-    state.fightSpeed = state.fightSpeed === 1 ? 2 : 1;
+    const order = [1, 2, 3];
+    const i = order.indexOf(state.fightSpeed);
+    state.fightSpeed = order[(i + 1) % order.length];
+    writeMeta({ fightSpeed: state.fightSpeed });
     const spd = state.fightSpeed + "x";
     if (el.btnSpeed) el.btnSpeed.textContent = spd;
     if (el.btnSpeedMenu) el.btnSpeedMenu.textContent = "Speed " + spd;
+    const bs = $("btnSettingsSpeed");
+    if (bs) bs.textContent = spd;
   }
 
   /* —— Enemy placement —— */
@@ -3875,6 +4416,25 @@
     el.endTitle.textContent = won ? "You Win!" : "Defeat";
     el.endMsg.textContent = msg;
     fillRunSummary(won);
+    const meta = readMeta();
+    const patch = {
+      bestStarChips: Math.max(meta.bestStarChips | 0, state.starChips | 0),
+    };
+    if (won) {
+      patch.wins = (meta.wins | 0) + 1;
+      patch.pegasusBeaten = true;
+    }
+    if (state.strongestEver) {
+      const fav = meta.favoriteMonster;
+      if (!fav || state.strongestEver.atk > (fav.atk | 0)) {
+        patch.favoriteMonster = {
+          name: state.strongestEver.name,
+          atk: state.strongestEver.atk,
+          imgSmall: state.strongestEver.imgSmall || null,
+        };
+      }
+    }
+    writeMeta(patch);
     el.endOverlay.classList.add("open");
     render();
   }
@@ -4117,21 +4677,168 @@
     return { cards, fromCache: false };
   }
 
-  function setModeUI(mode) {
-    state.mode = mode;
-    $("modeClassic").classList.toggle("active", mode === "classic");
-    $("modeOriginal").classList.toggle("active", mode === "original");
+  function findSignatureCard(duelist) {
+    if (!duelist || !state.roster.length) return null;
+    const patterns = duelist.sig || duelist.prefer || [];
+    for (let i = 0; i < patterns.length; i++) {
+      const re = patterns[i];
+      const matches = state.roster.filter((c) => re.test(c.name));
+      if (matches.length) {
+        matches.sort((a, b) => b.atk - a.atk);
+        return matches[0];
+      }
+    }
+    if (duelist.types && duelist.types.length) {
+      const typed = state.roster.filter((c) => duelist.types.indexOf(c.type) !== -1);
+      if (typed.length) {
+        typed.sort((a, b) => b.atk - a.atk);
+        return typed[0];
+      }
+    }
+    return state.roster.slice().sort((a, b) => b.atk - a.atk)[0] || null;
   }
 
-  function beginDuel(roster, usedFallback) {
-    state.roster = roster;
-    state.usedFallback = !!usedFallback;
+  function nextOpponentForHome() {
+    const meta = readMeta();
+    if (state.homeMode === "castle" && meta.pegasusBeaten) {
+      return LADDER[7] || LADDER[0]; // Kaiba — castle path
+    }
+    return LADDER[0];
+  }
+
+  function setHomeTab(tab) {
+    state.homeTab = tab;
+    if (el.homeMain) el.homeMain.style.visibility = tab === "duel" ? "visible" : "hidden";
+    if (el.panelRecords) el.panelRecords.classList.toggle("open", tab === "records");
+    if (el.panelBinder) el.panelBinder.classList.toggle("open", tab === "binder");
+    const nr = $("navRecords");
+    const nb = $("navBinder");
+    const nd = $("navDuel");
+    if (nr) nr.classList.toggle("active", tab === "records");
+    if (nb) nb.classList.toggle("active", tab === "binder");
+    if (nd) nd.style.outline = tab === "duel" ? "3px solid #ffe566" : "";
+    if (tab === "records") renderRecords();
+    if (tab === "binder") renderBinder();
+  }
+
+  function renderRecords() {
+    if (!el.recordsGrid) return;
+    const meta = readMeta();
+    const fav = meta.favoriteMonster;
+    const favLabel = fav
+      ? escapeHtml(fav.name) + " (" + (fav.atk | 0) + " ATK)"
+      : "—";
+    el.recordsGrid.innerHTML =
+      '<div class="record-card"><div class="rk">Best run</div><div class="rv">★ ' +
+      (meta.bestStarChips | 0) + " Star Chips</div></div>" +
+      '<div class="record-card"><div class="rk">Wins</div><div class="rv">' +
+      (meta.wins | 0) + "</div></div>" +
+      '<div class="record-card"><div class="rk">Favorite monster</div><div class="rv" style="font-size:1rem">' +
+      favLabel + "</div></div>";
+  }
+
+  function renderBinder() {
+    if (!el.binderGrid) return;
+    const q = ((el.binderSearch && el.binderSearch.value) || "").trim().toLowerCase();
+    let cards = state.roster.slice();
+    if (q) {
+      cards = cards.filter((c) =>
+        c.name.toLowerCase().indexOf(q) !== -1 ||
+        String(c.type || "").toLowerCase().indexOf(q) !== -1 ||
+        String(c.attribute || "").toLowerCase().indexOf(q) !== -1
+      );
+    }
+    cards.sort((a, b) => a.name.localeCompare(b.name));
+    if (!state.cardsReady) {
+      el.binderGrid.innerHTML = '<div class="binder-empty">Load cards from the home screen first.</div>';
+      return;
+    }
+    if (!cards.length) {
+      el.binderGrid.innerHTML = '<div class="binder-empty">No monsters match.</div>';
+      return;
+    }
+    el.binderGrid.innerHTML = cards.map((c) => {
+      const src = cardArtSrc(c, "small");
+      const meta = raceMeta(c.type);
+      const art = src
+        ? '<img src="' + src + '" alt="" loading="lazy" />'
+        : '<span style="font-size:1.6rem">' + meta.emoji + "</span>";
+      return (
+        '<button type="button" class="binder-card" data-id="' + escapeHtml(c.id) + '">' +
+        '<div class="ba">' + art + "</div>" +
+        '<div class="bm"><div class="bn">' + escapeHtml(c.name) + "</div>" +
+        '<div class="bs"><span class="atk">' + c.atk + '</span> / <span class="def">' + c.def + "</span></div></div>" +
+        "</button>"
+      );
+    }).join("");
+    el.binderGrid.querySelectorAll(".binder-card").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const card = state.roster.find((c) => c.id === btn.getAttribute("data-id"));
+        if (card) openCardView(card);
+      });
+      const img = btn.querySelector("img");
+      if (img) {
+        const card = state.roster.find((c) => c.id === btn.getAttribute("data-id"));
+        bindArtFallback(img, raceMeta(card && card.type).emoji);
+      }
+    });
+  }
+
+  function renderHome() {
+    const meta = readMeta();
+    state.homeMode = meta.lastMode === "castle" && meta.pegasusBeaten ? meta.lastMode : "kingdom";
+    if (el.homeChipCount) el.homeChipCount.textContent = String(meta.bestStarChips | 0);
+    if (el.homeBest) el.homeBest.textContent = "Best: " + (meta.bestStarChips | 0) + " Star Chips";
+    const mk = $("modeKingdom");
+    const mc = $("modeCastle");
+    if (mk) mk.classList.toggle("selected", state.homeMode === "kingdom");
+    if (mc) {
+      mc.classList.toggle("selected", state.homeMode === "castle");
+      mc.classList.toggle("locked", !meta.pegasusBeaten);
+      const sub = mc.querySelector(".mode-sub");
+      const lock = mc.querySelector(".lock");
+      if (meta.pegasusBeaten) {
+        if (lock) lock.style.display = "none";
+        if (sub) sub.textContent = "Castle gauntlet";
+      } else {
+        if (lock) lock.style.display = "";
+        if (sub) sub.textContent = "Beat Pegasus to unlock";
+      }
+    }
+    const foe = nextOpponentForHome();
+    if (el.homeFoeName) el.homeFoeName.textContent = foe.name;
+    if (el.homeSigArt) {
+      const sig = findSignatureCard(foe);
+      const emoji = raceMeta(sig ? sig.type : (foe.types && foe.types[0])).emoji;
+      const src = sig ? (cardArtSrc(sig, "cropped") || cardArtSrc(sig, "small")) : null;
+      if (src) {
+        el.homeSigArt.innerHTML = '<img src="' + src + '" alt="" />';
+        bindArtFallback(el.homeSigArt.querySelector("img"), emoji);
+      } else {
+        el.homeSigArt.innerHTML = '<span class="emoji-fallback">' + emoji + "</span>";
+      }
+    }
+    if (el.homeLoadError) {
+      el.homeLoadError.classList.toggle("show", !!state.cardsError);
+    }
+    if (el.btnStart) {
+      el.btnStart.disabled = !state.cardsReady && !state.cardsError ? true : false;
+      if (!state.cardsReady && !state.cardsError) el.btnStart.textContent = "Loading…";
+      else el.btnStart.textContent = "▶ Duel!";
+    }
+    setHomeTab(state.homeTab === "records" || state.homeTab === "binder" ? state.homeTab : "duel");
+  }
+
+  function beginDuel() {
+    if (!state.cardsReady || !state.roster.length) return;
+    const meta = readMeta();
+    const castleRun = state.homeMode === "castle" && meta.pegasusBeaten;
     state.lp = 8000;
     state.enemyLp = 8000;
     state.gold = 10;
     state.round = 1;
-    state.duelIndex = 0;
-    state.starChips = 2;
+    state.duelIndex = castleRun ? 7 : 0;
+    state.starChips = castleRun ? 10 : 2;
     state.level = 1;
     state.xp = 0;
     state.winStreak = 0;
@@ -4153,40 +4860,53 @@
     el.traitOverlay.classList.remove("open");
     el.oddsOverlay.classList.remove("open");
     el.itemDraftOverlay.classList.remove("open");
-    el.startOverlay.classList.remove("open");
+    if (el.settingsOverlay) el.settingsOverlay.classList.remove("open");
+    if (el.homeScreen) el.homeScreen.classList.remove("open");
     el.app.classList.add("visible");
     rollShop();
-    const modeLabel = state.mode === "classic" && !usedFallback ? "Classic" : "Original";
-    logLine('<span class="sys">Duelist Kingdom (' + modeLabel + ") — 2 ★ Star Chips · 8000 LP</span>");
+    const label = castleRun ? "Pegasus's Castle" : "Duelist Kingdom";
+    logLine('<span class="sys">' + label + " — ★ " + state.starChips + " Star Chips · 8000 LP</span>");
     render();
     showMap();
   }
 
-  async function onStart() {
-    el.btnStart.disabled = true;
-    el.loadStatus.className = "load-status";
-    el.loadStatus.textContent = state.mode === "classic" ? "Loading classic cards…" : "";
+  async function ensureCardsLoaded(force) {
+    if (state.cardsReady && !force) return true;
+    state.cardsError = false;
+    if (el.homeLoadError) el.homeLoadError.classList.remove("show");
+    if (el.btnStart) {
+      el.btnStart.disabled = true;
+      el.btnStart.textContent = "Loading…";
+    }
     try {
-      if (state.mode === "original") {
-        beginDuel(ORIGINAL_ROSTER.slice(), false);
-        el.loadStatus.textContent = "";
-        return;
-      }
-      const { cards, fromCache } = await loadClassicRoster();
-      el.loadStatus.className = "load-status ok";
-      el.loadStatus.textContent = fromCache
-        ? "Loaded " + cards.length + " classic monsters (cached)."
-        : "Loaded " + cards.length + " classic monsters.";
-      beginDuel(cards, false);
+      const { cards } = await loadClassicRoster();
+      state.roster = cards;
+      state.cardsReady = true;
+      state.cardsError = false;
+      renderHome();
+      return true;
     } catch (err) {
       console.warn("Classic load failed", err);
-      el.loadStatus.className = "load-status error";
-      el.loadStatus.textContent = "Classic API failed — using original roster.";
-      beginDuel(ORIGINAL_ROSTER.slice(), true);
-      toast("Using original roster");
-    } finally {
-      el.btnStart.disabled = false;
+      state.cardsReady = false;
+      state.cardsError = true;
+      state.roster = [];
+      if (el.btnStart) {
+        el.btnStart.disabled = false;
+        el.btnStart.textContent = "▶ Duel!";
+      }
+      if (el.homeLoadError) el.homeLoadError.classList.add("show");
+      return false;
     }
+  }
+
+  async function onStart() {
+    playUiBlip();
+    if (state.cardsError || !state.cardsReady) {
+      const ok = await ensureCardsLoaded(true);
+      if (!ok) return;
+    }
+    if (!state.cardsReady) return;
+    beginDuel();
   }
 
   function showStartScreen() {
@@ -4195,32 +4915,119 @@
       state.combatTimer = null;
     }
     state.phase = "menu";
+    state.homeTab = "duel";
     hideMap();
     el.app.classList.remove("visible");
     el.endOverlay.classList.remove("open");
     el.resultsBanner.classList.remove("show");
-    el.startOverlay.classList.add("open");
-    el.loadStatus.className = "load-status";
-    el.loadStatus.textContent = "";
-    el.btnStart.disabled = false;
+    if (el.settingsOverlay) el.settingsOverlay.classList.remove("open");
+    if (el.homeScreen) el.homeScreen.classList.add("open");
+    renderHome();
+    ensureCardsLoaded(false);
+  }
+
+  function openSettings() {
+    const meta = readMeta();
+    state.soundOn = meta.soundOn !== false;
+    state.fightSpeed = meta.fightSpeed || state.fightSpeed || 1;
+    const bs = $("btnToggleSound");
+    const bd = $("btnSettingsSpeed");
+    if (bs) bs.textContent = state.soundOn ? "On" : "Off";
+    if (bd) bd.textContent = state.fightSpeed + "x";
+    if (el.settingsOverlay) el.settingsOverlay.classList.add("open");
+  }
+
+  function closeSettings() {
+    if (el.settingsOverlay) el.settingsOverlay.classList.remove("open");
   }
 
   // Wire UI
-  function setModeUIBoth(mode) {
-    setModeUI(mode);
-    const mc = $("menuModeClassic");
-    const mo = $("menuModeOriginal");
-    if (mc) mc.classList.toggle("active", mode === "classic");
-    if (mo) mo.classList.toggle("active", mode === "original");
-  }
-  $("modeClassic").addEventListener("click", () => setModeUIBoth("classic"));
-  $("modeOriginal").addEventListener("click", () => setModeUIBoth("original"));
-  const mmc = $("menuModeClassic");
-  const mmo = $("menuModeOriginal");
-  if (mmc) mmc.addEventListener("click", () => setModeUIBoth("classic"));
-  if (mmo) mmo.addEventListener("click", () => setModeUIBoth("original"));
   el.btnStart.addEventListener("click", () => { onStart(); });
-  $("btnStartHow").addEventListener("click", () => el.howOverlay.classList.add("open"));
+  if (el.homeLoadError) {
+    el.homeLoadError.addEventListener("click", () => { ensureCardsLoaded(true); });
+  }
+  if ($("btnHomeHow")) $("btnHomeHow").addEventListener("click", () => {
+    playUiBlip();
+    el.howOverlay.classList.add("open");
+  });
+  if ($("btnHomeSettings")) $("btnHomeSettings").addEventListener("click", () => {
+    playUiBlip();
+    openSettings();
+  });
+  if ($("btnCloseSettings")) $("btnCloseSettings").addEventListener("click", closeSettings);
+  if (el.settingsOverlay) {
+    el.settingsOverlay.addEventListener("click", (e) => {
+      if (e.target === el.settingsOverlay) closeSettings();
+    });
+  }
+  if ($("btnToggleSound")) {
+    $("btnToggleSound").addEventListener("click", () => {
+      state.soundOn = !state.soundOn;
+      writeMeta({ soundOn: state.soundOn });
+      $("btnToggleSound").textContent = state.soundOn ? "On" : "Off";
+      playUiBlip();
+    });
+  }
+  if ($("btnSettingsSpeed")) {
+    $("btnSettingsSpeed").addEventListener("click", () => {
+      const order = [1, 2, 3];
+      const i = order.indexOf(state.fightSpeed);
+      state.fightSpeed = order[(i + 1) % order.length];
+      writeMeta({ fightSpeed: state.fightSpeed });
+      $("btnSettingsSpeed").textContent = state.fightSpeed + "x";
+      const spd = state.fightSpeed + "x";
+      if (el.btnSpeed) el.btnSpeed.textContent = spd;
+      if (el.btnSpeedMenu) el.btnSpeedMenu.textContent = "Speed " + spd;
+      playUiBlip();
+    });
+  }
+  if ($("btnResetProgress")) {
+    $("btnResetProgress").addEventListener("click", () => {
+      if (!window.confirm("Reset Star Chip records, wins, and unlocks?")) return;
+      try { localStorage.removeItem(META_KEY); } catch (_) {}
+      state.homeMode = "kingdom";
+      writeMeta(Object.assign({}, DEFAULT_META));
+      closeSettings();
+      renderHome();
+      toast("Progress reset");
+    });
+  }
+  if ($("modeKingdom")) {
+    $("modeKingdom").addEventListener("click", () => {
+      state.homeMode = "kingdom";
+      writeMeta({ lastMode: "kingdom" });
+      playUiBlip();
+      renderHome();
+    });
+  }
+  if ($("modeCastle")) {
+    $("modeCastle").addEventListener("click", () => {
+      const meta = readMeta();
+      if (!meta.pegasusBeaten) {
+        toast("Beat Pegasus once to unlock");
+        return;
+      }
+      state.homeMode = "castle";
+      writeMeta({ lastMode: "castle" });
+      playUiBlip();
+      renderHome();
+    });
+  }
+  if ($("navRecords")) $("navRecords").addEventListener("click", () => {
+    playUiBlip();
+    setHomeTab("records");
+  });
+  if ($("navBinder")) $("navBinder").addEventListener("click", () => {
+    playUiBlip();
+    setHomeTab("binder");
+  });
+  if ($("navDuel")) $("navDuel").addEventListener("click", () => {
+    playUiBlip();
+    setHomeTab("duel");
+  });
+  if (el.binderSearch) {
+    el.binderSearch.addEventListener("input", () => { renderBinder(); });
+  }
   $("btnHow").addEventListener("click", () => { closeMenu(); el.howOverlay.classList.add("open"); });
   $("btnCloseHow").addEventListener("click", () => el.howOverlay.classList.remove("open"));
   el.howOverlay.addEventListener("click", (e) => {
@@ -4278,7 +5085,8 @@
     if (state.phase === "shop" || state.phase === "fight") renderBoards();
   });
 
-  setModeUIBoth("classic");
+  // Boot home
+  showStartScreen();
 })();
   </script>
 </body>
