@@ -29,7 +29,7 @@
       --safe-l: env(safe-area-inset-left, 0px);
       --safe-r: env(safe-area-inset-right, 0px);
       --tap: 44px;
-      --hex-w: 36px;
+      --hex-w: 48px;
       --hex-h: calc(var(--hex-w) * 1.12);
       --top-h: 48px;
       --trait-h: 40px;
@@ -37,7 +37,10 @@
       --fight-h: 52px;
       --econ-h: 44px;
       --shop-h: 100px;
-      --board-tilt: 50deg;
+      --board-tilt: 38deg;
+      --board-scale: 1.35;
+      /* Screen-space hex width after tilt scale (set by fitHexSize) */
+      --hex-screen-w: calc(var(--hex-w) * var(--board-scale));
     }
 
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -226,15 +229,17 @@
       position: relative;
       display: flex;
       flex-direction: column;
-      perspective: 920px;
-      perspective-origin: 50% 18%;
+      perspective: 900px;
+      perspective-origin: 50% 28%;
       background:
         radial-gradient(ellipse at 50% 30%, rgba(40, 70, 50, 0.35), transparent 55%),
         linear-gradient(180deg, rgba(20, 36, 28, 0.95), rgba(12, 24, 36, 0.95));
       border: 1px solid #2a5040;
       border-radius: 14px;
-      padding: 4px 2px 10px;
-      overflow: hidden;
+      /* Top/side pad so upright billboards aren't clipped by .app overflow.
+         overflow must stay visible — overflow:hidden flattens preserve-3d. */
+      padding: calc(var(--hex-screen-w) * 1.55) calc(var(--hex-screen-w) * 0.35) 20px;
+      overflow: visible;
     }
     .hex-stage {
       flex: 1 1 auto;
@@ -244,9 +249,9 @@
       justify-content: center;
       position: relative;
       width: 100%;
-      transform: rotateX(var(--board-tilt));
+      transform: rotateX(var(--board-tilt)) scale(var(--board-scale));
       transform-style: preserve-3d;
-      transform-origin: 50% 55%;
+      transform-origin: 50% 50%;
       will-change: transform;
     }
     .hex-board {
@@ -254,27 +259,42 @@
       width: 100%;
       flex: 0 0 auto;
       transform-style: preserve-3d;
+      overflow: visible;
     }
     .hex-board + .hex-board { margin-top: 2px; }
-    .combat-layer {
+    .holo-layer, .combat-layer {
       position: absolute;
       inset: 0;
       pointer-events: none;
       z-index: 12;
       overflow: visible;
-      transform-style: preserve-3d;
     }
+    .holo-layer { z-index: 11; }
+    .combat-layer { z-index: 13; }
     .combat-token {
       position: absolute;
       left: 0; top: 0;
+      width: 0;
+      height: 0;
       will-change: transform;
       pointer-events: none;
       z-index: 2;
-      transform-style: preserve-3d;
     }
     .combat-token .token { cursor: default; }
     .combat-token.dying .token.holo { animation: none; }
+    .combat-token.dying .holo-rig { animation: none; }
     .combat-token.dying .holo-billboard { animation: holoShatter 0.55s steps(6, end) forwards; }
+    .holo-shard {
+      position: absolute;
+      width: 7px;
+      height: 7px;
+      border-radius: 1px;
+      pointer-events: none;
+      z-index: 8;
+      background: linear-gradient(135deg, #c8f0ff, #5ec8ff);
+      box-shadow: 0 0 6px rgba(100, 200, 255, 0.8);
+      animation: shardFly 0.55s ease-out forwards;
+    }
     .combat-token .ability-tag {
       position: absolute; left: 50%; top: -12px; transform: translateX(-50%);
       white-space: nowrap; font-size: 0.5rem; font-weight: 800; color: #fff;
@@ -382,7 +402,8 @@
       background: linear-gradient(90deg, #2060e0, #50c8ff); border-radius: 2px;
     }
     .token.star2 { box-shadow: 0 0 8px rgba(232, 184, 74, 0.55), 0 2px 6px rgba(0,0,0,0.45); }
-    .token.hit .holo-billboard, .token.hit { animation: holoHitFlash 0.28s ease; }
+    .token.hit .holo-billboard { animation: holoHitFlash 0.3s ease; }
+    .token.hit .holo-art { animation: holoHitFlash 0.3s ease; }
     .token.stunned { filter: grayscale(0.4) brightness(1.15); }
     .token .item-icons {
       position: absolute;
@@ -400,52 +421,91 @@
       max-height: 40%;
       overflow: hidden;
     }
-    /* Hologram billboard (board / combat) */
+    /* Hologram billboards live in screen-space layers (not inside the tilted stage) */
+    .hex .token.holo { display: none; }
     .token.holo {
-      width: calc(var(--hex-w) * 0.7);
-      height: calc(var(--hex-w) * 1.05);
+      /* ~1.3× hex wide, 1.5× tall in screen space (hex-screen-w includes board scale) */
+      width: calc(var(--hex-screen-w) * 1.3);
+      height: calc(var(--hex-screen-w) * 1.5);
       border-radius: 0;
       background: transparent;
       box-shadow: none;
-      transform: rotateX(calc(-1 * var(--board-tilt))) translateZ(14px);
-      transform-style: preserve-3d;
-      animation: holoRise 0.42s cubic-bezier(0.2, 0.85, 0.3, 1) both;
+      display: block;
+      position: absolute;
+      left: 0;
+      top: 0;
+      transform: translate(-50%, -100%);
+      transform-origin: bottom center;
+      animation: holoRise 0.45s cubic-bezier(0.2, 0.85, 0.3, 1) both;
+      overflow: visible;
+      pointer-events: none;
     }
-    .token.holo.star2 { box-shadow: none; }
+    .token.holo.star2, .token.holo.star3 { box-shadow: none; }
     .token.holo .holo-shadow {
       position: absolute;
-      left: 12%;
-      right: 12%;
-      bottom: 2%;
-      height: 18%;
+      left: 8%;
+      right: 8%;
+      bottom: -8%;
+      height: 14%;
       border-radius: 50%;
-      background: radial-gradient(ellipse at center, rgba(0,0,0,0.55) 0%, transparent 70%);
-      transform: rotateX(80deg) translateZ(-2px);
+      background: radial-gradient(ellipse at center, rgba(0,0,0,0.65) 0%, transparent 70%);
       pointer-events: none;
       z-index: 0;
+      transform: scaleY(0.55);
+    }
+    .holo-ground {
+      position: absolute;
+      width: calc(var(--hex-screen-w) * 0.9);
+      height: calc(var(--hex-screen-w) * 0.4);
+      margin-left: calc(var(--hex-screen-w) * -0.45);
+      margin-top: calc(var(--hex-screen-w) * -0.2);
+      border-radius: 50%;
+      background: radial-gradient(ellipse at center, rgba(40, 140, 220, 0.35) 0%, rgba(0,0,0,0.45) 40%, transparent 70%);
+      pointer-events: none;
+      z-index: 10;
+    }
+    .token.holo .holo-rig {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 2px;
+      transform-origin: bottom center;
+      animation: holoBob 2.6s ease-in-out 0.45s infinite;
     }
     .token.holo .holo-billboard {
       position: relative;
       z-index: 2;
       width: 100%;
-      height: 78%;
-      border-radius: 4px;
+      flex: 1 1 auto;
+      min-height: 0;
+      border-radius: 10px;
       overflow: hidden;
       background: #0a1520;
-      border: 1px solid rgba(140, 210, 255, 0.55);
+      border: 2.5px solid rgba(140, 210, 255, 0.7);
       box-shadow:
-        0 0 10px rgba(80, 180, 255, 0.55),
-        0 0 2px rgba(180, 230, 255, 0.8),
-        inset 0 0 12px rgba(60, 160, 255, 0.25);
+        0 0 14px rgba(80, 180, 255, 0.55),
+        0 0 3px rgba(180, 230, 255, 0.85),
+        inset 0 0 14px rgba(60, 160, 255, 0.22);
       transform-origin: 50% 100%;
     }
+    .token.holo.attr-DARK .holo-billboard { border-color: #9a6ad8; }
+    .token.holo.attr-LIGHT .holo-billboard { border-color: #e8c84a; }
+    .token.holo.attr-EARTH .holo-billboard { border-color: #c09050; }
+    .token.holo.attr-WATER .holo-billboard { border-color: #4aa0e8; }
+    .token.holo.attr-FIRE .holo-billboard { border-color: #e86040; }
+    .token.holo.attr-WIND .holo-billboard { border-color: #58c058; }
+    .token.holo.attr-DIVINE .holo-billboard { border-color: #f0d060; }
     .token.holo .holo-art {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      object-position: center 20%;
+      object-position: center 22%;
       display: block;
-      image-rendering: auto;
     }
     .token.holo .holo-billboard .emoji {
       display: flex;
@@ -453,33 +513,55 @@
       justify-content: center;
       width: 100%;
       height: 100%;
-      font-size: calc(var(--hex-w) * 0.42);
+      font-size: calc(var(--hex-screen-w) * 0.5);
       background: linear-gradient(160deg, #1a3048, #0c1828);
     }
     .token.holo .stars {
-      position: absolute;
-      left: 0; right: 0; bottom: 1px;
+      position: relative;
+      left: auto; right: auto; bottom: auto;
+      order: 0;
+      flex: 0 0 auto;
       text-align: center;
-      font-size: calc(var(--hex-w) * 0.16);
-      text-shadow: 0 1px 2px #000;
+      font-size: calc(var(--hex-screen-w) * 0.2);
+      line-height: 1;
+      text-shadow: 0 1px 3px #000, 0 0 6px rgba(255, 220, 80, 0.55);
       z-index: 3;
+      letter-spacing: -1px;
     }
     .token.holo .bars {
-      top: -10px;
+      position: relative;
+      top: auto;
       bottom: auto;
-      left: 4%;
-      right: 4%;
+      left: auto;
+      right: auto;
+      width: 92%;
+      order: -1;
+      flex: 0 0 auto;
+      gap: 2px;
     }
-    .token.holo .hp-bar, .token.holo .mana-bar { height: 3px; }
-    .token.holo.attacking .holo-billboard {
-      animation: holoLean 0.22s ease;
+    .token.holo .hp-bar, .token.holo .mana-bar { height: 4px; border-radius: 3px; }
+    .token.holo.attacking .holo-rig {
+      animation: holoLean 0.28s ease;
+    }
+    .combat-token.hop .holo-rig {
+      animation: holoHop 0.3s ease;
+    }
+    .token.holo.selected {
+      outline: 2px solid var(--cyan);
+      outline-offset: 2px;
+    }
+    .hex-hit-token {
+      width: 70% !important;
+      height: 70% !important;
+      border-radius: 50%;
     }
     .ghost-token {
       position: fixed; z-index: 200; pointer-events: none; opacity: 0.9;
       transform: translate(-50%, -50%) scale(1.05);
     }
     .ghost-token.holo {
-      transform: translate(-50%, -50%) rotateX(calc(-1 * var(--board-tilt))) scale(1.05);
+      transform: translate(-50%, -90%) scale(1.05);
+      transform-origin: bottom center;
     }
 
     .bench-wrap {
@@ -1741,39 +1823,56 @@
     @keyframes holoRise {
       0% {
         opacity: 0;
-        transform: rotateX(calc(-1 * var(--board-tilt))) translateZ(0) translateY(18px) scale(0.7);
-        filter: brightness(2.2) drop-shadow(0 0 12px #5ec8ff);
+        transform: translate(-50%, -100%) scaleY(0);
+        filter: brightness(2.4) drop-shadow(0 0 16px #5ec8ff);
       }
-      60% { filter: brightness(1.3) drop-shadow(0 0 10px #5ec8ff); }
+      55% { filter: brightness(1.35) drop-shadow(0 0 12px #5ec8ff); }
       100% {
         opacity: 1;
-        transform: rotateX(calc(-1 * var(--board-tilt))) translateZ(14px) translateY(0) scale(1);
-        filter: none;
+        transform: translate(-50%, -100%) scaleY(1);
+        filter: drop-shadow(0 0 8px rgba(80, 180, 255, 0.55));
       }
     }
+    @keyframes holoBob {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-5px); }
+    }
+    @keyframes holoHop {
+      0% { transform: translateY(0) scale(1); }
+      40% { transform: translateY(-14px) scale(1.06); }
+      100% { transform: translateY(0) scale(1); }
+    }
     @keyframes holoLean {
-      0% { transform: rotateX(0); }
-      40% { transform: rotateX(28deg) scaleY(1.04); filter: brightness(1.25); }
-      100% { transform: rotateX(0); }
+      0% { transform: rotateX(0) translateY(0); }
+      35% { transform: rotateX(32deg) translateY(4px) scaleY(1.05); filter: brightness(1.3); }
+      100% { transform: rotateX(0) translateY(0); }
     }
     @keyframes holoHitFlash {
       0%, 100% { filter: brightness(1); }
-      30% { filter: brightness(3.2) contrast(1.4); }
-      55% { filter: brightness(1.6); }
+      25% { filter: brightness(4) contrast(1.5) saturate(0.2); }
+      55% { filter: brightness(1.8); }
     }
     @keyframes holoShatter {
       0% { opacity: 1; filter: brightness(1); transform: scale(1); }
-      15% { filter: brightness(2.8); }
-      35% {
-        opacity: 1;
-        filter: brightness(3.5) contrast(2);
-        clip-path: polygon(0 0, 35% 0, 30% 40%, 0 45%, 0 0, 55% 0, 100% 0, 100% 30%, 60% 35%, 55% 0, 0 55%, 40% 50%, 45% 100%, 0 100%, 70% 40%, 100% 45%, 100% 100%, 65% 100%);
+      20% { filter: brightness(3.2); }
+      45% {
+        opacity: 0.85;
+        filter: brightness(3.8) contrast(2);
+        clip-path: inset(0 0 0 0);
+        transform: scale(1.05);
       }
       100% {
         opacity: 0;
-        transform: scale(1.35) translateY(-8px);
+        transform: scale(1.25) translateY(-10px);
         filter: brightness(4);
-        clip-path: polygon(0 0, 0 0, 10% 20%, 0 0, 40% 0, 50% 0, 100% 0, 90% 10%, 50% 15%, 40% 0, 0 60%, 20% 50%, 25% 100%, 0 100%, 80% 30%, 100% 40%, 100% 100%, 70% 100%);
+        clip-path: inset(40% 40% 40% 40%);
+      }
+    }
+    @keyframes shardFly {
+      0% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+      100% {
+        opacity: 0;
+        transform: translate(calc(-50% + var(--sx, 0px)), calc(-50% + var(--sy, -20px))) scale(0.3) rotate(40deg);
       }
     }
     @keyframes abilityPop {
@@ -2003,14 +2102,6 @@
       0% { opacity: 1; transform: translate(-50%, -50%) scale(0.8); }
       100% { opacity: 0; transform: translate(-50%, -120%) scale(1.15); }
     }
-    .combat-token.hop .token {
-      animation: tokenHop 0.28s ease;
-    }
-    @keyframes tokenHop {
-      0% { transform: translateY(0) scale(1); }
-      40% { transform: translateY(-10px) scale(1.08); }
-      100% { transform: translateY(0) scale(1); }
-    }
 
     .results-banner {
       top: 36%;
@@ -2138,8 +2229,10 @@
       <div class="hex-stage" id="hexStage">
         <div class="hex-board" id="enemyBoard"></div>
         <div class="hex-board" id="playerBoard"></div>
-        <div class="combat-layer" id="combatLayer"></div>
       </div>
+      <!-- Screen-space layers so billboards stay upright (app overflow flattens 3D) -->
+      <div class="holo-layer" id="holoLayer"></div>
+      <div class="combat-layer" id="combatLayer"></div>
       <div class="duel-flash" id="duelFlash" aria-hidden="true"><span>DUEL!</span></div>
     </div>
 
@@ -2732,6 +2825,7 @@
     resultsMsg: $("resultsMsg"),
     arena: $("arena"),
     hexStage: $("hexStage"),
+    holoLayer: $("holoLayer"),
     levelNum: $("levelNum"),
     xpText: $("xpText"),
     xpFill: $("xpFill"),
@@ -3279,14 +3373,37 @@
   }
 
   function fitHexSize() {
-    const stage = el.hexStage || el.arena;
-    if (!stage) return;
-    const aw = stage.clientWidth || 360;
-    const ah = stage.clientHeight || 420;
-    const fromW = (aw - 6) / 7.05;
-    const fromH = ah / (6.7 * 1.12);
-    const w = Math.max(26, Math.min(46, Math.floor(Math.min(fromW, fromH))));
+    const arena = el.arena;
+    if (!arena) return;
+    // Content box before CSS pad (pad depends on --hex-screen-w; iterate once)
+    const rawW = Math.max(200, arena.clientWidth);
+    const rawH = Math.max(160, arena.clientHeight);
+    const tiltRad = 38 * Math.PI / 180;
+    const cosT = Math.cos(tiltRad);
+
+    // Leave side room so 1.3×-wide upright tokens aren't clipped by .app
+    const sidePad = Math.max(10, rawW * 0.02);
+    const topPadGuess = rawH * 0.12;
+    const aw = Math.max(180, rawW - sidePad * 2);
+    const ah = Math.max(120, rawH - topPadGuess - 20);
+
+    // 7 columns across: visual hex width after scale = aw / ~7.05
+    const screenHex = aw / 7.05;
+    // Flat board height (2 halves × ~3.2 row-heights) then project via cos(tilt)
+    const flatH = screenHex * 1.12 * 3.25 * 2 + 10;
+    const projectedH = flatH * cosT;
+    // Scale up after tilt so the board uses most of the arena height
+    let scale = (ah * 0.96) / Math.max(1, projectedH);
+    scale = Math.max(1.18, Math.min(1.65, scale));
+
+    let w = Math.round(screenHex / scale);
+    w = Math.max(30, Math.min(58, w));
+    scale = screenHex / w;
+    scale = Math.max(1.15, Math.min(1.7, scale));
+
     document.documentElement.style.setProperty("--hex-w", w + "px");
+    document.documentElement.style.setProperty("--board-scale", scale.toFixed(3));
+    document.documentElement.style.setProperty("--hex-screen-w", (w * scale).toFixed(2) + "px");
   }
 
   function layoutBoard(boardEl, side) {
@@ -3311,7 +3428,12 @@
 
         const unit = getCell(globalRow, c);
         if (unit) {
-          hex.appendChild(createTokenEl(unit));
+          // Invisible hit target for drag; visible art is in the screen-space holo layer
+          const hit = createTokenEl(unit, { holo: false });
+          hit.classList.add("hex-hit-token");
+          hit.style.opacity = "0";
+          hit.style.pointerEvents = "auto";
+          hex.appendChild(hit);
         }
 
         hex.addEventListener("pointerdown", (e) => onHexPointerDown(e, globalRow, c));
@@ -3363,14 +3485,15 @@
     }
     if (asHolo) {
       tok.innerHTML =
-        (icons ? '<div class="item-icons">' + icons + "</div>" : "") +
         '<div class="holo-shadow"></div>' +
-        '<div class="holo-billboard">' + face +
+        '<div class="holo-rig">' +
+          (icons ? '<div class="item-icons">' + icons + "</div>" : "") +
+          '<div class="bars">' +
+            '<div class="hp-bar"><div class="hp-fill" style="width:' + hpPct + '%"></div></div>' +
+            '<div class="mana-bar"><div class="mana-fill" style="width:' + manaPct + '%"></div></div>' +
+          "</div>" +
           '<div class="stars">' + starsLabel(unit.stars) + "</div>" +
-        "</div>" +
-        '<div class="bars">' +
-          '<div class="hp-bar"><div class="hp-fill" style="width:' + hpPct + '%"></div></div>' +
-          '<div class="mana-bar"><div class="mana-fill" style="width:' + manaPct + '%"></div></div>' +
+          '<div class="holo-billboard">' + face + "</div>" +
         "</div>";
       const img = tok.querySelector("img.holo-art");
       bindArtFallback(img, meta.emoji);
@@ -3704,6 +3827,8 @@
         }
       });
     }
+    // Wait two frames so tilt/scale layout is settled before measuring hexes
+    requestAnimationFrame(() => requestAnimationFrame(() => syncHoloLayer()));
   }
 
   function renderTraits() {
@@ -4288,15 +4413,39 @@
   }
 
   function hexCenterInArena(row, col) {
+    // Screen-space center of the hex relative to .arena (holo/combat layers).
     const board = row < HEX_ROWS ? el.enemyBoard : el.playerBoard;
-    const hex = board.querySelector('.hex[data-row="' + row + '"][data-col="' + col + '"]');
+    const hex = board && board.querySelector('.hex[data-row="' + row + '"][data-col="' + col + '"]');
     if (!hex || !el.arena) return { x: 0, y: 0 };
     const a = el.arena.getBoundingClientRect();
     const h = hex.getBoundingClientRect();
     return {
       x: h.left - a.left + h.width / 2,
-      y: h.top - a.top + h.height / 2,
+      y: h.top - a.top + h.height * 0.62,
     };
+  }
+
+  function syncHoloLayer() {
+    if (!el.holoLayer) return;
+    el.holoLayer.innerHTML = "";
+    if (state.phase === "fight" || state.phase === "menu") return;
+    allUnits().forEach((u) => {
+      if (!u || u.dead) return;
+      const pos = hexCenterInArena(u.row, u.col);
+      const ground = document.createElement("div");
+      ground.className = "holo-ground";
+      ground.style.left = pos.x + "px";
+      ground.style.top = pos.y + "px";
+      el.holoLayer.appendChild(ground);
+      const tok = createTokenEl(u, { holo: true });
+      tok.style.left = pos.x + "px";
+      tok.style.top = pos.y + "px";
+      if (state.selected && state.selected.from === "hex" &&
+          state.selected.row === u.row && state.selected.col === u.col) {
+        tok.classList.add("selected");
+      }
+      el.holoLayer.appendChild(tok);
+    });
   }
 
   function clearCombatLayer() {
@@ -4306,7 +4455,8 @@
 
   function mountCombatTokens() {
     clearCombatLayer();
-    // Hide hex tokens during fight; combat layer owns visuals
+    if (el.holoLayer) el.holoLayer.innerHTML = "";
+    // Combat layer owns visuals during fight
     el.arena.querySelectorAll(".hex .token").forEach((t) => { t.style.visibility = "hidden"; });
     allUnits().forEach((u) => {
       if (u.dead) return;
@@ -4331,13 +4481,10 @@
   function applyCombatTransform(uid) {
     const v = state.combatVisuals[uid];
     if (!v) return;
-    const halfW = v.halfW || v.half || 20;
-    const halfH = v.halfH || v.half || 20;
-    const lean = v.lean || 0;
+    // Anchor at hex center; token CSS counter-rotates upright from bottom center
     v.wrap.style.transform =
-      "translate(" + (v.x - halfW) + "px," + (v.y - halfH) + "px) " +
-      "translate(" + v.lungeX.toFixed(1) + "px," + v.lungeY.toFixed(1) + "px) " +
-      "rotateX(calc(-1 * var(--board-tilt))) translateZ(14px) rotateX(" + lean.toFixed(1) + "deg)";
+      "translate(" + v.x.toFixed(1) + "px," + v.y.toFixed(1) + "px) " +
+      "translate(" + v.lungeX.toFixed(1) + "px," + v.lungeY.toFixed(1) + "px)";
   }
 
   function syncCombatBars(unit) {
@@ -4379,6 +4526,25 @@
     v.tok.classList.remove("hit");
     void v.tok.offsetWidth;
     v.tok.classList.add("hit");
+  }
+
+  function spawnHoloShards(v) {
+    if (!v || !el.combatLayer) return;
+    const n = 12;
+    for (let i = 0; i < n; i++) {
+      const shard = document.createElement("div");
+      shard.className = "holo-shard";
+      const ang = (Math.PI * 2 * i) / n + Math.random() * 0.4;
+      const dist = 18 + Math.random() * 36;
+      shard.style.left = v.x + "px";
+      shard.style.top = (v.y - 28) + "px";
+      shard.style.setProperty("--sx", (Math.cos(ang) * dist).toFixed(1) + "px");
+      shard.style.setProperty("--sy", (Math.sin(ang) * dist - 10).toFixed(1) + "px");
+      shard.style.width = (5 + Math.random() * 5).toFixed(0) + "px";
+      shard.style.height = (5 + Math.random() * 5).toFixed(0) + "px";
+      el.combatLayer.appendChild(shard);
+      setTimeout(() => shard.remove(), 560 / state.fightSpeed);
+    }
   }
 
   function startLunge(attacker, target) {
@@ -4493,7 +4659,12 @@
     const v = state.combatVisuals[unit.uid];
     if (v) {
       v.wrap.classList.add("dying");
-      if (v.tok) v.tok.classList.add("shattering");
+      if (v.tok) {
+        v.tok.classList.add("shattering");
+        const rig = v.tok.querySelector(".holo-rig");
+        if (rig) rig.style.animation = "none";
+      }
+      spawnHoloShards(v);
       setTimeout(() => {
         if (v.wrap.parentNode) v.wrap.remove();
         delete state.combatVisuals[unit.uid];
@@ -4812,6 +4983,10 @@
       const slot = homeSlots[i];
       if (slot) setCell(slot.row, slot.col, u);
     });
+
+    // Leave fight phase so screen-space holos can remount under the results banner
+    state.phase = "shop";
+    renderBoards();
 
     const duelist = currentDuelist();
     const beatBoss = victory && duelist.boss;
