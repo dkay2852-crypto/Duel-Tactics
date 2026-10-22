@@ -222,6 +222,7 @@
 
     /* —— Hex arena —— */
     .arena {
+      position: relative;
       background:
         radial-gradient(ellipse at 50% 30%, rgba(40, 70, 50, 0.35), transparent 55%),
         linear-gradient(180deg, rgba(20, 36, 28, 0.95), rgba(12, 24, 36, 0.95));
@@ -230,6 +231,54 @@
       padding: 8px 4px 10px;
       margin-bottom: 8px;
       overflow: hidden;
+    }
+    .combat-layer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 12;
+      overflow: hidden;
+    }
+    .combat-token {
+      position: absolute;
+      left: 0;
+      top: 0;
+      will-change: transform;
+      pointer-events: none;
+      z-index: 2;
+    }
+    .combat-token .token {
+      cursor: default;
+      animation: none;
+    }
+    .combat-token.dying .token {
+      animation: tokenDie 0.45s ease forwards;
+    }
+    .combat-token .ability-tag {
+      position: absolute;
+      left: 50%;
+      top: -14px;
+      transform: translateX(-50%);
+      white-space: nowrap;
+      font-size: 0.55rem;
+      font-weight: 800;
+      color: #fff;
+      background: rgba(80, 40, 160, 0.85);
+      border: 1px solid #c8a0ff;
+      border-radius: 6px;
+      padding: 1px 5px;
+      z-index: 5;
+      animation: abilityPop 0.9s ease forwards;
+      pointer-events: none;
+    }
+    .combat-token .shield-ring {
+      position: absolute;
+      inset: -3px;
+      border-radius: 50%;
+      border: 2px solid rgba(100, 180, 255, 0.85);
+      box-shadow: 0 0 8px rgba(80, 160, 255, 0.55);
+      pointer-events: none;
+      z-index: 3;
     }
     .arena-label {
       text-align: center;
@@ -374,28 +423,40 @@
       z-index: 1;
       letter-spacing: -1px;
     }
-    .token .hp-bar {
+    .token .bars {
       position: absolute;
-      left: 10%;
-      right: 10%;
-      bottom: 3px;
-      height: 4px;
+      left: 8%;
+      right: 8%;
+      bottom: 2px;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+    .token .hp-bar, .token .mana-bar {
+      height: 3px;
       background: rgba(0,0,0,0.55);
       border-radius: 2px;
       overflow: hidden;
-      z-index: 2;
     }
+    .token .mana-bar { height: 3px; }
     .token .hp-fill {
       height: 100%;
       width: 100%;
       background: linear-gradient(90deg, #e85050, #5ecf8a);
       border-radius: 2px;
-      transition: width 0.15s linear;
+    }
+    .token .mana-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #2060e0, #50c8ff);
+      border-radius: 2px;
     }
     .token.star2 {
       box-shadow: 0 0 10px rgba(232, 184, 74, 0.55), 0 2px 6px rgba(0,0,0,0.45);
     }
-    .token.hit { animation: tokenHit 0.25s ease; }
+    .token.hit { animation: tokenHit 0.28s ease; }
+    .token.stunned { filter: grayscale(0.4) brightness(1.15); }
 
     .ghost-token {
       position: fixed;
@@ -613,8 +674,18 @@
       to { opacity: 1; transform: scale(1); }
     }
     @keyframes tokenHit {
-      0%, 100% { transform: scale(1); }
-      40% { transform: scale(1.12); filter: brightness(1.4); }
+      0%, 100% { transform: scale(1); filter: brightness(1); }
+      30% { transform: scale(1.12) translateX(2px); filter: brightness(1.6); }
+      55% { transform: scale(1.05) translateX(-2px); filter: brightness(1.3); }
+    }
+    @keyframes tokenDie {
+      to { opacity: 0; transform: scale(0.4); filter: grayscale(1); }
+    }
+    @keyframes abilityPop {
+      0% { opacity: 0; transform: translateX(-50%) translateY(4px); }
+      15% { opacity: 1; transform: translateX(-50%) translateY(0); }
+      70% { opacity: 1; }
+      100% { opacity: 0; transform: translateX(-50%) translateY(-8px); }
     }
     @keyframes shake {
       0%, 100% { transform: translateX(0); }
@@ -626,16 +697,74 @@
     .combat-fx {
       position: absolute;
       pointer-events: none;
-      font-size: 0.7rem;
+      font-size: 0.72rem;
       font-weight: 800;
       color: #ff6a6a;
       text-shadow: 0 1px 2px #000;
-      z-index: 20;
-      animation: floatDmg 0.7s ease forwards;
+      z-index: 30;
+      transform: translate(-50%, 0);
+      animation: floatDmg 0.75s ease forwards;
     }
+    .combat-fx.heal { color: #5ecf8a; }
     @keyframes floatDmg {
-      from { opacity: 1; transform: translateY(0); }
-      to { opacity: 0; transform: translateY(-18px); }
+      from { opacity: 1; transform: translate(-50%, 0) scale(1); }
+      to { opacity: 0; transform: translate(-50%, -22px) scale(1.05); }
+    }
+
+    .fight-bar {
+      display: none;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: center;
+      margin: 8px 0 10px;
+    }
+    .fight-bar.show { display: grid; }
+    .btn-speed {
+      min-width: 64px;
+      min-height: 56px;
+      font-family: "Bungee", cursive;
+      font-size: 1rem;
+      background: linear-gradient(180deg, #3a6a88, #1a4058);
+      color: var(--cyan);
+      border: 1px solid var(--cyan);
+      border-radius: 16px;
+      box-shadow: 0 4px 0 #0a2030;
+    }
+
+    .results-banner {
+      position: fixed;
+      left: 50%;
+      top: 42%;
+      transform: translate(-50%, -50%) scale(0.92);
+      z-index: 70;
+      min-width: min(300px, 86vw);
+      text-align: center;
+      padding: 22px 24px;
+      border-radius: 18px;
+      background: linear-gradient(180deg, rgba(26, 50, 70, 0.96), rgba(10, 20, 32, 0.98));
+      border: 2px solid var(--gold);
+      box-shadow: 0 16px 40px rgba(0,0,0,0.55);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease, transform 0.25s ease;
+    }
+    .results-banner.show {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+      pointer-events: auto;
+    }
+    .results-banner.defeat { border-color: var(--rose); }
+    .results-banner h3 {
+      margin: 0 0 6px;
+      font-family: "Bungee", cursive;
+      font-size: 1.5rem;
+      color: var(--gold);
+    }
+    .results-banner.defeat h3 { color: var(--rose); }
+    .results-banner p {
+      margin: 0 0 14px;
+      color: var(--fog);
+      font-weight: 700;
     }
   </style>
 </head>
@@ -693,9 +822,14 @@
       <div class="arena-label player">Your field · max 5</div>
       <div class="hex-board" id="playerBoard"></div>
       <div class="bonuses" id="bonuses"></div>
+      <div class="combat-layer" id="combatLayer"></div>
     </div>
 
     <button type="button" class="btn btn-fight" id="btnFight">FIGHT</button>
+    <div class="fight-bar" id="fightBar">
+      <button type="button" class="btn btn-fight" id="btnFightBusy" disabled style="margin:0">FIGHTING…</button>
+      <button type="button" class="btn btn-speed" id="btnSpeed">1x</button>
+    </div>
 
     <section class="block">
       <div class="block-head">
@@ -722,8 +856,9 @@
         <li>Buy from the shop (reroll costs 2 gold). 3 copies fuse into ★★.</li>
         <li>Tap a bench monster, then tap a hex on your half to place it (max 5). Tap a placed monster to return it to the bench. Drag works too.</li>
         <li>2+ of the same Type grant an ATK bonus.</li>
-        <li>Press <strong>FIGHT</strong> — units move to the nearest foe and attack. HP = DEF (min 500), damage = ATK ÷ 4.</li>
-        <li>Surviving enemies deal Life Point damage (200 × Level each). Earn gold after the round. 0 LP ends the duel.</li>
+        <li>Press <strong>FIGHT</strong> — units slide toward foes, lunge to attack, and cast Type abilities at full mana.</li>
+        <li>HP = DEF (min 500); damage = ATK ÷ 4. Use 1x/2x speed during fights.</li>
+        <li>Surviving enemies deal LP damage (200 × Level). Earn gold after each round. 0 LP ends the duel.</li>
       </ol>
       <button type="button" class="btn btn-primary btn-wide" id="btnCloseHow">Got it</button>
     </div>
@@ -735,6 +870,12 @@
       <p id="endMsg">Your Life Points hit zero.</p>
       <button type="button" class="btn btn-primary btn-wide" id="btnRestart">Play Again</button>
     </div>
+  </div>
+
+  <div class="results-banner" id="resultsBanner">
+    <h3 id="resultsTitle">Victory</h3>
+    <p id="resultsMsg">No LP lost</p>
+    <button type="button" class="btn btn-primary btn-wide" id="btnResultsOk">Continue</button>
   </div>
 
   <div class="toast" id="toast"></div>
@@ -837,6 +978,9 @@
     uid: 1,
     combatTimer: null,
     drag: null,
+    fightSpeed: 1,
+    combatVisuals: {}, // uid -> { wrap, x, y, lungeX, lungeY, lungeT }
+    pendingResult: null,
   };
 
   const $ = (id) => document.getElementById(id);
@@ -854,6 +998,12 @@
     loadStatus: $("loadStatus"),
     btnStart: $("btnStart"),
     btnFight: $("btnFight"),
+    fightBar: $("fightBar"),
+    btnSpeed: $("btnSpeed"),
+    combatLayer: $("combatLayer"),
+    resultsBanner: $("resultsBanner"),
+    resultsTitle: $("resultsTitle"),
+    resultsMsg: $("resultsMsg"),
     arena: $("arena"),
   };
 
@@ -911,6 +1061,13 @@
       def,
       maxHp,
       hp: maxHp,
+      mana: 0,
+      shield: 0,
+      stunUntil: 0,
+      hasteUntil: 0,
+      canRevive: String(base.type) === "Zombie",
+      revived: false,
+      dead: false,
       side: null,
       row: null,
       col: null,
@@ -1115,14 +1272,18 @@
     const tok = document.createElement("div");
     tok.className = "token attr-" + attr + (unit.stars === 2 ? " star2" : "");
     tok.dataset.uid = String(unit.uid);
-    const pct = Math.max(0, Math.min(100, (unit.hp / unit.maxHp) * 100));
+    const hpPct = Math.max(0, Math.min(100, ((unit.hp || unit.maxHp) / unit.maxHp) * 100));
+    const manaPct = Math.max(0, Math.min(100, (unit.mana || 0)));
     const short = unit.name.length > 8 ? unit.name.slice(0, 7) + "…" : unit.name;
     tok.innerHTML =
       '<div class="ring"></div>' +
       '<div class="emoji">' + meta.emoji + "</div>" +
       '<div class="stars">' + (unit.stars === 2 ? "★★" : "★") + "</div>" +
       '<div class="tname">' + escapeHtml(short) + "</div>" +
-      '<div class="hp-bar"><div class="hp-fill" style="width:' + pct + '%"></div></div>';
+      '<div class="bars">' +
+        '<div class="hp-bar"><div class="hp-fill" style="width:' + hpPct + '%"></div></div>' +
+        '<div class="mana-bar"><div class="mana-fill" style="width:' + manaPct + '%"></div></div>' +
+      "</div>";
     if (state.selected && state.selected.from === "hex" &&
         state.selected.row === unit.row && state.selected.col === unit.col) {
       tok.classList.add("selected");
@@ -1222,6 +1383,9 @@
     }
     $("btnReroll").disabled = state.phase !== "shop" || state.gold < 2;
     el.btnFight.disabled = state.phase !== "shop" || playerCount() < 1;
+    el.btnFight.style.display = state.phase === "fight" ? "none" : "";
+    el.fightBar.classList.toggle("show", state.phase === "fight");
+    el.btnSpeed.textContent = state.fightSpeed + "x";
     el.shopBlock.style.opacity = state.phase === "fight" ? "0.45" : "1";
     el.shopActions.style.opacity = state.phase === "fight" ? "0.45" : "1";
   }
@@ -1522,9 +1686,9 @@
     }
   }
 
-  /* —— Combat —— */
+  /* —— Combat (TFT-style) —— */
   function closestEnemy(unit) {
-    const foes = allUnits(unit.side === "player" ? "enemy" : "player");
+    const foes = allUnits(unit.side === "player" ? "enemy" : "player").filter((f) => !f.dead);
     let best = null;
     let bestD = Infinity;
     foes.forEach((f) => {
@@ -1532,6 +1696,15 @@
       if (d < bestD) { bestD = d; best = f; }
     });
     return best;
+  }
+
+  function nClosestEnemies(unit, n) {
+    return allUnits(unit.side === "player" ? "enemy" : "player")
+      .filter((f) => !f.dead)
+      .map((f) => ({ f, d: hexDist(unit.row, unit.col, f.row, f.col) }))
+      .sort((a, b) => a.d - b.d)
+      .slice(0, n)
+      .map((x) => x.f);
   }
 
   function stepToward(unit, target) {
@@ -1550,52 +1723,330 @@
     return true;
   }
 
-  function showDamageFx(row, col, dmg) {
+  function hexCenterInArena(row, col) {
     const board = row < HEX_ROWS ? el.enemyBoard : el.playerBoard;
-    const localRow = row < HEX_ROWS ? row : row - HEX_ROWS;
     const hex = board.querySelector('.hex[data-row="' + row + '"][data-col="' + col + '"]');
-    if (!hex) return;
-    const fx = document.createElement("div");
-    fx.className = "combat-fx";
-    fx.textContent = "-" + dmg;
-    fx.style.left = (hex.offsetLeft + hex.offsetWidth / 2) + "px";
-    fx.style.top = (hex.offsetTop + 4) + "px";
-    board.appendChild(fx);
-    setTimeout(() => fx.remove(), 700);
+    if (!hex || !el.arena) return { x: 0, y: 0 };
+    const a = el.arena.getBoundingClientRect();
+    const h = hex.getBoundingClientRect();
+    return {
+      x: h.left - a.left + h.width / 2,
+      y: h.top - a.top + h.height / 2,
+    };
   }
 
-  function updateTokenHp(unit) {
-    const board = unit.row < HEX_ROWS ? el.enemyBoard : el.playerBoard;
-    const tok = board.querySelector('.token[data-uid="' + unit.uid + '"]');
-    if (!tok) return;
-    const fill = tok.querySelector(".hp-fill");
-    if (fill) fill.style.width = Math.max(0, (unit.hp / unit.maxHp) * 100) + "%";
-    tok.classList.remove("hit");
-    void tok.offsetWidth;
-    tok.classList.add("hit");
+  function clearCombatLayer() {
+    el.combatLayer.innerHTML = "";
+    state.combatVisuals = {};
+  }
+
+  function mountCombatTokens() {
+    clearCombatLayer();
+    // Hide hex tokens during fight; combat layer owns visuals
+    el.arena.querySelectorAll(".hex .token").forEach((t) => { t.style.visibility = "hidden"; });
+    allUnits().forEach((u) => {
+      if (u.dead) return;
+      const wrap = document.createElement("div");
+      wrap.className = "combat-token";
+      wrap.dataset.uid = String(u.uid);
+      const tok = createTokenEl(u);
+      wrap.appendChild(tok);
+      el.combatLayer.appendChild(wrap);
+      const pos = hexCenterInArena(u.row, u.col);
+      const half = (tok.offsetWidth || 40) / 2;
+      state.combatVisuals[u.uid] = {
+        wrap, tok, x: pos.x, y: pos.y, half,
+        lungeX: 0, lungeY: 0, lungeT: 0,
+      };
+      applyCombatTransform(u.uid);
+      syncCombatBars(u);
+    });
+  }
+
+  function applyCombatTransform(uid) {
+    const v = state.combatVisuals[uid];
+    if (!v) return;
+    const half = v.half || 20;
+    v.wrap.style.transform =
+      "translate(" + (v.x - half) + "px," + (v.y - half) + "px) translate(" +
+      v.lungeX.toFixed(1) + "px," + v.lungeY.toFixed(1) + "px)";
+  }
+
+  function syncCombatBars(unit) {
+    const v = state.combatVisuals[unit.uid];
+    if (!v) return;
+    const hp = v.tok.querySelector(".hp-fill");
+    const mana = v.tok.querySelector(".mana-fill");
+    if (hp) hp.style.width = Math.max(0, Math.min(100, (unit.hp / unit.maxHp) * 100)) + "%";
+    if (mana) mana.style.width = Math.max(0, Math.min(100, unit.mana || 0)) + "%";
+    v.tok.classList.toggle("stunned", (unit.stunUntil || 0) > performance.now());
+    let shield = v.wrap.querySelector(".shield-ring");
+    if (unit.shield > 0) {
+      if (!shield) {
+        shield = document.createElement("div");
+        shield.className = "shield-ring";
+        v.wrap.appendChild(shield);
+      }
+    } else if (shield) {
+      shield.remove();
+    }
+  }
+
+  function showFloatText(uid, text, heal) {
+    const v = state.combatVisuals[uid];
+    if (!v) return;
+    const fx = document.createElement("div");
+    fx.className = "combat-fx" + (heal ? " heal" : "");
+    fx.textContent = text;
+    fx.style.left = v.x + "px";
+    fx.style.top = (v.y - 18) + "px";
+    el.combatLayer.appendChild(fx);
+    setTimeout(() => fx.remove(), 800);
+  }
+
+  function flashHit(unit) {
+    const v = state.combatVisuals[unit.uid];
+    if (!v) return;
+    v.tok.classList.remove("hit");
+    void v.tok.offsetWidth;
+    v.tok.classList.add("hit");
+  }
+
+  function startLunge(attacker, target) {
+    const va = state.combatVisuals[attacker.uid];
+    const vt = state.combatVisuals[target.uid];
+    if (!va || !vt) return;
+    const dx = vt.x - va.x;
+    const dy = vt.y - va.y;
+    const len = Math.hypot(dx, dy) || 1;
+    const dist = Math.min(18, len * 0.35);
+    va.lungeX = (dx / len) * dist;
+    va.lungeY = (dy / len) * dist;
+    va.lungeT = 180 / state.fightSpeed;
+    applyCombatTransform(attacker.uid);
+  }
+
+  function showAbilityName(unit, name) {
+    const v = state.combatVisuals[unit.uid];
+    if (!v) return;
+    v.wrap.querySelectorAll(".ability-tag").forEach((n) => n.remove());
+    const tag = document.createElement("div");
+    tag.className = "ability-tag";
+    tag.textContent = name;
+    v.wrap.appendChild(tag);
+    setTimeout(() => tag.remove(), 900 / state.fightSpeed);
+  }
+
+  function gainMana(unit, amount) {
+    if (unit.dead) return;
+    unit.mana = Math.min(100, (unit.mana || 0) + amount);
+    syncCombatBars(unit);
+  }
+
+  function dealDamage(attacker, target, rawDmg, opts) {
+    opts = opts || {};
+    if (!target || target.dead || rawDmg <= 0) return 0;
+    let dmg = Math.max(1, Math.round(rawDmg));
+    if (target.shield > 0) {
+      const absorbed = Math.min(target.shield, dmg);
+      target.shield -= absorbed;
+      dmg -= absorbed;
+    }
+    if (dmg > 0) {
+      target.hp -= dmg;
+      showFloatText(target.uid, "-" + dmg, false);
+      flashHit(target);
+      if (!opts.noMana) gainMana(target, 5);
+    }
+    syncCombatBars(target);
+    if (opts.lifesteal && attacker && dmg > 0) {
+      const heal = Math.round(dmg * opts.lifesteal);
+      attacker.hp = Math.min(attacker.maxHp, attacker.hp + heal);
+      showFloatText(attacker.uid, "+" + heal, true);
+      syncCombatBars(attacker);
+    }
+    if (target.hp <= 0) {
+      handleDeath(target, attacker);
+    }
+    return dmg;
+  }
+
+  function handleDeath(unit, killer) {
+    if (unit.canRevive && !unit.revived) {
+      unit.revived = true;
+      unit.canRevive = false;
+      unit.hp = Math.max(1, Math.round(unit.maxHp * 0.3));
+      unit.mana = 0;
+      showAbilityName(unit, "Undying");
+      showFloatText(unit.uid, "REVIVE", true);
+      syncCombatBars(unit);
+      logLine('<span class="sys">' + escapeHtml(unit.name) + " revives!</span>");
+      return;
+    }
+    unit.dead = true;
+    unit.hp = 0;
+    setCell(unit.row, unit.col, null);
+    const v = state.combatVisuals[unit.uid];
+    if (v) {
+      v.wrap.classList.add("dying");
+      setTimeout(() => {
+        if (v.wrap.parentNode) v.wrap.remove();
+        delete state.combatVisuals[unit.uid];
+      }, 450 / state.fightSpeed);
+    }
+    if (killer) {
+      logLine('<span class="' + (killer.side === "player" ? "win" : "dmg") + '">' +
+        escapeHtml(killer.name) + " defeated " + escapeHtml(unit.name) + "</span>");
+    }
+  }
+
+  function attackInterval(unit) {
+    let ms = ATTACK_MS;
+    if ((unit.hasteUntil || 0) > performance.now()) ms = ATTACK_MS / 1.5;
+    return ms;
+  }
+
+  function castAbilityFixed(unit, target) {
+    unit.mana = 0;
+    syncCombatBars(unit);
+    const atk = effectiveAtk(unit);
+    const t = unit.type;
+
+    if (t === "Dragon") {
+      showAbilityName(unit, "Fire Breath");
+      const foes = nClosestEnemies(unit, 3);
+      const each = foes.length ? (atk * 2) / foes.length : 0;
+      foes.forEach((f) => {
+        startLunge(unit, f);
+        dealDamage(unit, f, each, { noMana: false });
+      });
+      return;
+    }
+    if (t === "Spellcaster") {
+      showAbilityName(unit, "Arc Stun");
+      if (target) {
+        startLunge(unit, target);
+        dealDamage(unit, target, atk * 1.5);
+        target.stunUntil = performance.now() + 1000;
+        syncCombatBars(target);
+      }
+      return;
+    }
+    if (t === "Warrior") {
+      showAbilityName(unit, "Double Strike");
+      if (target) {
+        startLunge(unit, target);
+        const hit = Math.max(1, Math.round(atk / 4));
+        dealDamage(unit, target, hit);
+        if (!target.dead) dealDamage(unit, target, hit);
+      }
+      return;
+    }
+    if (t === "Fiend") {
+      showAbilityName(unit, "Life Drain");
+      if (target) {
+        startLunge(unit, target);
+        const hit = Math.max(1, Math.round(atk / 4));
+        dealDamage(unit, target, hit, { lifesteal: 0.5 });
+      }
+      return;
+    }
+    if (t === "Beast" || t === "Winged Beast") {
+      showAbilityName(unit, "Bloodrush");
+      unit.hasteUntil = performance.now() + 3000;
+      if (target) {
+        startLunge(unit, target);
+        dealDamage(unit, target, Math.max(1, Math.round(atk / 4)));
+      }
+      return;
+    }
+    if (t === "Machine") {
+      showAbilityName(unit, "Hard Shield");
+      unit.shield = Math.round(unit.maxHp * 0.3);
+      syncCombatBars(unit);
+      if (target) {
+        startLunge(unit, target);
+        dealDamage(unit, target, Math.max(1, Math.round(atk / 4)));
+      }
+      return;
+    }
+    // Zombie & others: 2x ATK nuke (Zombie also has passive revive)
+    showAbilityName(unit, t === "Zombie" ? "Grave Bolt" : "Power Strike");
+    if (target) {
+      startLunge(unit, target);
+      dealDamage(unit, target, atk * 2);
+    }
+  }
+
+  function basicAttack(unit, target) {
+    startLunge(unit, target);
+    const dmg = Math.max(1, Math.round(effectiveAtk(unit) / 4));
+    dealDamage(unit, target, dmg);
+    gainMana(unit, 10);
+    if (!unit.dead && unit.mana >= 100) {
+      castAbilityFixed(unit, closestEnemy(unit) || target);
+    }
+  }
+
+  function updateCombatVisuals(dt) {
+    Object.keys(state.combatVisuals).forEach((id) => {
+      const uidNum = +id;
+      const v = state.combatVisuals[uidNum];
+      if (!v) return;
+      const unit = allUnits().find((u) => u.uid === uidNum);
+      if (!unit || unit.dead) return;
+      const target = hexCenterInArena(unit.row, unit.col);
+      const speed = 0.018 * dt; // smooth slide
+      v.x += (target.x - v.x) * Math.min(1, speed);
+      v.y += (target.y - v.y) * Math.min(1, speed);
+      if (v.lungeT > 0) {
+        v.lungeT -= dt;
+        if (v.lungeT <= 0) {
+          v.lungeX = 0;
+          v.lungeY = 0;
+          v.lungeT = 0;
+        } else if (v.lungeT < 90 / state.fightSpeed) {
+          // snap back halfway through
+          v.lungeX *= 0.7;
+          v.lungeY *= 0.7;
+        }
+      }
+      applyCombatTransform(uidNum);
+    });
   }
 
   async function startFight() {
     if (state.phase !== "shop" || playerCount() < 1) return;
     state.phase = "fight";
     state.selected = null;
+    state.fightSpeed = 1;
     placeEnemy();
-    // Reset HP for player units
-    allUnits("player").forEach((u) => {
+    allUnits().forEach((u) => {
       u.maxHp = Math.max(500, u.def);
       u.hp = u.maxHp;
-      u.atkCd = Math.random() * 200;
-      u.moveCd = Math.random() * 100;
-    });
-    allUnits("enemy").forEach((u) => {
+      u.mana = 0;
+      u.shield = 0;
+      u.stunUntil = 0;
+      u.hasteUntil = 0;
+      u.dead = false;
+      if (u.type === "Zombie") { u.canRevive = true; u.revived = false; }
       u.atkCd = Math.random() * 200;
       u.moveCd = Math.random() * 100;
     });
     logLine('<span class="sys">—— Round ' + state.round + " FIGHT ——</span>");
     render();
-
+    // Remount combat tokens after boards laid out
+    requestAnimationFrame(() => {
+      mountCombatTokens();
+    });
+    await sleep(80);
+    mountCombatTokens();
     await runCombatLoop();
     finishFight();
+  }
+
+  function sleep(ms) {
+    return new Promise((r) => setTimeout(r, ms));
   }
 
   function runCombatLoop() {
@@ -1605,29 +2056,33 @@
 
       function tick(now) {
         if (state.phase !== "fight") { resolve(); return; }
-        const dt = Math.min(100, now - last);
+        const rawDt = Math.min(50, now - last);
         last = now;
+        const dt = rawDt * state.fightSpeed;
 
-        if (now - combatStart > 45000) {
+        if (now - combatStart > 60000) {
           logLine('<span class="sys">Time up — combat ends</span>');
-          renderBoards();
           resolve();
           return;
         }
 
-        const players = allUnits("player");
-        const enemies = allUnits("enemy");
+        const players = allUnits("player").filter((u) => !u.dead);
+        const enemies = allUnits("enemy").filter((u) => !u.dead);
         if (!players.length || !enemies.length) {
-          renderBoards();
+          updateCombatVisuals(dt);
           resolve();
           return;
         }
 
-        let needsBoardRender = false;
         const units = players.concat(enemies);
+        const nowMs = performance.now();
 
         units.forEach((u) => {
-          if (u.hp <= 0) return;
+          if (u.dead) return;
+          if ((u.stunUntil || 0) > nowMs) {
+            syncCombatBars(u);
+            return;
+          }
           const target = closestEnemy(u);
           if (!target) return;
           const dist = hexDist(u.row, u.col, target.row, target.col);
@@ -1636,23 +2091,16 @@
           u.moveCd -= dt;
 
           if (dist <= 1) {
-            // Attack
             if (u.atkCd <= 0) {
-              const dmg = Math.max(1, Math.round(effectiveAtk(u) / 4));
-              target.hp -= dmg;
-              showDamageFx(target.row, target.col, dmg);
-              updateTokenHp(target);
-              u.atkCd = ATTACK_MS;
-              if (target.hp <= 0) {
-                logLine('<span class="' + (u.side === "player" ? "win" : "dmg") + '">' +
-                  escapeHtml(u.name) + " defeated " + escapeHtml(target.name) + "</span>");
-                setCell(target.row, target.col, null);
-                needsBoardRender = true;
+              if (u.mana >= 100) {
+                castAbilityFixed(u, target);
+              } else {
+                basicAttack(u, target);
               }
+              u.atkCd = attackInterval(u);
             }
           } else if (u.moveCd <= 0) {
             if (stepToward(u, target)) {
-              needsBoardRender = true;
               u.moveCd = MOVE_MS;
             } else {
               u.moveCd = MOVE_MS * 0.5;
@@ -1660,8 +2108,8 @@
           }
         });
 
-        if (needsBoardRender) renderBoards();
-        renderHUD();
+        updateCombatVisuals(dt);
+        el.lp.textContent = state.lp;
 
         state.combatTimer = requestAnimationFrame(tick);
       }
@@ -1676,42 +2124,72 @@
       state.combatTimer = null;
     }
 
-    const survivors = allUnits("enemy");
+    const survivors = allUnits("enemy").filter((u) => !u.dead);
     let lpDmg = 0;
     survivors.forEach((e) => {
       lpDmg += 200 * (e.level || 1);
     });
+
+    const playerAlive = allUnits("player").some((u) => !u.dead);
+    const victory = survivors.length === 0 && playerAlive;
 
     if (lpDmg > 0) {
       state.lp = Math.max(0, state.lp - lpDmg);
       logLine('<span class="dmg">Survivors deal ' + lpDmg + " LP damage</span>");
       el.lp.classList.add("shake");
       setTimeout(() => el.lp.classList.remove("shake"), 400);
-    } else if (allUnits("player").length) {
+    } else if (victory) {
       logLine('<span class="win">Board wiped — no LP damage!</span>');
     }
 
     // Clear enemy; gather player survivors and reseat on player half
-    const survivorsP = allUnits("player").map((u) => {
+    const survivorsP = allUnits("player").filter((u) => !u.dead).map((u) => {
       setCell(u.row, u.col, null);
       u.maxHp = Math.max(500, u.def);
       u.hp = u.maxHp;
+      u.mana = 0;
+      u.shield = 0;
+      u.stunUntil = 0;
+      u.hasteUntil = 0;
+      u.dead = false;
       u.side = "player";
       return u;
     });
     clearEnemy();
+    clearCombatLayer();
+    el.arena.querySelectorAll(".hex .token").forEach((t) => { t.style.visibility = ""; });
+
     const homeSlots = [];
     for (let r = HEX_ROWS; r < HEX_ROWS * 2; r++) {
       for (let c = 0; c < HEX_COLS; c++) homeSlots.push({ row: r, col: c });
     }
-    // Prefer back rows for redeploy
     homeSlots.sort((a, b) => b.row - a.row || a.col - b.col);
     survivorsP.forEach((u, i) => {
       const slot = homeSlots[i];
       if (slot) setCell(slot.row, slot.col, u);
     });
 
-    if (state.lp <= 0) {
+    state.pendingResult = {
+      victory,
+      lpDmg,
+      gameOver: state.lp <= 0,
+    };
+
+    el.resultsBanner.classList.toggle("defeat", !state.pendingResult.victory);
+    el.resultsTitle.textContent = state.pendingResult.victory ? "Victory" : "Defeat";
+    el.resultsMsg.textContent = lpDmg > 0 ? ("−" + lpDmg + " Life Points") : "No LP lost";
+    el.resultsBanner.classList.add("show");
+    el.fightBar.classList.remove("show");
+    el.btnFight.style.display = "none";
+  }
+
+  function dismissResults() {
+    el.resultsBanner.classList.remove("show");
+    const res = state.pendingResult;
+    state.pendingResult = null;
+    if (!res) return;
+
+    if (res.gameOver || state.lp <= 0) {
       state.phase = "end";
       el.endTitle.textContent = "Defeat";
       el.endMsg.textContent = "You survived " + state.round + " round" + (state.round === 1 ? "" : "s") + ". Your Life Points hit zero.";
@@ -1726,6 +2204,7 @@
     toast("+" + gained + " gold");
     state.round += 1;
     state.phase = "shop";
+    state.fightSpeed = 1;
     rollShop();
     render();
   }
@@ -1872,6 +2351,12 @@
   });
   $("btnReroll").addEventListener("click", reroll);
   el.btnFight.addEventListener("click", () => { startFight(); });
+  el.btnSpeed.addEventListener("click", () => {
+    if (state.phase !== "fight") return;
+    state.fightSpeed = state.fightSpeed === 1 ? 2 : 1;
+    el.btnSpeed.textContent = state.fightSpeed + "x";
+  });
+  $("btnResultsOk").addEventListener("click", dismissResults);
   $("btnSell").addEventListener("click", sellSelected);
   $("btnRestart").addEventListener("click", showStartScreen);
   window.addEventListener("resize", () => {
