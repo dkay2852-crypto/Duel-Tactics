@@ -37,7 +37,7 @@
       --fight-h: 52px;
       --econ-h: 44px;
       --shop-h: 100px;
-      --board-tilt: 38deg;
+      --board-tilt: 40deg;
       --board-scale: 1.35;
       /* Screen-space hex width after tilt scale (set by fitHexSize) */
       --hex-screen-w: calc(var(--hex-w) * var(--board-scale));
@@ -236,9 +236,9 @@
         linear-gradient(180deg, rgba(20, 36, 28, 0.95), rgba(12, 24, 36, 0.95));
       border: 1px solid #2a5040;
       border-radius: 14px;
-      /* Top/side pad so upright billboards aren't clipped by .app overflow.
+      /* Top pad for upright billboards; light side pad for edge tokens.
          overflow must stay visible — overflow:hidden flattens preserve-3d. */
-      padding: calc(var(--hex-screen-w) * 1.55) calc(var(--hex-screen-w) * 0.35) 20px;
+      padding: 48px 4px 12px;
       overflow: visible;
     }
     .hex-stage {
@@ -3375,29 +3375,26 @@
   function fitHexSize() {
     const arena = el.arena;
     if (!arena) return;
-    // Content box before CSS pad (pad depends on --hex-screen-w; iterate once)
-    const rawW = Math.max(200, arena.clientWidth);
-    const rawH = Math.max(160, arena.clientHeight);
-    const tiltRad = 38 * Math.PI / 180;
+    const style = getComputedStyle(arena);
+    const padX = (parseFloat(style.paddingLeft) || 0) + (parseFloat(style.paddingRight) || 0);
+    const padY = (parseFloat(style.paddingTop) || 0) + (parseFloat(style.paddingBottom) || 0);
+    const aw = Math.max(180, arena.clientWidth - padX);
+    const ah = Math.max(120, arena.clientHeight - padY);
+    const tiltRad = 40 * Math.PI / 180;
     const cosT = Math.cos(tiltRad);
 
-    // Leave side room so 1.3×-wide upright tokens aren't clipped by .app
-    const sidePad = Math.max(10, rawW * 0.02);
-    const topPadGuess = rawH * 0.12;
-    const aw = Math.max(180, rawW - sidePad * 2);
-    const ah = Math.max(120, rawH - topPadGuess - 20);
-
-    // 7 columns across: visual hex width after scale = aw / ~7.05
-    const screenHex = aw / 7.05;
-    // Flat board height (2 halves × ~3.2 row-heights) then project via cos(tilt)
-    const flatH = screenHex * 1.12 * 3.25 * 2 + 10;
-    const projectedH = flatH * cosT;
-    // Scale up after tilt so the board uses most of the arena height
-    let scale = (ah * 0.96) / Math.max(1, projectedH);
-    scale = Math.max(1.18, Math.min(1.65, scale));
-
+    // Width-first: 7 columns fill the content width
+    let screenHex = aw / 7.0;
+    // Two board halves × row stack, projected after rotateX
+    const flatRows = 1.12 * 3.15 * 2 + 0.1;
+    const projectedAtFill = screenHex * flatRows * cosT;
+    // Prefer full width; only shrink if height would badly overflow
+    if (projectedAtFill > ah * 1.08) {
+      screenHex = (ah * 1.08) / (flatRows * cosT);
+    }
+    let scale = 1.3;
     let w = Math.round(screenHex / scale);
-    w = Math.max(30, Math.min(58, w));
+    w = Math.max(32, Math.min(54, w));
     scale = screenHex / w;
     scale = Math.max(1.15, Math.min(1.7, scale));
 
