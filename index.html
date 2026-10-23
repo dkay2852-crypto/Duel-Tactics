@@ -2840,33 +2840,7 @@
     },
   ];
 
-  const TOON_POOL = [
-    { id: "toon_goblin", name: "Toon Goblin Attack Force", type: "Toon", attribute: "EARTH", level: 4, atk: 2300, def: 0 },
-    { id: "toon_mermaid", name: "Toon Mermaid", type: "Toon", attribute: "WATER", level: 4, atk: 1400, def: 1500 },
-    { id: "toon_summoned", name: "Toon Summoned Skull", type: "Toon", attribute: "DARK", level: 6, atk: 2500, def: 1200 },
-    { id: "toon_dm", name: "Toon Dark Magician", type: "Toon", attribute: "DARK", level: 7, atk: 2500, def: 2100 },
-    { id: "toon_beud", name: "Toon Blue-Eyes", type: "Toon", attribute: "LIGHT", level: 8, atk: 3000, def: 2500 },
-    { id: "toon_cannon", name: "Toon Cannon Soldier", type: "Toon", attribute: "DARK", level: 4, atk: 1400, def: 1300 },
-  ].map((c) => enrichCardBase(c));
-
-  /**
-   * Shop odds by player level for cost buckets (TFT-style):
-   * [1-cost, 2-cost, 3-cost, 4-cost, 5-cost]
-   * 4- and 5-cost stay rare until level 7+.
-   */
-  const SHOP_ODDS = {
-    1: [100, 0, 0, 0, 0],
-    2: [70, 30, 0, 0, 0],
-    3: [55, 35, 10, 0, 0],
-    4: [40, 40, 18, 2, 0],
-    5: [30, 35, 28, 7, 0],
-    6: [24, 32, 30, 13, 1],
-    7: [18, 28, 32, 18, 4],
-    8: [14, 22, 32, 24, 8],
-    9: [10, 18, 28, 30, 14],
-  };
-
-  /** Normal-monster Type passives (always on). */
+  /** Normal-monster Type passives (always on). Must be above TOON_POOL (enrich at init). */
   const TYPE_PASSIVES = {
     Dragon: { id: "pierce", name: "Dragon Pierce", desc: "Attacks pierce armor." },
     Spellcaster: { id: "magic", name: "Arcane Hit", desc: "Hits deal +30% magic damage (ignores half armor)." },
@@ -2904,6 +2878,32 @@
     "Dream Clown": { id: "destroy_weakest", name: "Dream Cut", desc: "Once: destroy the weakest enemy." },
     "Armed Ninja": { id: "destroy_weakest", name: "Ninja Cut", desc: "Once: destroy the weakest enemy." },
     "Holograh": { id: "shield_self", name: "Holo Guard", desc: "Once: gain a 35% HP shield." },
+  };
+
+  const TOON_POOL = [
+    { id: "toon_goblin", name: "Toon Goblin Attack Force", type: "Toon", attribute: "EARTH", level: 4, atk: 2300, def: 0 },
+    { id: "toon_mermaid", name: "Toon Mermaid", type: "Toon", attribute: "WATER", level: 4, atk: 1400, def: 1500 },
+    { id: "toon_summoned", name: "Toon Summoned Skull", type: "Toon", attribute: "DARK", level: 6, atk: 2500, def: 1200 },
+    { id: "toon_dm", name: "Toon Dark Magician", type: "Toon", attribute: "DARK", level: 7, atk: 2500, def: 2100 },
+    { id: "toon_beud", name: "Toon Blue-Eyes", type: "Toon", attribute: "LIGHT", level: 8, atk: 3000, def: 2500 },
+    { id: "toon_cannon", name: "Toon Cannon Soldier", type: "Toon", attribute: "DARK", level: 4, atk: 1400, def: 1300 },
+  ].map((c) => enrichCardBase(c));
+
+  /**
+   * Shop odds by player level for cost buckets (TFT-style):
+   * [1-cost, 2-cost, 3-cost, 4-cost, 5-cost]
+   * 4- and 5-cost stay rare until level 7+.
+   */
+  const SHOP_ODDS = {
+    1: [100, 0, 0, 0, 0],
+    2: [70, 30, 0, 0, 0],
+    3: [55, 35, 10, 0, 0],
+    4: [40, 40, 18, 2, 0],
+    5: [30, 35, 28, 7, 0],
+    6: [24, 32, 30, 13, 1],
+    7: [18, 28, 32, 18, 4],
+    8: [14, 22, 32, 24, 8],
+    9: [10, 18, 28, 30, 14],
   };
 
   const TRAIT_INFO = {
