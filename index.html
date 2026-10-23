@@ -2049,7 +2049,7 @@
     .island-map {
       position: relative;
       width: min(360px, 92vw);
-      height: min(420px, 58dvh);
+      height: min(380px, 48dvh);
       border-radius: 24px;
       overflow: hidden;
       border: 2px solid #2a6a80;
@@ -2093,14 +2093,14 @@
     .map-path { position: absolute; inset: 0; pointer-events: none; }
     .map-spot {
       position: absolute;
-      width: 36px; height: 36px;
-      margin: -18px 0 0 -18px;
+      width: 34px; height: 34px;
+      margin: -17px 0 0 -17px;
       border-radius: 50%;
       border: 2px solid #e8d080;
       background: radial-gradient(circle at 40% 35%, #4a6a80, #1a2838);
       color: #fff;
-      font-size: 0.72rem;
-      font-weight: 800;
+      font-size: 0.95rem;
+      line-height: 1;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -2109,22 +2109,45 @@
       touch-action: manipulation;
       box-shadow: 0 2px 6px rgba(0,0,0,0.45);
       z-index: 2;
+      padding: 0;
     }
+    .map-spot .spot-ico { font-size: 0.95rem; line-height: 1; }
+    .map-spot.type-duel { border-color: #8ec8f0; }
+    .map-spot.type-boss { border-color: #e85a6b; background: radial-gradient(circle at 40% 35%, #6a3040, #281018); }
+    .map-spot.type-rival { border-color: #7ec8ff; background: radial-gradient(circle at 40% 35%, #2a4a6a, #101828); }
+    .map-spot.type-shop { border-color: #e8c060; background: radial-gradient(circle at 40% 35%, #5a4820, #241c08); }
+    .map-spot.type-rest { border-color: #6ad08a; background: radial-gradient(circle at 40% 35%, #2a5038, #102018); }
+    .map-spot.type-secret { border-color: #d0a0ff; background: radial-gradient(circle at 40% 35%, #403060, #181028); }
     .map-spot.done {
       background: radial-gradient(circle at 40% 35%, #3a6a48, #142820);
       border-color: #6a9080;
-      opacity: 0.75;
+      opacity: 0.55;
     }
     .map-spot.locked {
-      opacity: 0.35;
-      cursor: not-allowed;
+      opacity: 0.28;
+      cursor: default;
       border-color: #5a6870;
+      filter: grayscale(0.4);
     }
     .map-spot.current {
       border-color: #ffe08a;
       box-shadow: 0 0 0 3px rgba(232, 184, 74, 0.45), 0 0 18px rgba(232, 184, 74, 0.75);
       animation: spotGlow 1.2s ease-in-out infinite alternate;
       z-index: 3;
+      opacity: 1;
+      filter: none;
+    }
+    .map-spot.choice {
+      border-color: #9ef0ff;
+      box-shadow: 0 0 0 3px rgba(100, 210, 255, 0.4), 0 0 14px rgba(100, 210, 255, 0.55);
+      animation: spotGlow 1s ease-in-out infinite alternate;
+      z-index: 3;
+      opacity: 1;
+    }
+    .map-spot.previewing {
+      outline: 2px solid #fff;
+      outline-offset: 2px;
+      z-index: 4;
     }
     .map-spot.castle-spot {
       border-color: #e8a0d0;
@@ -2135,26 +2158,72 @@
       to { transform: scale(1.08); }
     }
     .map-taunt {
-      margin-top: 12px;
+      margin-top: 8px;
       max-width: 340px;
+      width: 100%;
       text-align: center;
-      font-size: 0.88rem;
+      font-size: 0.78rem;
       font-weight: 700;
       color: var(--fog);
-      min-height: 2.6em;
-      line-height: 1.35;
+      min-height: 3.4em;
+      line-height: 1.3;
+      padding: 0 6px;
     }
-    .map-taunt strong { color: var(--gold); display: block; margin-bottom: 4px; font-family: "Bungee", cursive; font-size: 0.95rem; }
+    .map-taunt strong { color: var(--gold); display: block; margin-bottom: 2px; font-family: "Bungee", cursive; font-size: 0.88rem; }
+    .map-taunt .map-monsters {
+      margin-top: 4px;
+      font-size: 0.72rem;
+      color: var(--muted);
+      font-weight: 600;
+    }
+    .map-branch-hint {
+      margin: 4px 0 0;
+      font-size: 0.72rem;
+      color: #9ef0ff;
+      font-weight: 800;
+      text-align: center;
+      min-height: 1em;
+    }
     .map-cta {
-      margin-top: 10px;
+      margin-top: 8px;
       min-width: 200px;
     }
     .map-chips {
-      margin-top: 8px;
+      margin-top: 6px;
       color: var(--gold);
       font-weight: 800;
-      font-size: 0.85rem;
+      font-size: 0.8rem;
     }
+
+    /* Grandpa's Card Shop pick */
+    .card-shop-overlay .modal { max-width: 360px; }
+    .card-shop-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .card-shop-opt {
+      border: 2px solid var(--line);
+      border-radius: 12px;
+      background: rgba(20, 36, 52, 0.9);
+      color: var(--fog);
+      padding: 10px 6px;
+      min-height: 110px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      cursor: pointer;
+      touch-action: manipulation;
+      font-weight: 800;
+      font-size: 0.78rem;
+      text-align: center;
+    }
+    .card-shop-opt:active { transform: scale(0.97); }
+    .card-shop-opt .cso-ico { font-size: 1.6rem; line-height: 1; }
+    .card-shop-opt .cso-sub { font-size: 0.68rem; color: var(--muted); font-weight: 600; }
 
     /* —— DUEL flash / rewards —— */
     .duel-flash {
@@ -2425,7 +2494,7 @@
         <button type="button" class="mode-card locked" id="modeCastle" data-mode="castle">
           <span class="lock" aria-hidden="true">🔒</span>
           <span class="mode-title">Pegasus's Castle</span>
-          <span class="mode-sub">Beat Pegasus to unlock</span>
+          <span class="mode-sub">Win once to unlock</span>
         </button>
       </div>
       <button type="button" class="btn-continue-run" id="btnContinue">▶ Continue</button>
@@ -2552,14 +2621,12 @@
     <div class="modal">
       <h2>How to Play</h2>
       <ol>
-        <li>Welcome to <strong>Duelist Kingdom</strong> — start with <strong>2 Star Chips</strong>.</li>
-        <li>Each duel is a mini-match: you and the duelist start at <strong>4000 LP</strong>. Shop, then fight — usually 5–8 rounds.</li>
-        <li>Loser of a fight loses LP = (2 + survivors' cost + round×2) × 100. Hit 0 LP to end the duel.</li>
-        <li>Your board, bench, gold, level, and items carry across rounds and duels. LP resets to 4000 each new duel.</li>
-        <li>Win a duel: +1 Star Chip. Lose a duel: −1. Hit 0 chips and the run ends. Reach <strong>10 ★</strong> for the Castle.</li>
-        <li>Buy, fuse (3→★★→★★★), place on hexes, then <strong>FIGHT</strong>. Progress saves every round — use Continue on the home screen.</li>
-        <li>Damage = ATK÷4, HP = DEF + armor. Tap a board monster twice to set Attack/Defense. Effect monsters cost +1 and have once-per-fight abilities; every 4th hit is a Battle.</li>
-        <li>Path: Weevil → Rex → Mako → Mai → Keith → Bonz → Panik → Castle (Kaiba, Yugi, Pegasus).</li>
+        <li>Travel the <strong>Duelist Kingdom</strong> island map — about 12 stops from the shore to Pegasus's castle.</li>
+        <li>Stops: <strong>Duels</strong> (nameless), <strong>Bosses</strong> (Weevil→Rex→Mai→Keith→Panik), <strong>Rival</strong> Kaiba (twice), <strong>Grandpa's Shop</strong>, and <strong>Rest</strong>.</li>
+        <li>Some paths <strong>branch</strong> — pick left or right. Tap upcoming stops to preview the foe and their monsters.</li>
+        <li>Your <strong>LP carries</strong> across the island (start 4000). Rest restores 1000 LP. Early nameless duels cannot drop you below 1000 LP.</li>
+        <li>Shop, fight, and fuse as usual. Beat <strong>Pegasus</strong> to win the run. After one win, a secret <strong>Exodia</strong> stop appears.</li>
+        <li>Progress auto-saves — use <strong>Continue</strong> to resume on the same map spot.</li>
       </ol>
       <button type="button" class="btn btn-primary btn-wide" id="btnCloseHow">Got it</button>
     </div>
@@ -2657,7 +2724,7 @@
 
   <div class="map-overlay" id="mapOverlay">
     <h2>Duelist Kingdom</h2>
-    <p class="map-sub" id="mapSub">Tap the glowing spot to duel</p>
+    <p class="map-sub" id="mapSub">Tap a stop to preview · glowing = your spot</p>
     <div class="island-map" id="islandMap">
       <span class="map-region forest">Forest</span>
       <span class="map-region ocean">Ocean</span>
@@ -2669,9 +2736,18 @@
       <svg class="map-path" id="mapPathSvg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"></svg>
       <div id="mapSpots"></div>
     </div>
+    <p class="map-branch-hint" id="mapBranchHint"></p>
     <div class="map-taunt" id="mapTaunt"></div>
     <div class="map-chips" id="mapChipsLabel"></div>
     <button type="button" class="btn btn-primary map-cta" id="btnMapDuel">Enter Duel</button>
+  </div>
+
+  <div class="overlay card-shop-overlay" id="cardShopOverlay">
+    <div class="modal">
+      <h2>Grandpa's Shop</h2>
+      <p style="margin:0;font-size:0.85rem;color:var(--muted);font-weight:700;text-align:center">Pick one free gift</p>
+      <div class="card-shop-grid" id="cardShopGrid"></div>
+    </div>
   </div>
 
   <div class="poly-overlay" id="polyOverlay" aria-hidden="true">
@@ -2763,81 +2839,179 @@
     },
   };
 
-  /** Percent positions on the island map (x/y in %). */
-  const MAP_SPOTS = [
-    { x: 22, y: 30 }, // Weevil forest
-    { x: 72, y: 72 }, // Rex wasteland
-    { x: 78, y: 28 }, // Mako ocean
-    { x: 48, y: 42 }, // Mai mountain
-    { x: 68, y: 58 }, // Keith wasteland
-    { x: 24, y: 72 }, // Bonz graveyard
-    { x: 38, y: 62 }, // Panik graveyard
-    { x: 50, y: 18 }, // Kaiba castle
-    { x: 42, y: 12 }, // Yugi castle
-    { x: 58, y: 10 }, // Pegasus castle
-  ];
-
-  const LADDER = [
-    {
-      name: "Weevil Underwood", theme: "Insects", area: "forest",
+  /** Named duelists used by route stops. */
+  const DUELISTS = {
+    weevil: {
+      id: "weevil", name: "Weevil Underwood", theme: "Insects", area: "forest",
       types: ["Insect"], prefer: [/insect/i],
       sig: [/basic insect/i, /great moth|perfectly ultimate/i, /insect/i],
       taunt: "Heh heh… my bugs will devour your deck!",
+      difficulty: 2, goldReward: 10,
     },
-    {
-      name: "Rex Raptor", theme: "Dinosaurs", area: "wasteland",
+    rex: {
+      id: "rex", name: "Rex Raptor", theme: "Dinosaurs", area: "wasteland",
       types: ["Dinosaur"], prefer: [/dinosaur|rex|rage/i],
       sig: [/two-headed king rex|swamp king|uraby|dinosaur/i],
       taunt: "Rawr! Dinosaurs ruled once — and they will again!",
+      difficulty: 3, goldReward: 11,
     },
-    {
-      name: "Mako Tsunami", theme: "Ocean", area: "ocean",
-      types: ["Fish", "Sea Serpent", "Aqua"], prefer: [/fish|shark|sea|jelly|whale/i],
-      sig: [/fortress whale|jelly|shark|fish/i],
-      taunt: "The sea answers only to me!",
-    },
-    {
-      name: "Mai Valentine", theme: "Harpies", area: "mountain",
+    mai: {
+      id: "mai", name: "Mai Valentine", theme: "Harpies", area: "mountain",
       types: ["Winged Beast"], prefer: [/harpie|bird|lady/i],
       sig: [/harpie lady|harpie/i],
       taunt: "Don't blink, darling — Harpie Lady is already behind you.",
+      difficulty: 4, goldReward: 12,
     },
-    {
-      name: "Bandit Keith", theme: "Machines", area: "wasteland",
+    keith: {
+      id: "keith", name: "Bandit Keith", theme: "Machines", area: "wasteland",
       types: ["Machine"], prefer: [/machine|cannon|gear|metal/i],
       sig: [/launcher spider|machine king|cannon|machine/i],
       taunt: "I never play fair… and I never lose.",
+      difficulty: 5, goldReward: 13,
     },
-    {
-      name: "Bonz", theme: "Zombies", area: "graveyard",
-      types: ["Zombie"], prefer: [/zombie|skull|bone|grave/i],
-      sig: [/pumpking|zombie|skull/i],
-      taunt: "Welcome to my graveyard… you won't leave it.",
-    },
-    {
-      name: "Panik", theme: "Shadows", area: "graveyard",
+    panik: {
+      id: "panik", name: "Panik", theme: "Shadows", area: "graveyard",
       types: ["Fiend"], prefer: [/fiend|shadow|dark|castle/i],
       sig: [/castle of d|fiend|shadow/i],
       taunt: "In the dark, fear is my greatest monster!",
+      difficulty: 6, goldReward: 14,
     },
-    {
-      name: "Seto Kaiba", theme: "Blue-Eyes", area: "castle", castle: true,
+    kaiba: {
+      id: "kaiba", name: "Seto Kaiba", theme: "Blue-Eyes", area: "mountain",
       types: ["Dragon"], prefer: [/blue-eyes|blue.eyes|white dragon/i],
       sig: [/blue-eyes white dragon|blue.eyes/i],
       taunt: "I'll crush you with the power of Blue-Eyes!",
+      difficulty: 5, goldReward: 12, rival: true,
     },
-    {
-      name: "Yami Yugi", theme: "Dark Magician", area: "castle", castle: true,
-      types: ["Spellcaster"], prefer: [/dark magician|magician of|kuriboh/i],
-      sig: [/dark magician(?! girl)|dark magician/i],
-      taunt: "It's time to duel — heart of the cards!",
-    },
-    {
-      name: "Maximillion Pegasus", theme: "Toon World", area: "castle", castle: true, boss: true, toon: true,
+    pegasus: {
+      id: "pegasus", name: "Maximillion Pegasus", theme: "Toon World", area: "castle",
+      castle: true, boss: true, toon: true,
       types: ["Toon"], mixed: true, prefer: [/toon/i],
       sig: [/toon|red-eyes|dragon capture/i],
       taunt: "Welcome to my Toon World — smile while you lose!",
+      difficulty: 8, goldReward: 20,
     },
+    exodia: {
+      id: "exodia", name: "Secret Exodia Duelist", theme: "Forbidden One", area: "castle",
+      types: ["Spellcaster"], prefer: [/exodia|forbidden/i],
+      sig: [/exodia|forbidden one/i],
+      taunt: "When the five pieces gather… it is already over.",
+      difficulty: 7, goldReward: 16, secret: true,
+    },
+  };
+
+  /** Nameless duel templates (easy → harder). */
+  const NAMELESS_POOL = [
+    {
+      name: "Wandering Duelist", theme: "Wanderer", area: "meadow",
+      types: ["Warrior", "Beast-Warrior"], prefer: [/guardian|warrior|elf/i],
+      sig: [/celtic guardian|beaver warrior/i],
+      taunt: "A quick duel before the next ferry?",
+      difficulty: 0, goldReward: 4, early: true,
+    },
+    {
+      name: "Forest Challenger", theme: "Bugs", area: "forest",
+      types: ["Insect", "Plant"], prefer: [/insect|plant|flower/i],
+      sig: [/basic insect|man-eater/i],
+      taunt: "The trees hide more than shade…",
+      difficulty: 1, goldReward: 5, early: true,
+    },
+    {
+      name: "Shoreline Duelist", theme: "Tide", area: "ocean",
+      types: ["Aqua", "Fish"], prefer: [/fish|jelly|shark|aqua/i],
+      sig: [/jelly|shark|fish/i],
+      taunt: "Hope you packed a life jacket!",
+      difficulty: 2, goldReward: 5,
+    },
+    {
+      name: "Canyon Duelist", theme: "Stone", area: "wasteland",
+      types: ["Rock", "Dinosaur"], prefer: [/rock|stone|dinosaur/i],
+      sig: [/giant soldier|uraby/i],
+      taunt: "These cliffs have buried better duelists.",
+      difficulty: 3, goldReward: 6,
+    },
+  ];
+
+  /**
+   * Island route graph (~12 stops). Branch stops list 2 next ids.
+   * Coordinates are % within the island map (no scrolling).
+   */
+  const ROUTE_START = "d1";
+  const ROUTE_STOPS = {
+    d1: {
+      id: "d1", type: "duel", x: 50, y: 90, next: ["shop1", "rest1"],
+      icon: "⚔️", label: "Duel", nameless: 0, early: true,
+    },
+    shop1: {
+      id: "shop1", type: "shop", x: 28, y: 78, next: ["weevil"],
+      icon: "🏪", label: "Grandpa's Shop",
+    },
+    rest1: {
+      id: "rest1", type: "rest", x: 72, y: 78, next: ["weevil"],
+      icon: "⛺", label: "Rest Site",
+    },
+    weevil: {
+      id: "weevil", type: "boss", x: 50, y: 68, next: ["d2"],
+      icon: "🐛", label: "Boss", duelistId: "weevil",
+    },
+    d2: {
+      id: "d2", type: "duel", x: 50, y: 58, next: ["kaiba1", "d3"],
+      icon: "⚔️", label: "Duel", nameless: 1, early: true,
+    },
+    kaiba1: {
+      id: "kaiba1", type: "rival", x: 28, y: 48, next: ["rex"],
+      icon: "🐉", label: "Rival", duelistId: "kaiba",
+    },
+    d3: {
+      id: "d3", type: "duel", x: 72, y: 48, next: ["rex"],
+      icon: "⚔️", label: "Duel", nameless: 2,
+    },
+    rex: {
+      id: "rex", type: "boss", x: 50, y: 40, next: ["shop2", "rest2"],
+      icon: "🦕", label: "Boss", duelistId: "rex",
+    },
+    shop2: {
+      id: "shop2", type: "shop", x: 28, y: 32, next: ["mai"],
+      icon: "🏪", label: "Grandpa's Shop",
+    },
+    rest2: {
+      id: "rest2", type: "rest", x: 72, y: 32, next: ["mai"],
+      icon: "⛺", label: "Rest Site",
+    },
+    mai: {
+      id: "mai", type: "boss", x: 50, y: 26, next: ["kaiba2"],
+      icon: "🦅", label: "Boss", duelistId: "mai",
+    },
+    kaiba2: {
+      id: "kaiba2", type: "rival", x: 50, y: 20, next: ["keith"],
+      icon: "🐉", label: "Rival", duelistId: "kaiba",
+    },
+    keith: {
+      id: "keith", type: "boss", x: 36, y: 14, next: ["panik"],
+      icon: "🤖", label: "Boss", duelistId: "keith",
+    },
+    panik: {
+      id: "panik", type: "boss", x: 64, y: 14, next: ["rest3", "exodia"],
+      icon: "😈", label: "Boss", duelistId: "panik",
+    },
+    rest3: {
+      id: "rest3", type: "rest", x: 36, y: 9, next: ["pegasus"],
+      icon: "⛺", label: "Rest Site",
+    },
+    exodia: {
+      id: "exodia", type: "secret", x: 72, y: 9, next: ["pegasus"],
+      icon: "🂠", label: "Secret", duelistId: "exodia", secret: true,
+    },
+    pegasus: {
+      id: "pegasus", type: "boss", x: 50, y: 4, next: [],
+      icon: "🏰", label: "Castle", duelistId: "pegasus", final: true,
+    },
+  };
+
+  /** Guide / records list (named island figures). */
+  const LADDER = [
+    DUELISTS.weevil, DUELISTS.rex, DUELISTS.mai, DUELISTS.keith,
+    DUELISTS.panik, DUELISTS.kaiba, DUELISTS.exodia, DUELISTS.pegasus,
   ];
 
   /** Normal-monster Type passives (always on). Must be above TOON_POOL (enrich at init). */
@@ -3089,13 +3263,15 @@
   }
 
   const META_KEY = "duelTacticsMetaV1";
-  const SAVE_KEY = "duelTacticsRunV1";
+  const SAVE_KEY = "duelTacticsRunV2";
   const DUEL_START_LP = 4000;
+  const EARLY_LP_FLOOR = 1000;
   const DEFAULT_META = {
     bestStarChips: 0,
     wins: 0,
     favoriteMonster: null, // { name, atk, imgSmall }
     pegasusBeaten: false,
+    exodiaUnlocked: false,
     soundOn: true,
     fightSpeed: 1,
     lastMode: "kingdom", // kingdom | castle
@@ -3132,7 +3308,7 @@
       if (u && u.side === "player" && !u.dead) grid[k] = cloneUnit(u);
     });
     return {
-      v: 1,
+      v: 2,
       lp: state.lp,
       enemyLp: state.enemyLp,
       gold: state.gold,
@@ -3156,6 +3332,10 @@
       uid: state.uid,
       fightSpeed: state.fightSpeed,
       soundOn: state.soundOn,
+      routeStopId: state.routeStopId,
+      routeDone: (state.routeDone || []).slice(),
+      routeFork: (state.routeFork || []).slice(),
+      mapPreviewId: state.mapPreviewId || null,
     };
   }
 
@@ -3173,7 +3353,7 @@
       const raw = localStorage.getItem(SAVE_KEY);
       if (!raw) return null;
       const data = JSON.parse(raw);
-      if (!data || data.v !== 1) return null;
+      if (!data || data.v !== 2) return null;
       return data;
     } catch (_) {
       return null;
@@ -3219,6 +3399,21 @@
     state.uid = Math.max(1, data.uid | 0);
     state.fightSpeed = data.fightSpeed || 1;
     state.soundOn = data.soundOn !== false;
+    if (Array.isArray(data.routeFork) && data.routeFork.length) {
+      state.routeFork = data.routeFork.filter((id) => ROUTE_STOPS[id] && stopIsUnlocked(ROUTE_STOPS[id]));
+      state.routeStopId = null;
+    } else {
+      state.routeFork = [];
+      state.routeStopId = data.routeStopId && ROUTE_STOPS[data.routeStopId]
+        ? data.routeStopId
+        : ROUTE_START;
+    }
+    state.routeDone = Array.isArray(data.routeDone)
+      ? data.routeDone.filter((id) => ROUTE_STOPS[id])
+      : [];
+    state.mapPreviewId = data.mapPreviewId && ROUTE_STOPS[data.mapPreviewId]
+      ? data.mapPreviewId
+      : (state.routeStopId || (state.routeFork[0] || null));
     state.selected = null;
     state.selectedItem = null;
     state.awaitingItemDraft = false;
@@ -3238,8 +3433,12 @@
     gold: 10,
     round: 1, // global economy / item-draft round (whole tournament)
     duelRound: 1, // round within the current duel
-    duelIndex: 0,
-    starChips: 2,
+    duelIndex: 0, // difficulty proxy / records
+    starChips: 0, // run score (boss/rival wins)
+    routeStopId: ROUTE_START,
+    routeDone: [],
+    routeFork: [], // when choosing left/right after a branch
+    mapPreviewId: null,
     level: 1,
     xp: 0,
     winStreak: 0,
@@ -3335,7 +3534,10 @@
     mapTaunt: $("mapTaunt"),
     mapSub: $("mapSub"),
     mapChipsLabel: $("mapChipsLabel"),
+    mapBranchHint: $("mapBranchHint"),
     btnMapDuel: $("btnMapDuel"),
+    cardShopOverlay: $("cardShopOverlay"),
+    cardShopGrid: $("cardShopGrid"),
     resultsRewards: $("resultsRewards"),
     menuDrawer: $("menuDrawer"),
     menuBackdrop: $("menuBackdrop"),
@@ -3460,18 +3662,128 @@
     return 0;
   }
 
+  function exodiaUnlocked() {
+    const meta = readMeta();
+    return !!(meta.pegasusBeaten || meta.exodiaUnlocked);
+  }
+
+  function stopIsUnlocked(stop) {
+    if (!stop) return false;
+    if (stop.secret || stop.type === "secret") return exodiaUnlocked();
+    return true;
+  }
+
+  function routeStop(id) {
+    return ROUTE_STOPS[id || state.routeStopId] || null;
+  }
+
+  function currentStop() {
+    if (state.routeStopId && ROUTE_STOPS[state.routeStopId]) {
+      return ROUTE_STOPS[state.routeStopId];
+    }
+    return null;
+  }
+
+  function nextStopsFor(stop) {
+    if (!stop || !stop.next) return [];
+    return stop.next.filter((id) => stopIsUnlocked(ROUTE_STOPS[id]));
+  }
+
+  function resolveDuelistForStop(stop) {
+    if (!stop) return NAMELESS_POOL[0];
+    if (stop.duelistId && DUELISTS[stop.duelistId]) {
+      return DUELISTS[stop.duelistId];
+    }
+    if (stop.type === "duel") {
+      const idx = Math.max(0, Math.min(NAMELESS_POOL.length - 1, stop.nameless | 0));
+      return NAMELESS_POOL[idx];
+    }
+    return NAMELESS_POOL[0];
+  }
+
   function currentDuelist() {
-    const idx = Math.min(LADDER.length - 1, Math.max(0, state.duelIndex || 0));
-    return LADDER[idx];
+    const stop = currentStop();
+    if (stop && (stop.type === "duel" || stop.type === "boss" || stop.type === "rival" || stop.type === "secret")) {
+      return resolveDuelistForStop(stop);
+    }
+    // Previewing a combat stop on the map
+    const prev = state.mapPreviewId && ROUTE_STOPS[state.mapPreviewId];
+    if (prev && (prev.type === "duel" || prev.type === "boss" || prev.type === "rival" || prev.type === "secret")) {
+      return resolveDuelistForStop(prev);
+    }
+    return resolveDuelistForStop(stop) || NAMELESS_POOL[0];
   }
 
   function currentArea() {
+    const stop = currentStop();
     const d = currentDuelist();
-    return AREAS[d.area] || AREAS.meadow;
+    const areaId = (d && d.area) || (stop && stop.area) || "meadow";
+    return AREAS[areaId] || AREAS.meadow;
+  }
+
+  function stopDifficulty(stop) {
+    const d = resolveDuelistForStop(stop);
+    if (d && d.difficulty != null) return d.difficulty | 0;
+    return 0;
+  }
+
+  function stopGoldReward(stop) {
+    const d = resolveDuelistForStop(stop);
+    if (stop && stop.type === "boss") return (d && d.goldReward) || 12;
+    if (stop && (stop.type === "rival" || stop.type === "secret")) return (d && d.goldReward) || 10;
+    return (d && d.goldReward) || 4;
+  }
+
+  function isCombatStop(stop) {
+    return !!(stop && (stop.type === "duel" || stop.type === "boss" || stop.type === "rival" || stop.type === "secret"));
+  }
+
+  function isEarlyStop(stop) {
+    if (!stop) return false;
+    if (stop.early) return true;
+    const d = resolveDuelistForStop(stop);
+    return !!(d && d.early);
+  }
+
+  function previewMonstersFor(stop) {
+    const d = resolveDuelistForStop(stop);
+    if (!d) return [];
+    const pool = themedPool(d);
+    const sorted = pool.slice().sort((a, b) => b.atk - a.atk);
+    const names = [];
+    sorted.forEach((c) => {
+      if (names.length >= 3) return;
+      if (names.indexOf(c.name) === -1) names.push(c.name);
+    });
+    return names;
+  }
+
+  function reachableUpcomingIds() {
+    const out = new Set();
+    const seed = [];
+    if (state.routeFork && state.routeFork.length) {
+      state.routeFork.forEach((id) => seed.push(id));
+    } else if (state.routeStopId) {
+      seed.push(state.routeStopId);
+    }
+    const queue = seed.slice();
+    const seen = new Set(queue);
+    while (queue.length) {
+      const id = queue.shift();
+      out.add(id);
+      const stop = ROUTE_STOPS[id];
+      nextStopsFor(stop).forEach((nid) => {
+        if (!seen.has(nid) && state.routeDone.indexOf(nid) === -1) {
+          seen.add(nid);
+          queue.push(nid);
+        }
+      });
+    }
+    return out;
   }
 
   function castleUnlocked() {
-    return state.starChips >= 10;
+    return exodiaUnlocked();
   }
 
   function areaAtkBonus(unit) {
@@ -3486,13 +3798,14 @@
 
   function renderStarChips() {
     if (!el.starChips) return;
-    const n = Math.max(0, Math.min(10, state.starChips | 0));
+    const n = Math.max(0, state.starChips | 0);
+    const slots = 8;
     let html = "";
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < slots; i++) {
       html += '<span class="' + (i < n ? "chip-on" : "chip-off") + '" aria-hidden="true">★</span>';
     }
     el.starChips.innerHTML = html;
-    el.starChips.title = n + " / 10 Star Chips";
+    el.starChips.title = n + " Star Chips (boss / rival wins)";
   }
 
   function renderAreaBanner() {
@@ -4290,13 +4603,12 @@
   function renderGuideBasicsHTML() {
     return (
       '<div class="g-basics"><ol>' +
-      "<li><strong>Damage</strong> = ATK÷4. <strong>HP</strong> = DEF. Armor scales with DEF (Defense position doubles armor).</li>" +
-      "<li><strong>Attack speed</strong> uses the card Level: 1–3 fast, 4–6 normal, 7+ slow. ★★ ×1.8 and ★★★ ×3.2 still multiply HP/damage/armor.</li>" +
-      "<li><strong>Attack / Defense position</strong>: tap a placed monster twice to toggle. Defense does not attack, has 2× armor, and taunts enemies.</li>" +
-      "<li><strong>Effect monsters</strong> cost +1 and get a short once-per-fight ability from their text (e.g. Man-Eater Bug destroys the strongest foe). <strong>Normal monsters</strong> get a Type passive (Dragon pierces, Warrior crits, Fiend drains…).</li>" +
-      "<li>About every <strong>4th attack</strong> is a Battle: if your ATK beats their DEF (or ATK if they are in Attack position), they are destroyed; otherwise it is a normal hit.</li>" +
-      "<li>Cost = ATK+DEF tier (Effect +1): under 2000→1 … 5000+→5. Borders: gray / green / blue / purple / gold.</li>" +
-      "<li>Buy 3 copies to fuse ★★, then 3 ★★ into ★★★. Multi-round duels at 4000 LP; ±1 Star Chip per duel. Progress auto-saves — use Continue.</li>" +
+      "<li><strong>Island map</strong>: travel ~12 stops to Pegasus's castle. Branches let you pick left or right. Tap upcoming stops to preview.</li>" +
+      "<li><strong>Stop types</strong>: Duels (nameless), Bosses (Weevil→Rex→Mai→Keith→Panik), Rival Kaiba (×2), Grandpa's Shop (pick 1 of 3), Rest (+1000 LP).</li>" +
+      "<li><strong>LP carries</strong> across the island (start 4000). Early nameless duels cannot drop you below 1000 LP. Hit 0 LP later and the run ends.</li>" +
+      "<li><strong>Damage</strong> = ATK÷4. <strong>HP</strong> = DEF + armor. Attack speed by Level (1–3 fast, 4–6 normal, 7+ slow). Tap twice to toggle Attack/Defense.</li>" +
+      "<li>Effect monsters cost +1 with once-per-fight abilities; Normals get Type passives. Every 4th hit is a Battle destroy check.</li>" +
+      "<li>Beat <strong>Pegasus</strong> to win. After one win, a secret <strong>Exodia</strong> stop unlocks. Progress auto-saves — use Continue.</li>" +
       "</ol></div>"
     );
   }
@@ -5016,12 +5328,14 @@
   function placeEnemy() {
     clearEnemy();
     const duelist = currentDuelist();
+    const stop = currentStop();
     const dr = Math.max(1, state.duelRound | 0);
-    const di = Math.max(0, state.duelIndex | 0);
-    // Weevil (0) easiest; later ladder slots + duel rounds add units/stars
+    const di = stopDifficulty(stop);
+    const isBoss = !!(duelist.boss || (stop && stop.type === "boss"));
+    const isRival = !!(duelist.rival || (stop && (stop.type === "rival" || stop.type === "secret")));
     const count = Math.min(
       7,
-      1 + Math.floor(dr * 0.9) + Math.floor(di * 0.4) + (duelist.boss ? 1 : 0)
+      1 + Math.floor(dr * 0.9) + Math.floor(di * 0.45) + (isBoss ? 1 : 0) + (isRival ? 1 : 0)
     );
     const pool = themedPool(duelist);
     const sorted = [...pool].sort((a, b) => b.atk - a.atk);
@@ -5035,7 +5349,7 @@
         const tmp = slots[i]; slots[i] = slots[j]; slots[j] = tmp;
       }
     }
-    const scale = (dr - 1) * 80 + di * 110 + (duelist.boss ? 280 : 0);
+    const scale = (dr - 1) * 80 + di * 120 + (isBoss ? 280 : 0) + (isRival ? 160 : 0);
     for (let i = 0; i < count; i++) {
       let base = (dr >= 3 && Math.random() < 0.35 + di * 0.04)
         ? sorted[Math.min(i, sorted.length - 1)]
@@ -5043,12 +5357,11 @@
       let stars = 1;
       if (dr >= 2 && Math.random() < 0.1 + dr * 0.08 + di * 0.03) stars = 2;
       if (dr >= 5 && Math.random() < 0.08 + di * 0.02) stars = 3;
-      if (duelist.boss && i === 0 && sorted.length) {
+      if (isBoss && i === 0 && sorted.length) {
         base = sorted[0];
         stars = dr >= 4 ? 2 : 1;
         if (dr >= 7) stars = 3;
       }
-      // Prefer signature / theme monsters early in the enemy list
       if (i < 2 && sorted.length) {
         const sig = sorted[Math.min(i, sorted.length - 1)];
         if (sig && Math.random() < 0.55 + di * 0.04) base = sig;
@@ -5059,7 +5372,6 @@
       mon.maxHp = battleHpFromDef(mon.def, stars);
       mon.hp = mon.maxHp;
       mon.side = "enemy";
-      // High-DEF enemies prefer Defense (taunt)
       if (mon.def >= mon.atk * 1.2) mon.position = "def";
       setCell(slots[i].row, slots[i].col, mon);
     }
@@ -5799,11 +6111,17 @@
 
     let playerLpDmg = 0;
     let foeLpDmg = 0;
+    const earlyFloor = isEarlyStop(currentStop());
     if (playerTakesHit) {
       playerLpDmg = fightLpDamage(enemySurvivors, state.duelRound);
-      state.lp = Math.max(0, state.lp - playerLpDmg);
+      const before = state.lp;
+      const floor = earlyFloor ? EARLY_LP_FLOOR : 0;
+      state.lp = Math.max(floor, state.lp - playerLpDmg);
+      playerLpDmg = Math.max(0, before - state.lp);
       logLine('<span class="dmg">You take ' + playerLpDmg + " LP (" +
-        enemySurvivors.length + " survivors)</span>");
+        enemySurvivors.length + " survivors)" +
+        (earlyFloor && state.lp <= EARLY_LP_FLOOR ? " · early floor 1000" : "") +
+        "</span>");
       if (el.lpYouWrap) {
         el.lpYouWrap.classList.remove("shake");
         void el.lpYouWrap.offsetWidth;
@@ -5840,31 +6158,29 @@
     renderBoards();
 
     const duelist = currentDuelist();
+    const stop = currentStop();
     const duelOver = state.lp <= 0 || state.enemyLp <= 0;
     const duelVictory = state.enemyLp <= 0 && state.lp > 0;
     const duelDefeat = state.lp <= 0;
     let chipDelta = 0;
+    let stopGold = 0;
     if (duelOver) {
       if (duelVictory) {
-        state.starChips += 1;
-        chipDelta = 1;
-        if (state.duelIndex === 6 && state.starChips < 10) {
-          state.starChips = 10;
-          logLine('<span class="sys">★ Star Chips fill the gate — Pegasus Castle unlocks!</span>');
+        if (stop && (stop.type === "boss" || stop.type === "rival" || stop.type === "secret")) {
+          state.starChips += 1;
+          chipDelta = 1;
+          logLine('<span class="win">★ Star Chip +1 (' + state.starChips + ")</span>");
         }
-        logLine('<span class="win">★ Star Chip +1 (' + state.starChips + "/10)</span>");
-      } else if (duelDefeat) {
-        state.starChips = Math.max(0, state.starChips - 1);
-        chipDelta = -1;
-        logLine('<span class="dmg">★ Star Chip −1 (' + state.starChips + "/10)</span>");
+        stopGold = stopGoldReward(stop);
+        logLine('<span class="sys">Island reward +' + stopGold + "🪙</span>");
       }
     }
 
     const streak = streakGoldBonus();
     const baseGold = 4 + Math.min(state.round, 6);
     const interest = Math.min(5, Math.floor(state.gold / 10));
-    const previewGold = baseGold + interest + streak;
-    const beatBoss = duelVictory && !!duelist.boss;
+    const previewGold = baseGold + interest + streak + (duelVictory ? stopGold : 0);
+    const beatFinal = duelVictory && !!(duelist.boss || (stop && stop.final));
 
     state.pendingResult = {
       victory: playerWonRound,
@@ -5875,20 +6191,22 @@
       foeLpDmg,
       lpDmg: playerLpDmg,
       chipDelta,
+      stopGold,
       previewGold,
       streak,
-      gameOver: (duelDefeat && state.starChips <= 0) || beatBoss,
-      beatBoss,
+      gameOver: duelDefeat || beatFinal,
+      beatBoss: beatFinal,
       completedRound: state.round,
       completedDuelRound: state.duelRound,
       completedDuel: state.duelIndex,
+      completedStop: state.routeStopId,
     };
 
     el.resultsBanner.classList.toggle("defeat", duelDefeat || (!duelOver && playerTakesHit));
     const dealtLine = "Dealt " + foeLpDmg + " LP";
     const lostLine = "Lost " + playerLpDmg + " LP";
     const dmgLine = dealtLine + "  ·  " + lostLine;
-    if (beatBoss) {
+    if (beatFinal) {
       el.resultsTitle.textContent = "Champion!";
       el.resultsMsg.textContent = "You defeated " + duelist.name + "!  ·  " + dmgLine;
     } else if (duelVictory) {
@@ -5909,9 +6227,11 @@
         if (streak) chips.push('<span class="reward-chip">🔥 Streak +' + streak + "</span>");
       } else {
         if (chipDelta > 0) chips.push('<span class="reward-chip">★ Star Chip +1</span>');
-        if (chipDelta < 0) chips.push('<span class="reward-chip loss">★ Star Chip −1</span>');
-        if (duelVictory && !beatBoss) {
-          chips.push('<span class="reward-chip">🪙 +' + previewGold + " gold</span>");
+        if (duelVictory && stopGold) {
+          chips.push('<span class="reward-chip">🪙 +' + stopGold + " stop</span>");
+        }
+        if (duelVictory && !beatFinal) {
+          chips.push('<span class="reward-chip">❤️ ' + state.lp + " LP</span>");
         }
       }
       el.resultsRewards.innerHTML = chips.join("");
@@ -5975,11 +6295,13 @@
     const items = state.itemsPicked.length
       ? state.itemsPicked.map(escapeHtml).join(", ")
       : "None";
+    const stopsDone = (state.routeDone || []).length;
     el.runSummary.innerHTML =
       "<div><span class='k'>Result:</span> <span class='v'>" + (won ? "Victory" : "Defeat") + "</span></div>" +
-      "<div><span class='k'>Duels reached:</span> <span class='v'>" + (state.duelIndex + 1) + "/" + LADDER.length + "</span></div>" +
+      "<div><span class='k'>Island stops:</span> <span class='v'>" + stopsDone + "</span></div>" +
       "<div><span class='k'>Rounds fought:</span> <span class='v'>" + state.round + "</span></div>" +
-      "<div><span class='k'>Star Chips:</span> <span class='v'>" + state.starChips + "/10</span></div>" +
+      "<div><span class='k'>Star Chips:</span> <span class='v'>" + state.starChips + "</span></div>" +
+      "<div><span class='k'>LP remaining:</span> <span class='v'>" + state.lp + "</span></div>" +
       "<div><span class='k'>Strongest monster:</span> <span class='v'>" + strong + "</span></div>" +
       "<div><span class='k'>Items used:</span> <span class='v'>" + items + "</span></div>" +
       "<div><span class='k'>Final level:</span> <span class='v'>" + state.level + "</span></div>";
@@ -5999,6 +6321,7 @@
     if (won) {
       patch.wins = (meta.wins | 0) + 1;
       patch.pegasusBeaten = true;
+      patch.exodiaUnlocked = true;
     }
     if (state.strongestEver) {
       const fav = meta.favoriteMonster;
@@ -6089,6 +6412,9 @@
   function showMap() {
     state.phase = "map";
     state.fightSpeed = 1;
+    if (!state.mapPreviewId) {
+      state.mapPreviewId = state.routeStopId || (state.routeFork && state.routeFork[0]) || ROUTE_START;
+    }
     if (el.mapOverlay) el.mapOverlay.classList.add("open");
     renderMap();
     render();
@@ -6098,79 +6424,321 @@
     if (el.mapOverlay) el.mapOverlay.classList.remove("open");
   }
 
+  function stopTitle(stop) {
+    if (!stop) return "Unknown";
+    if (isCombatStop(stop)) {
+      const d = resolveDuelistForStop(stop);
+      return d.name;
+    }
+    if (stop.type === "shop") return "Grandpa's Card Shop";
+    if (stop.type === "rest") return "Rest Site";
+    return stop.label || stop.id;
+  }
+
+  function stopBlurb(stop) {
+    if (!stop) return "";
+    if (stop.type === "shop") {
+      return "Pick 1 of 3: a free monster, 4 gold, or 4 XP.";
+    }
+    if (stop.type === "rest") {
+      return "Restore 1000 LP (max 4000).";
+    }
+    const d = resolveDuelistForStop(stop);
+    return d.taunt || "";
+  }
+
+  function renderMapPreview(stopId) {
+    const stop = ROUTE_STOPS[stopId];
+    if (!stop) return;
+    state.mapPreviewId = stopId;
+    const title = stopTitle(stop);
+    let kind = stop.label || stop.type;
+    if (stop.type === "boss") kind = "Boss";
+    else if (stop.type === "rival") kind = "Rival";
+    else if (stop.type === "secret") kind = "Secret";
+    else if (stop.type === "duel") kind = "Duel";
+    else if (stop.type === "shop") kind = "Shop";
+    else if (stop.type === "rest") kind = "Rest";
+    let html = "<strong>" + escapeHtml(title) + "</strong>" +
+      '<span style="opacity:0.85">' + escapeHtml(kind) + "</span> · " +
+      escapeHtml(stopBlurb(stop));
+    if (isCombatStop(stop)) {
+      const mons = previewMonstersFor(stop);
+      if (mons.length) {
+        html += '<div class="map-monsters">Monsters: ' +
+          mons.map(escapeHtml).join(" · ") + "</div>";
+      }
+      if (isEarlyStop(stop)) {
+        html += '<div class="map-monsters">Early duel — LP cannot fall below 1000</div>';
+      }
+    }
+    if (el.mapTaunt) el.mapTaunt.innerHTML = html;
+
+    const choosing = state.routeFork && state.routeFork.length > 0;
+    const atCurrent = !choosing && stopId === state.routeStopId;
+    const isChoice = choosing && state.routeFork.indexOf(stopId) !== -1;
+    if (el.btnMapDuel) {
+      el.btnMapDuel.disabled = !(atCurrent || isChoice);
+      if (isChoice) el.btnMapDuel.textContent = "Take this path";
+      else if (stop.type === "shop") el.btnMapDuel.textContent = "Visit Shop";
+      else if (stop.type === "rest") el.btnMapDuel.textContent = "Rest (+1000 LP)";
+      else if (stop.final) el.btnMapDuel.textContent = "Challenge Pegasus";
+      else el.btnMapDuel.textContent = "Enter Duel";
+    }
+    if (el.mapBranchHint) {
+      el.mapBranchHint.textContent = choosing
+        ? "Path splits — tap left or right, then confirm"
+        : "";
+    }
+  }
+
   function renderMap() {
     if (!el.mapSpots) return;
-    const idx = state.duelIndex;
-    const d = currentDuelist();
     el.mapSpots.innerHTML = "";
-    // path lines
+    const doneSet = new Set(state.routeDone || []);
+    const upcoming = reachableUpcomingIds();
+    const choosing = state.routeFork && state.routeFork.length > 0;
+    const edges = [];
+    Object.keys(ROUTE_STOPS).forEach((id) => {
+      const stop = ROUTE_STOPS[id];
+      if (!stopIsUnlocked(stop) && !doneSet.has(id)) return;
+      nextStopsFor(stop).forEach((nid) => {
+        edges.push([stop, ROUTE_STOPS[nid]]);
+      });
+    });
     const svg = $("mapPathSvg");
     if (svg) {
-      let poly = "";
-      MAP_SPOTS.forEach((s, i) => {
-        poly += (i ? " " : "") + s.x + "," + s.y;
-      });
-      svg.innerHTML = '<polyline points="' + poly +
-        '" fill="none" stroke="rgba(232,184,74,0.45)" stroke-width="1.2" stroke-dasharray="2 2" />';
+      svg.innerHTML = edges.map(([a, b]) => {
+        if (!b) return "";
+        const active = doneSet.has(a.id) || a.id === state.routeStopId ||
+          (state.routeFork && state.routeFork.indexOf(b.id) !== -1);
+        return '<line x1="' + a.x + '" y1="' + a.y + '" x2="' + b.x + '" y2="' + b.y +
+          '" stroke="' + (active ? "rgba(232,184,74,0.65)" : "rgba(120,150,170,0.28)") +
+          '" stroke-width="1.3" stroke-dasharray="' + (active ? "0" : "2 2") + '" />';
+      }).join("");
     }
-    MAP_SPOTS.forEach((s, i) => {
-      const duelist = LADDER[i];
+
+    Object.keys(ROUTE_STOPS).forEach((id) => {
+      const stop = ROUTE_STOPS[id];
+      if (!stopIsUnlocked(stop) && !doneSet.has(id)) return;
       const spot = document.createElement("button");
       spot.type = "button";
-      spot.className = "map-spot";
-      if (duelist.castle) spot.classList.add("castle-spot");
-      spot.style.left = s.x + "%";
-      spot.style.top = s.y + "%";
-      spot.textContent = String(i + 1);
-      const lockedCastle = duelist.castle && !castleUnlocked();
-      if (i < idx) spot.classList.add("done");
-      if (i === idx && !lockedCastle) spot.classList.add("current");
-      if (i > idx || lockedCastle) spot.classList.add("locked");
-      spot.title = duelist.name + (lockedCastle ? " (need 10 ★)" : "");
+      spot.className = "map-spot type-" + stop.type;
+      if (stop.final || stop.type === "secret") spot.classList.add("castle-spot");
+      spot.style.left = stop.x + "%";
+      spot.style.top = stop.y + "%";
+      spot.innerHTML = '<span class="spot-ico">' + (stop.icon || "•") + "</span>";
+      spot.title = stopTitle(stop);
+
+      const isDone = doneSet.has(id);
+      const isCurrent = !choosing && id === state.routeStopId;
+      const isChoice = choosing && state.routeFork.indexOf(id) !== -1;
+      const canPreview = isCurrent || isChoice || upcoming.has(id) || isDone;
+
+      if (isDone) spot.classList.add("done");
+      if (isCurrent) spot.classList.add("current");
+      if (isChoice) spot.classList.add("choice");
+      if (!canPreview && !isDone) spot.classList.add("locked");
+      if (state.mapPreviewId === id) spot.classList.add("previewing");
+
       spot.addEventListener("click", () => {
-        if (i !== idx) return;
-        if (lockedCastle) { toast("Need 10 Star Chips for the castle"); return; }
-        enterDuelFromMap();
+        if (!canPreview) {
+          toast("Reach this stop later on the path");
+          return;
+        }
+        renderMapPreview(id);
+        // refresh previewing class
+        el.mapSpots.querySelectorAll(".map-spot").forEach((n) => n.classList.remove("previewing"));
+        spot.classList.add("previewing");
       });
       el.mapSpots.appendChild(spot);
     });
-    if (el.mapTaunt) {
-      el.mapTaunt.innerHTML = "<strong>" + escapeHtml(d.name) + "</strong>" + escapeHtml(d.taunt || "");
-    }
+
+    const previewId = state.mapPreviewId && ROUTE_STOPS[state.mapPreviewId]
+      ? state.mapPreviewId
+      : (choosing ? state.routeFork[0] : state.routeStopId);
+    renderMapPreview(previewId || ROUTE_START);
+
     if (el.mapSub) {
-      const area = currentArea();
-      el.mapSub.textContent = area.blurb + (d.castle && !castleUnlocked() ? " · Castle locked" : "");
+      el.mapSub.textContent = "❤ " + state.lp + " LP  ·  ★ " + state.starChips +
+        (exodiaUnlocked() ? "  ·  Exodia path open" : "");
     }
     if (el.mapChipsLabel) {
-      el.mapChipsLabel.textContent = "★ Star Chips " + state.starChips + "/10" +
-        (castleUnlocked() ? " · Castle open" : "");
+      const cur = currentStop();
+      el.mapChipsLabel.textContent = cur
+        ? ("Now: " + stopTitle(cur))
+        : (choosing ? "Choose your next path" : "Island route");
     }
-    if (el.btnMapDuel) {
-      el.btnMapDuel.disabled = !!(d.castle && !castleUnlocked());
-      el.btnMapDuel.textContent = d.castle && !castleUnlocked() ? "Need 10 ★" : "Enter Duel";
+  }
+
+  function chooseRouteBranch(stopId) {
+    if (!state.routeFork || state.routeFork.indexOf(stopId) === -1) return false;
+    state.routeStopId = stopId;
+    state.routeFork = [];
+    state.mapPreviewId = stopId;
+    saveRun();
+    renderMap();
+    return true;
+  }
+
+  function activateMapCta() {
+    const id = state.mapPreviewId || state.routeStopId;
+    if (!id || !ROUTE_STOPS[id]) return;
+    if (state.routeFork && state.routeFork.length) {
+      if (!chooseRouteBranch(id)) {
+        toast("Pick a highlighted path");
+        return;
+      }
+      // After choosing, immediately allow resolving that stop
+    }
+    if (id !== state.routeStopId) {
+      toast("That's not your current stop");
+      renderMapPreview(state.routeStopId);
+      return;
+    }
+    const stop = ROUTE_STOPS[id];
+    if (stop.type === "shop") {
+      openCardShop();
+      return;
+    }
+    if (stop.type === "rest") {
+      resolveRestStop();
+      return;
+    }
+    if (isCombatStop(stop)) {
+      enterDuelFromMap();
     }
   }
 
   function enterDuelFromMap() {
-    const d = currentDuelist();
-    if (d.castle && !castleUnlocked()) {
-      toast("Need 10 Star Chips for the castle");
-      return;
-    }
+    const stop = currentStop();
+    if (!isCombatStop(stop)) return;
+    const d = resolveDuelistForStop(stop);
     hideMap();
     state.phase = "shop";
     clearResultsBanner();
     state.fightSpeed = 1;
-    state.lp = DUEL_START_LP;
+    // LP persists across the island; only foe resets
     state.enemyLp = DUEL_START_LP;
     state.duelRound = 1;
+    state.duelIndex = stopDifficulty(stop);
     if (!state.shop || !state.shop.length) rollShop();
     toast(d.name + ': "' + (d.taunt || "Let's duel!") + '"');
-    logLine('<span class="sys">🗺 ' + escapeHtml(currentArea().name) + " — vs " +
-      escapeHtml(d.name) + " · " + DUEL_START_LP + " LP</span>");
+    logLine('<span class="sys">🗺 ' + escapeHtml((AREAS[d.area] || currentArea()).name) +
+      " — vs " + escapeHtml(d.name) + " · You " + state.lp + " LP</span>");
     render();
     saveRun();
     requestAnimationFrame(() => renderBoards());
+  }
+
+  function firstEmptyBenchSlot() {
+    for (let i = 0; i < state.bench.length; i++) {
+      if (!state.bench[i]) return i;
+    }
+    return -1;
+  }
+
+  function openCardShop() {
+    if (!el.cardShopOverlay || !el.cardShopGrid) {
+      resolveCardShopPick("gold");
+      return;
+    }
+    const pool = state.roster.slice().sort(() => Math.random() - 0.5);
+    const freeCard = pool[0] || null;
+    el.cardShopGrid.innerHTML = "";
+    const opts = [
+      {
+        id: "monster",
+        ico: freeCard ? (raceMeta(freeCard.type).emoji || "🃏") : "🃏",
+        title: freeCard ? freeCard.name : "Free monster",
+        sub: freeCard ? (freeCard.atk + "/" + freeCard.def) : "Random card",
+        card: freeCard,
+      },
+      { id: "gold", ico: "🪙", title: "+4 Gold", sub: "Spend freely", card: null },
+      { id: "xp", ico: "⬆️", title: "+4 XP", sub: "Level faster", card: null },
+    ];
+    opts.forEach((opt) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "card-shop-opt";
+      btn.innerHTML = '<div class="cso-ico">' + opt.ico + "</div><div>" +
+        escapeHtml(opt.title) + '</div><div class="cso-sub">' + escapeHtml(opt.sub) + "</div>";
+      btn.addEventListener("click", () => {
+        resolveCardShopPick(opt.id, opt.card);
+      });
+      el.cardShopGrid.appendChild(btn);
+    });
+    hideMap();
+    el.cardShopOverlay.classList.add("open");
+  }
+
+  function resolveCardShopPick(kind, card) {
+    if (el.cardShopOverlay) el.cardShopOverlay.classList.remove("open");
+    if (kind === "monster" && card) {
+      const slot = firstEmptyBenchSlot();
+      if (slot < 0) {
+        state.gold += 2;
+        toast("Bench full — took 2 gold instead");
+        logLine('<span class="sys">🏪 Bench full · +2🪙</span>');
+      } else {
+        state.bench[slot] = makeInstance(card, 1);
+        toast("Got " + card.name + "!");
+        logLine('<span class="sys">🏪 Grandpa gave you ' + escapeHtml(card.name) + "</span>");
+      }
+    } else if (kind === "xp") {
+      addXp(4);
+      toast("+4 XP");
+      logLine('<span class="sys">🏪 Grandpa taught you (+4 XP)</span>');
+    } else {
+      state.gold += 4;
+      toast("+4 gold");
+      logLine('<span class="sys">🏪 Grandpa slipped you 4🪙</span>');
+    }
+    completeRouteStop(true);
+  }
+
+  function resolveRestStop() {
+    const before = state.lp;
+    state.lp = Math.min(DUEL_START_LP, state.lp + 1000);
+    const gained = state.lp - before;
+    toast("Rested · +" + gained + " LP");
+    logLine('<span class="sys">⛺ Restored ' + gained + " LP (" + state.lp + "/" + DUEL_START_LP + ")</span>");
+    completeRouteStop(true);
+  }
+
+  function completeRouteStop(won) {
+    const stop = currentStop();
+    if (!stop) {
+      showMap();
+      return;
+    }
+    if (state.routeDone.indexOf(stop.id) === -1) state.routeDone.push(stop.id);
+    if (won && stop.final) {
+      clearSavedRun();
+      showEndScreen(true, "You defeated Maximillion Pegasus and conquered Duelist Kingdom!");
+      return;
+    }
+    if (!won) {
+      // Combat losses handled elsewhere; non-combat always "won"
+    }
+    const nexts = nextStopsFor(stop);
+    if (!nexts.length) {
+      showMap();
+      saveRun();
+      return;
+    }
+    if (nexts.length === 1) {
+      state.routeStopId = nexts[0];
+      state.routeFork = [];
+      state.mapPreviewId = nexts[0];
+    } else {
+      state.routeStopId = null;
+      state.routeFork = nexts.slice();
+      state.mapPreviewId = nexts[0];
+    }
+    if (!state.shop || !state.shop.length) rollShop();
+    showMap();
+    saveRun();
   }
 
   function advanceAfterRound() {
@@ -6184,16 +6752,17 @@
     saveRun();
   }
 
-  function advanceAfterDuel(won) {
+  function advanceAfterDuel(won, stopGold) {
     grantIncome();
-    if (won) {
-      state.duelIndex = Math.min(LADDER.length - 1, state.duelIndex + 1);
-    }
+    if (won && stopGold) state.gold += stopGold;
     state.round += 1;
     state.duelRound = 1;
     rollShop();
-    showMap();
-    saveRun();
+    if (won) completeRouteStop(true);
+    else {
+      showMap();
+      saveRun();
+    }
   }
 
   function clearResultsBanner() {
@@ -6211,21 +6780,24 @@
     if (!res) return;
 
     if (res.beatBoss) {
+      if (res.stopGold) state.gold += res.stopGold;
       clearSavedRun();
       showEndScreen(true, "You defeated Maximillion Pegasus and conquered Duelist Kingdom!");
       return;
     }
 
-    if (res.duelDefeat && state.starChips <= 0) {
+    if (res.duelDefeat) {
       clearSavedRun();
-      showEndScreen(false, "You ran out of Star Chips after " +
-        (res.completedDuel + 1) + " duel" + (res.completedDuel === 0 ? "" : "s") + ".");
+      showEndScreen(false, "Your LP reached 0 on the island after " +
+        ((state.routeDone || []).length + 1) + " stop" +
+        ((state.routeDone || []).length === 0 ? "" : "s") + ".");
       return;
     }
 
     const afterRound = res.completedRound;
     if (res.duelOver) {
-      const cont = () => advanceAfterDuel(!!res.duelVictory);
+      const stopGold = res.duelVictory ? (res.stopGold || 0) : 0;
+      const cont = () => advanceAfterDuel(!!res.duelVictory, stopGold);
       if (ITEM_DRAFT_ROUNDS.indexOf(afterRound) !== -1) {
         openItemDraft(cont);
         return;
@@ -6234,7 +6806,6 @@
       return;
     }
 
-    // Mid-duel: keep fighting the same duelist
     const cont = () => advanceAfterRound();
     if (ITEM_DRAFT_ROUNDS.indexOf(afterRound) !== -1) {
       openItemDraft(cont);
@@ -6351,9 +6922,10 @@
   function nextOpponentForHome() {
     const meta = readMeta();
     if (state.homeMode === "castle" && meta.pegasusBeaten) {
-      return LADDER[7] || LADDER[0]; // Kaiba — castle path
+      return DUELISTS.kaiba;
     }
-    return LADDER[0];
+    if (meta.pegasusBeaten || meta.exodiaUnlocked) return DUELISTS.pegasus;
+    return DUELISTS.weevil;
   }
 
   function setHomeTab(tab) {
@@ -6449,7 +7021,9 @@
       const lock = mc.querySelector(".lock");
       if (meta.pegasusBeaten) {
         if (lock) lock.style.display = "none";
-        if (sub) sub.textContent = "Castle gauntlet";
+        if (sub) sub.textContent = exodiaUnlocked()
+          ? "Late route · Exodia unlocked"
+          : "Start near Kaiba";
       } else {
         if (lock) lock.style.display = "";
         if (sub) sub.textContent = "Beat Pegasus to unlock";
@@ -6492,9 +7066,13 @@
     state.gold = 10;
     state.round = 1;
     state.duelRound = 1;
-    state.duelIndex = castleRun ? 7 : 0;
-    state.starChips = castleRun ? 10 : 2;
-    state.level = 1;
+    state.duelIndex = 0;
+    state.starChips = 0;
+    state.routeStopId = castleRun ? "kaiba2" : ROUTE_START;
+    state.routeDone = castleRun ? ["d1", "shop1", "weevil", "d2", "kaiba1", "rex", "shop2", "mai"] : [];
+    state.routeFork = [];
+    state.mapPreviewId = state.routeStopId;
+    state.level = castleRun ? 5 : 1;
     state.xp = 0;
     state.winStreak = 0;
     state.lossStreak = 0;
@@ -6516,13 +7094,15 @@
     el.traitOverlay.classList.remove("open");
     el.oddsOverlay.classList.remove("open");
     el.itemDraftOverlay.classList.remove("open");
+    if (el.cardShopOverlay) el.cardShopOverlay.classList.remove("open");
     if (el.settingsOverlay) el.settingsOverlay.classList.remove("open");
     if (el.homeScreen) el.homeScreen.classList.remove("open");
     el.app.classList.add("visible");
     rollShop();
-    const label = castleRun ? "Pegasus's Castle" : "Duelist Kingdom";
-    logLine('<span class="sys">' + label + " — ★ " + state.starChips +
-      " Star Chips · " + DUEL_START_LP + " LP per duel</span>");
+    const label = castleRun ? "Castle Route (advanced)" : "Duelist Kingdom";
+    logLine('<span class="sys">' + label + " — " + DUEL_START_LP +
+      " LP · island map · beat Pegasus to win" +
+      (exodiaUnlocked() ? " · Exodia path unlocked" : "") + "</span>");
     render();
     showMap();
     saveRun();
@@ -6551,8 +7131,10 @@
     if (el.homeScreen) el.homeScreen.classList.remove("open");
     el.app.classList.add("visible");
     if (!state.shop || !state.shop.length) rollShop();
-    logLine('<span class="sys">Continued run — Round ' + state.duelRound +
-      " vs " + escapeHtml(currentDuelist().name) + "</span>");
+    const stop = currentStop();
+    logLine('<span class="sys">Continued run — ' +
+      (stop ? escapeHtml(stopTitle(stop)) : "island map") +
+      " · ❤ " + state.lp + " LP · Round " + state.duelRound + "</span>");
     render();
     if (state.phase === "map") showMap();
     else {
@@ -6732,7 +7314,7 @@
   });
   $("btnReroll").addEventListener("click", reroll);
   el.btnFight.addEventListener("click", () => { startFight(); });
-  if (el.btnMapDuel) el.btnMapDuel.addEventListener("click", () => enterDuelFromMap());
+  if (el.btnMapDuel) el.btnMapDuel.addEventListener("click", () => activateMapCta());
   el.btnSpeed.addEventListener("click", () => {
     if (state.phase !== "fight") return;
     cycleSpeed();
