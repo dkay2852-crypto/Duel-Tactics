@@ -36,7 +36,7 @@
       --bench-h: 44px;
       --fight-h: 52px;
       --econ-h: 44px;
-      --shop-h: 112px;
+      --shop-h: 86px;
       --board-scale: 1;
       --hex-screen-w: var(--hex-w);
       --tok-h: calc(var(--hex-w) * 1.2);
@@ -566,6 +566,21 @@
       animation: tokRise 0.45s cubic-bezier(0.2, 0.85, 0.3, 1) both;
       filter: drop-shadow(0 0 12px rgba(90, 210, 255, 0.9));
     }
+    .token.holo.pos-def .holo-billboard {
+      transform: rotate(-90deg);
+      transform-origin: center center;
+      box-shadow: 0 0 0 2px #5ec8ff, 0 0 12px rgba(80, 180, 255, 0.75);
+    }
+    .token.holo.pos-def .holo-rig::after {
+      content: "🛡";
+      position: absolute;
+      right: -2px; bottom: 2px;
+      font-size: 0.7rem;
+      z-index: 8;
+      filter: drop-shadow(0 1px 2px #000);
+    }
+    .token.holo.pos-atk .holo-billboard { transform: none; }
+
     .hex-hit-token {
       width: 70% !important;
       height: 70% !important;
@@ -783,11 +798,13 @@
       flex: 0 0 auto;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 6px;
       background: rgba(13, 26, 40, 0.92);
       border: 1px solid var(--line);
       border-radius: 14px;
-      padding: 8px;
+      padding: 6px;
+      overflow: hidden;
+      max-width: 100%;
     }
     .bottom-panel.dimmed, #shopBlock.dimmed { opacity: 0.45; pointer-events: none; }
     .econ-row {
@@ -878,9 +895,12 @@
 
     .shop-row {
       display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 4px;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 3px;
       min-height: var(--shop-h);
+      width: 100%;
+      max-width: 100%;
+      overflow: hidden;
     }
     .zone {
       background: linear-gradient(160deg, rgba(30, 60, 80, 0.5), rgba(12, 28, 40, 0.7));
@@ -923,9 +943,9 @@
     .card.cost-5 .cost-badge { background: #f0c040; color: #1a1408; }
     .card .art-wrap {
       flex: 1 1 auto;
-      min-height: 42px;
-      margin-top: 12px;
-      border-radius: 4px;
+      min-height: 26px;
+      margin-top: 11px;
+      border-radius: 3px;
       overflow: hidden;
       background: rgba(0,0,0,0.15);
       display: flex;
@@ -935,27 +955,26 @@
     .card .card-art {
       width: 100%;
       height: 100%;
-      max-height: 52px;
+      max-height: 34px;
       object-fit: cover;
       object-position: center 18%;
       display: block;
     }
     .card .emoji {
-      font-size: 1.15rem; text-align: center; line-height: 1.05;
+      font-size: 0.95rem; text-align: center; line-height: 1.05;
     }
     .card .name {
-      font-size: 12px;
+      font-size: 10px;
       font-weight: 800;
       text-align: center;
-      line-height: 1.15;
-      min-height: 1.2em;
-      max-height: 2.3em;
+      line-height: 1.1;
+      min-height: 1.1em;
+      max-height: 1.1em;
       overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
       width: 100%;
       padding: 0 1px;
-      transform-origin: center top;
-      word-break: break-word;
-      hyphens: auto;
     }
     .card .stats {
       display: flex; justify-content: space-between; align-items: center;
@@ -2539,7 +2558,7 @@
         <li>Your board, bench, gold, level, and items carry across rounds and duels. LP resets to 4000 each new duel.</li>
         <li>Win a duel: +1 Star Chip. Lose a duel: −1. Hit 0 chips and the run ends. Reach <strong>10 ★</strong> for the Castle.</li>
         <li>Buy, fuse (3→★★→★★★), place on hexes, then <strong>FIGHT</strong>. Progress saves every round — use Continue on the home screen.</li>
-        <li>Cost follows ATK+DEF. HP = DEF×1.5, damage = ATK÷4. Board size = your level (1–9).</li>
+        <li>Damage = ATK÷4, HP = DEF + armor. Tap a board monster twice to set Attack/Defense. Effect monsters cost +1 and have once-per-fight abilities; every 4th hit is a Battle.</li>
         <li>Path: Weevil → Rex → Mako → Mai → Keith → Bonz → Panik → Castle (Kaiba, Yugi, Pegasus).</li>
       </ol>
       <button type="button" class="btn btn-primary btn-wide" id="btnCloseHow">Got it</button>
@@ -2677,7 +2696,7 @@
 (function () {
   "use strict";
 
-  const CACHE_KEY = "duelTacticsClassicV3";
+  const CACHE_KEY = "duelTacticsClassicV4";
   const CACHE_MS = 7 * 24 * 60 * 60 * 1000;
   const API_SETS = ["Legend of Blue Eyes White Dragon", "Metal Raiders"];
   const HEX_ROWS = 4;
@@ -2821,6 +2840,46 @@
     },
   ];
 
+  /** Normal-monster Type passives (always on). Must be above TOON_POOL (enrich at init). */
+  const TYPE_PASSIVES = {
+    Dragon: { id: "pierce", name: "Dragon Pierce", desc: "Attacks pierce armor." },
+    Spellcaster: { id: "magic", name: "Arcane Hit", desc: "Hits deal +30% magic damage (ignores half armor)." },
+    Warrior: { id: "crit", name: "Critical Edge", desc: "20% chance to crit for 1.75× damage." },
+    Fiend: { id: "drain", name: "Life Drain", desc: "Heal for 30% of damage dealt." },
+    Beast: { id: "frenzy", name: "Feral Frenzy", desc: "Gain brief haste after each hit." },
+    "Winged Beast": { id: "frenzy", name: "Sky Frenzy", desc: "Gain brief haste after each hit." },
+    Machine: { id: "plating", name: "Iron Plating", desc: "Start combat with a 20% HP shield." },
+    Zombie: { id: "undying", name: "Undying", desc: "Revive once at 30% HP when defeated." },
+    Rock: { id: "stone", name: "Stone Hide", desc: "+40% armor." },
+    Insect: { id: "venom", name: "Venom", desc: "Hits apply a light poison tick." },
+    Aqua: { id: "tide", name: "Tide", desc: "Hits slow the target's next attack." },
+    Fish: { id: "tide", name: "Tide", desc: "Hits slow the target's next attack." },
+    Thunder: { id: "shock", name: "Shock", desc: "10% chance to stun for 0.6s." },
+    Pyro: { id: "burn", name: "Burn", desc: "Hits deal +15% bonus damage." },
+    Dinosaur: { id: "rampage", name: "Rampage", desc: "Crit chance 15% for 1.5× damage." },
+    Plant: { id: "root", name: "Root", desc: "+20% HP." },
+    Reptile: { id: "venom", name: "Venom", desc: "Hits apply a light poison tick." },
+    "Sea Serpent": { id: "tide", name: "Tide", desc: "Hits slow the target's next attack." },
+    "Beast-Warrior": { id: "crit", name: "War Beast", desc: "20% chance to crit for 1.75× damage." },
+    BeastWarrior: { id: "crit", name: "War Beast", desc: "20% chance to crit for 1.75× damage." },
+    Fairy: { id: "bless", name: "Blessing", desc: "Heal 8% max HP on each hit you land." },
+    _other: { id: "steady", name: "Steady", desc: "No special passive." },
+  };
+
+  /** Named Effect-monster abilities (LOB / Metal Raiders staples). */
+  const NAMED_EFFECTS = {
+    "Man-Eater Bug": { id: "destroy_strongest", name: "Man-Eater", desc: "Once: destroy the strongest enemy." },
+    "Hane-Hane": { id: "bounce", name: "Hane-Hane", desc: "Once: bounce an enemy away for 3s." },
+    "Penguin Soldier": { id: "bounce", name: "Penguin Bounce", desc: "Once: bounce an enemy away for 3s." },
+    "Trap Master": { id: "destroy_weakest", name: "Trap Set", desc: "Once: destroy the weakest enemy." },
+    "Magician of Faith": { id: "heal_self", name: "Faith", desc: "Once: heal yourself for 40% max HP." },
+    "Masked Sorcerer": { id: "draw_strike", name: "Mask Strike", desc: "Once: deal 1.5× ATK÷4 as magic." },
+    "White Magical Hat": { id: "bounce", name: "Hat Trick", desc: "Once: bounce an enemy away for 3s." },
+    "Dream Clown": { id: "destroy_weakest", name: "Dream Cut", desc: "Once: destroy the weakest enemy." },
+    "Armed Ninja": { id: "destroy_weakest", name: "Ninja Cut", desc: "Once: destroy the weakest enemy." },
+    "Holograh": { id: "shield_self", name: "Holo Guard", desc: "Once: gain a 35% HP shield." },
+  };
+
   const TOON_POOL = [
     { id: "toon_goblin", name: "Toon Goblin Attack Force", type: "Toon", attribute: "EARTH", level: 4, atk: 2300, def: 0 },
     { id: "toon_mermaid", name: "Toon Mermaid", type: "Toon", attribute: "WATER", level: 4, atk: 1400, def: 1500 },
@@ -2845,18 +2904,6 @@
     7: [18, 28, 32, 18, 4],
     8: [14, 22, 32, 24, 8],
     9: [10, 18, 28, 30, 14],
-  };
-
-  const ABILITIES = {
-    Dragon: { name: "Fire Breath", mana: 100, desc: "Breathe fire: deal 2× ATK split among the 3 closest foes." },
-    Spellcaster: { name: "Arc Stun", mana: 100, desc: "Blast the target for 1.5× ATK and stun them for 1s." },
-    Warrior: { name: "Double Strike", mana: 100, desc: "Strike twice for ATK÷4 damage each hit." },
-    Fiend: { name: "Life Drain", mana: 100, desc: "Deal ATK÷4 and heal for 50% of damage dealt." },
-    Beast: { name: "Bloodrush", mana: 100, desc: "Gain haste for 3s and strike for ATK÷4." },
-    "Winged Beast": { name: "Bloodrush", mana: 100, desc: "Gain haste for 3s and strike for ATK÷4." },
-    Machine: { name: "Hard Shield", mana: 100, desc: "Gain a 30% max-HP shield, then strike for ATK÷4." },
-    Zombie: { name: "Grave Bolt", mana: 100, desc: "Unleash a 2× ATK nuke (Zombies can also revive once)." },
-    _other: { name: "Power Strike", mana: 100, desc: "Unleash a 2× ATK nuke on the target." },
   };
 
   const TRAIT_INFO = {
@@ -2924,7 +2971,7 @@
     Toon: { emoji: "🎨" },
   };
 
-  /** Cost from ATK+DEF total (Level ignored). */
+  /** Cost from ATK+DEF total (Level ignored). Effect monsters +1 (cap 5). */
   function costFromStats(atk, def) {
     const sum = (Number(atk) || 0) + (Number(def) || 0);
     if (sum < 2000) return 1;
@@ -2964,22 +3011,77 @@
     return 1;
   }
 
-  function abilityFor(card) {
+  function isEffectMonster(card) {
+    if (!card) return false;
+    if (card.isEffect === true) return true;
+    if (card.isEffect === false) return false;
+    const ft = String(card.frameType || "").toLowerCase();
+    const ct = String(card.cardType || card.typeLabel || "").toLowerCase();
+    if (ft === "effect" || ct.includes("effect monster")) return true;
+    if (ft === "normal" || ct.includes("normal monster")) return false;
+    // Ritual/Fusion/etc. treated as Effect for ability purposes
+    if (ft && ft !== "normal") return true;
+    const d = String(card.desc || "");
+    // Flavor-only Normal text is usually short / no game keywords
+    if (/destroy|return|inflict|draw|discard|special summon|flip|banish/i.test(d)) return true;
+    return false;
+  }
+
+  function inferEffectAbility(card) {
+    const name = (card && card.name) || "";
+    if (NAMED_EFFECTS[name]) return Object.assign({ once: true }, NAMED_EFFECTS[name]);
+    const d = String((card && card.desc) || "").toLowerCase();
+    if (/destroy|send .*graveyard|remove .* field/.test(d)) {
+      return { id: "destroy_strongest", name: "Destroy", desc: "Once: destroy the strongest enemy.", once: true };
+    }
+    if (/return .*hand|bounce|shuffle .*deck/.test(d)) {
+      return { id: "bounce", name: "Bounce", desc: "Once: bounce an enemy away for 3s.", once: true };
+    }
+    if (/inflict|damage.*life|burn/.test(d)) {
+      return { id: "burn", name: "Burn", desc: "Once: deal ATK÷2 magic damage to the target.", once: true };
+    }
+    if (/draw|add .*hand/.test(d)) {
+      return { id: "heal_self", name: "Gift", desc: "Once: heal 35% max HP.", once: true };
+    }
+    return { id: "flip_strike", name: "Effect Strike", desc: "Once: your next hit deals +60% damage.", once: true };
+  }
+
+  function typePassiveFor(card) {
     const t = (card && card.type) || "";
-    return ABILITIES[t] || ABILITIES._other;
+    return TYPE_PASSIVES[t] || TYPE_PASSIVES._other;
+  }
+
+  function abilityFor(card) {
+    if (isEffectMonster(card)) {
+      const eff = card.effectAbility || inferEffectAbility(card);
+      return { name: eff.name, desc: eff.desc, mana: 0, kind: "effect", id: eff.id };
+    }
+    const p = typePassiveFor(card);
+    return { name: p.name, desc: p.desc, mana: 0, kind: "passive", id: p.id };
   }
 
   function enrichCardBase(card) {
     if (!card) return card;
     const next = Object.assign({}, card);
-    next.cost = costFromStats(next.atk, next.def);
+    next.isEffect = isEffectMonster(next);
+    next.effectAbility = next.isEffect ? inferEffectAbility(next) : null;
+    next.passive = next.isEffect ? null : typePassiveFor(next);
+    let cost = costFromStats(next.atk, next.def);
+    if (next.isEffect) cost = Math.min(5, cost + 1);
+    next.cost = cost;
     next.role = roleFor(next);
     next.range = rangeFor(next);
     return next;
   }
 
+  /** HP = DEF × star mult (min 100). */
   function battleHpFromDef(def, stars) {
-    return Math.round(Math.max(600, (Number(def) || 0) * 1.5) * starMult(stars));
+    return Math.round(Math.max(100, (Number(def) || 0)) * starMult(stars));
+  }
+
+  /** Armor scales with DEF; Defense position doubles it later. */
+  function armorFromDef(def, stars) {
+    return Math.round(Math.max(0, (Number(def) || 0) * 0.12) * starMult(stars));
   }
 
   function battleDmgFromAtk(atk, stars) {
@@ -3552,6 +3654,7 @@
       shield: 0,
       stunUntil: 0,
       hasteUntil: 0,
+      bounceUntil: 0,
       canRevive: String(enriched.type) === "Zombie",
       revived: false,
       dead: false,
@@ -3560,6 +3663,14 @@
       col: null,
       atkCd: 0,
       moveCd: 0,
+      hitCount: 0,
+      position: "atk", // atk | def
+      isEffect: !!enriched.isEffect,
+      effectAbility: enriched.effectAbility || null,
+      passive: enriched.passive || typePassiveFor(enriched),
+      effectUsed: false,
+      poweredHit: false,
+      desc: enriched.desc || "",
       items: [],
       imgSmall: enriched.imgSmall || null,
       imgCropped: enriched.imgCropped || null,
@@ -3714,15 +3825,42 @@
     return Math.round(base * (1 + b.atkPct + areaPct));
   }
 
-  function effectiveMaxHp(unit) {
-    if (!unit) return 600;
-    const b = traitBonusesFor(unit);
-    const def = Math.max(0, unit.def + itemDefBonus(unit));
-    return Math.max(600, Math.round(Math.max(600, def * 1.5) * starMult(unit.stars) * (1 + b.hpPct)));
+  function effectiveDef(unit) {
+    if (!unit) return 0;
+    return Math.round((unit.def + itemDefBonus(unit)) * starMult(unit.stars));
   }
 
+  /** HP = DEF × stars (plus trait HP%). Plant passive +20% HP. */
+  function effectiveMaxHp(unit) {
+    if (!unit) return 100;
+    const b = traitBonusesFor(unit);
+    const def = Math.max(0, unit.def + itemDefBonus(unit));
+    let hpPct = b.hpPct || 0;
+    const passiveId = (unit.passive && unit.passive.id) || (typePassiveFor(unit).id);
+    if (passiveId === "root") hpPct += 0.2;
+    return Math.max(100, Math.round(def * starMult(unit.stars) * (1 + hpPct)));
+  }
+
+  function effectiveArmor(unit) {
+    if (!unit) return 0;
+    let arm = armorFromDef(unit.def + itemDefBonus(unit), unit.stars);
+    const passiveId = (unit.passive && unit.passive.id) || "";
+    if (passiveId === "stone") arm = Math.round(arm * 1.4);
+    if (unit.position === "def") arm *= 2;
+    return Math.round(arm);
+  }
+
+  /** Damage per hit = ATK / 4 (after star / trait scaling on ATK). */
   function attackDamage(unit) {
     return Math.max(1, Math.round(effectiveAtk(unit) / 4));
+  }
+
+  function togglePosition(unit) {
+    if (!unit || unit.side !== "player") return;
+    unit.position = unit.position === "def" ? "atk" : "def";
+    toast(unit.position === "def"
+      ? (unit.name + " → Defense (taunt, 2× armor)")
+      : (unit.name + " → Attack"));
   }
 
   function escapeHtml(s) {
@@ -3863,9 +4001,25 @@
           hex.appendChild(hit);
         }
 
-        hex.addEventListener("pointerdown", (e) => onHexPointerDown(e, globalRow, c));
+        let pressT = null;
+        let longPress = false;
+        hex.addEventListener("pointerdown", (e) => {
+          longPress = false;
+          if (pressT) clearTimeout(pressT);
+          const u = getCell(globalRow, c);
+          if (u && u.side === "player" && state.phase === "shop") {
+            pressT = setTimeout(() => {
+              longPress = true;
+              showTokenStats(u);
+            }, 450);
+          }
+          onHexPointerDown(e, globalRow, c);
+        });
+        hex.addEventListener("pointerup", () => { if (pressT) clearTimeout(pressT); });
+        hex.addEventListener("pointercancel", () => { if (pressT) clearTimeout(pressT); });
         hex.addEventListener("click", () => {
           if (state.drag && state.drag.moved) return;
+          if (longPress) { longPress = false; return; }
           onHexTap(globalRow, c);
         });
         boardEl.appendChild(hex);
@@ -3896,7 +4050,8 @@
     const attr = String(unit.attribute || "DARK").toUpperCase();
     const sideCls = unit.side === "enemy" ? "side-enemy" : "side-player";
     const tok = document.createElement("div");
-    tok.className = "token attr-" + attr + " " + sideCls +
+    const posCls = unit.position === "def" ? "pos-def" : "pos-atk";
+    tok.className = "token attr-" + attr + " " + sideCls + " " + posCls +
       (unit.stars === 2 ? " star2" : "") +
       (unit.stars >= 3 ? " star3" : "") +
       (asHolo ? " holo" : "");
@@ -4095,14 +4250,17 @@
       "</div>" +
       '<div class="g-section"><h3>Fusion chain</h3><div class="g-fusion">' + fuse + "</div></div>" +
       '<div class="g-section"><h3>Ability</h3><div class="g-ability">' +
-        '<span class="am">Mana ' + ability.mana + "</span>" +
+        '<span class="am">' + (ability.kind === "effect" ? "Effect" : "Passive") + "</span>" +
         '<div class="an">' + escapeHtml(ability.name) + "</div>" +
         '<p class="ad">' + escapeHtml(ability.desc) + "</p>" +
       "</div></div>" +
       '<div class="g-raw">' +
         '<div class="atk"><small>Card ATK</small>' + card.atk + "</div>" +
-        '<div class="def"><small>Card DEF</small>' + card.def + "</div>" +
-      "</div>"
+        '<div class="def"><small>Card DEF · Armor ' + armorFromDef(card.def, stars) + "</small>" + card.def + "</div>" +
+      "</div>" +
+      '<p style="margin:10px 0 0;font-size:12px;color:var(--muted);font-weight:700">HP ' +
+        battleHpFromDef(card.def, stars) + " · DMG " + battleDmgFromAtk(card.atk, stars) +
+        " · Level " + (card.level || "?") + (isEffectMonster(card) ? " · Effect (+1 cost)" : " · Normal") + "</p>"
     );
   }
 
@@ -4132,13 +4290,13 @@
   function renderGuideBasicsHTML() {
     return (
       '<div class="g-basics"><ol>' +
-      "<li>Cost = ATK+DEF tier: under 2000→1, 2000s→2, 3000s→3, 4000s→4, 5000+→5. Borders: gray / green / blue / purple / gold.</li>" +
-      "<li>Battle HP = DEF×1.5 (min 600). Attack damage = ATK÷4. ★★ ×1.8, ★★★ ×3.2 to HP and damage.</li>" +
-      "<li>Roles: high DEF = Tank (melee). High ATK = Attacker (melee, or range 2 for Spellcaster / Thunder / Machine). Else Fighter.</li>" +
-      "<li>Buy 3 copies to fuse ★★, then 3 ★★ into ★★★. Place on hexes, then FIGHT.</li>" +
-      "<li>Each duel is multi-round at 4000 LP. Win/lose the duel for ±1 Star Chip. Reach 10 ★ for the Castle; 0 chips ends the run.</li>" +
-      "<li>Your build carries between rounds and duels. Progress auto-saves every round.</li>" +
-      "<li>Shop odds favor cheap units early; 4- and 5-cost monsters are rare until level 7+.</li>" +
+      "<li><strong>Damage</strong> = ATK÷4. <strong>HP</strong> = DEF. Armor scales with DEF (Defense position doubles armor).</li>" +
+      "<li><strong>Attack speed</strong> uses the card Level: 1–3 fast, 4–6 normal, 7+ slow. ★★ ×1.8 and ★★★ ×3.2 still multiply HP/damage/armor.</li>" +
+      "<li><strong>Attack / Defense position</strong>: tap a placed monster twice to toggle. Defense does not attack, has 2× armor, and taunts enemies.</li>" +
+      "<li><strong>Effect monsters</strong> cost +1 and get a short once-per-fight ability from their text (e.g. Man-Eater Bug destroys the strongest foe). <strong>Normal monsters</strong> get a Type passive (Dragon pierces, Warrior crits, Fiend drains…).</li>" +
+      "<li>About every <strong>4th attack</strong> is a Battle: if your ATK beats their DEF (or ATK if they are in Attack position), they are destroyed; otherwise it is a normal hit.</li>" +
+      "<li>Cost = ATK+DEF tier (Effect +1): under 2000→1 … 5000+→5. Borders: gray / green / blue / purple / gold.</li>" +
+      "<li>Buy 3 copies to fuse ★★, then 3 ★★ into ★★★. Multi-round duels at 4000 LP; ±1 Star Chip per duel. Progress auto-saves — use Continue.</li>" +
       "</ol></div>"
     );
   }
@@ -4594,11 +4752,12 @@
       return;
     }
 
-    // Tap own unit → select / show stats (drag or bench slot to unbench)
+    // Tap own unit → select; tap again → toggle Attack/Defense position
     if (unit && unit.side === "player") {
       if (state.selected && state.selected.from === "hex" &&
           state.selected.row === row && state.selected.col === col) {
-        showTokenStats(unit);
+        togglePosition(unit);
+        render();
         return;
       }
       if (state.selected && state.selected.from === "hex") {
@@ -4613,7 +4772,6 @@
       }
       state.selected = { from: "hex", row, col };
       state.selectedItem = null;
-      showTokenStats(unit);
       render();
       return;
     }
@@ -4901,6 +5059,8 @@
       mon.maxHp = battleHpFromDef(mon.def, stars);
       mon.hp = mon.maxHp;
       mon.side = "enemy";
+      // High-DEF enemies prefer Defense (taunt)
+      if (mon.def >= mon.atk * 1.2) mon.position = "def";
       setCell(slots[i].row, slots[i].col, mon);
     }
   }
@@ -4919,10 +5079,14 @@
 
   /* —— Combat (TFT-style) —— */
   function closestEnemy(unit) {
-    const foes = allUnits(unit.side === "player" ? "enemy" : "player").filter((f) => !f.dead);
+    const foes = allUnits(unit.side === "player" ? "enemy" : "player")
+      .filter((f) => !f.dead && (f.bounceUntil || 0) <= performance.now());
+    if (!foes.length) return null;
+    const taunts = foes.filter((f) => f.position === "def");
+    const pool = taunts.length ? taunts : foes;
     let best = null;
     let bestD = Infinity;
-    foes.forEach((f) => {
+    pool.forEach((f) => {
       const d = hexDist(unit.row, unit.col, f.row, f.col);
       if (d < bestD) { bestD = d; best = f; }
     });
@@ -4931,7 +5095,7 @@
 
   function nClosestEnemies(unit, n) {
     return allUnits(unit.side === "player" ? "enemy" : "player")
-      .filter((f) => !f.dead)
+      .filter((f) => !f.dead && (f.bounceUntil || 0) <= performance.now())
       .map((f) => ({ f, d: hexDist(unit.row, unit.col, f.row, f.col) }))
       .sort((a, b) => a.d - b.d)
       .slice(0, n)
@@ -5139,11 +5303,18 @@
   function dealDamage(attacker, target, rawDmg, opts) {
     opts = opts || {};
     if (!target || target.dead || rawDmg <= 0) return 0;
+    if ((target.bounceUntil || 0) > performance.now()) return 0;
     let dmg = Math.max(1, Math.round(rawDmg));
-    // Soft-cap bursts so early 1v1 fights read for 8–15s (abilities still chunk hard)
+    // Soft-cap bursts so fights stay readable
     if (!opts.noCap && target.maxHp > 0) {
-      const cap = Math.max(120, Math.round(target.maxHp * 0.42));
+      const cap = Math.max(120, Math.round(target.maxHp * 0.45));
       if (dmg > cap) dmg = cap;
+    }
+    // Armor (Defense position = 2×). Pierce ignores armor; magic ignores half.
+    if (!opts.pierce) {
+      let arm = effectiveArmor(target);
+      if (opts.magic) arm = Math.round(arm * 0.5);
+      dmg = Math.max(1, dmg - arm);
     }
     if (target.shield > 0) {
       const absorbed = Math.min(target.shield, dmg);
@@ -5160,6 +5331,8 @@
     let steal = opts.lifesteal || 0;
     if (!opts.noLifesteal && attacker && !attacker.dead) {
       steal = Math.max(steal, traitBonusesFor(attacker).lifesteal || 0);
+      const pid = attacker.passive && attacker.passive.id;
+      if (pid === "drain") steal = Math.max(steal, 0.3);
     }
     if (steal > 0 && attacker && dmg > 0) {
       const heal = Math.round(dmg * steal);
@@ -5167,6 +5340,26 @@
         attacker.hp = Math.min(attacker.maxHp, attacker.hp + heal);
         showFloatText(attacker.uid, "+" + heal, true);
         syncCombatBars(attacker);
+      }
+    }
+    if (attacker && !attacker.dead && dmg > 0) {
+      const pid = attacker.passive && attacker.passive.id;
+      if (pid === "bless") {
+        const heal = Math.max(1, Math.round(attacker.maxHp * 0.08));
+        attacker.hp = Math.min(attacker.maxHp, attacker.hp + heal);
+        syncCombatBars(attacker);
+      }
+      if (pid === "frenzy") attacker.hasteUntil = performance.now() + 900;
+      if (pid === "venom" && !target.dead) {
+        const tick = Math.max(1, Math.round(dmg * 0.15));
+        setTimeout(() => {
+          if (!target.dead) dealDamage(attacker, target, tick, { noMana: true, noLifesteal: true, noCap: true, pierce: true });
+        }, 400 / state.fightSpeed);
+      }
+      if (pid === "tide") target.atkCd = Math.max(target.atkCd || 0, 600);
+      if (pid === "shock" && Math.random() < 0.1) {
+        target.stunUntil = performance.now() + 600;
+        showFloatText(target.uid, "STUN", false);
       }
     }
     if (target.hp <= 0) {
@@ -5177,11 +5370,13 @@
 
   function handleDeath(unit, killer) {
     if (!unit || unit.dead) return;
-    const revivePct = traitBonusesFor(unit).revivePct;
-    if (unit.type === "Zombie" && !unit.revived && revivePct > 0) {
+    const revivePct = traitBonusesFor(unit).revivePct || 0;
+    const undying = unit.type === "Zombie" || (unit.passive && unit.passive.id === "undying");
+    const reviveAmount = revivePct > 0 ? revivePct : (undying ? 0.3 : 0);
+    if (undying && !unit.revived && reviveAmount > 0) {
       unit.revived = true;
       unit.canRevive = false;
-      unit.hp = Math.max(1, Math.round(unit.maxHp * revivePct));
+      unit.hp = Math.max(1, Math.round(unit.maxHp * reviveAmount));
       unit.mana = 0;
       showAbilityName(unit, "Undying");
       showFloatText(unit.uid, "REVIVE", true);
@@ -5227,94 +5422,149 @@
     }
   }
 
+  /** Attack speed by monster Level: 1–3 fast, 4–6 normal, 7+ slow. */
   function attackInterval(unit) {
-    let ms = ATTACK_MS;
+    const lv = Number(unit && unit.level) || 4;
+    let base = ATTACK_MS;
+    if (lv <= 3) base = Math.round(ATTACK_MS * 0.72);
+    else if (lv >= 7) base = Math.round(ATTACK_MS * 1.35);
     const asPct = traitBonusesFor(unit).asPct || 0;
-    if (asPct > 0) ms = ATTACK_MS / (1 + asPct);
+    let ms = base;
+    if (asPct > 0) ms = base / (1 + asPct);
     if ((unit.hasteUntil || 0) > performance.now()) ms = ms / 1.5;
     return ms;
   }
 
-  function castAbilityFixed(unit, target) {
-    unit.mana = 0;
-    syncCombatBars(unit);
-    const atk = effectiveAtk(unit);
-    const t = unit.type;
+  function strongestEnemy(unit) {
+    const foes = allUnits(unit.side === "player" ? "enemy" : "player")
+      .filter((f) => !f.dead && (f.bounceUntil || 0) <= performance.now());
+    if (!foes.length) return null;
+    return foes.slice().sort((a, b) => effectiveAtk(b) - effectiveAtk(a))[0];
+  }
 
-    if (t === "Dragon") {
-      showAbilityName(unit, "Fire Breath");
-      const foes = nClosestEnemies(unit, 3);
-      const each = foes.length ? (atk * 2) / foes.length : 0;
-      foes.forEach((f) => {
-        startLunge(unit, f);
-        dealDamage(unit, f, each, { noMana: false });
-      });
-      return;
-    }
-    if (t === "Spellcaster") {
-      showAbilityName(unit, "Arc Stun");
-      if (target) {
-        startLunge(unit, target);
-        dealDamage(unit, target, atk * 1.5);
-        target.stunUntil = performance.now() + 1000;
-        syncCombatBars(target);
+  function weakestEnemy(unit) {
+    const foes = allUnits(unit.side === "player" ? "enemy" : "player")
+      .filter((f) => !f.dead && (f.bounceUntil || 0) <= performance.now());
+    if (!foes.length) return null;
+    return foes.slice().sort((a, b) => effectiveAtk(a) - effectiveAtk(b))[0];
+  }
+
+  /** Effect-monster once-per-fight abilities. */
+  function tryCastEffect(unit, target) {
+    if (!unit || !unit.isEffect || unit.effectUsed) return false;
+    const eff = unit.effectAbility || inferEffectAbility(unit);
+    if (!eff) return false;
+    unit.effectUsed = true;
+    showAbilityName(unit, eff.name);
+    const id = eff.id;
+    if (id === "destroy_strongest") {
+      const foe = strongestEnemy(unit);
+      if (foe) {
+        showFloatText(foe.uid, "DESTROY", false);
+        handleDeath(foe, unit);
       }
-      return;
+      return true;
     }
-    if (t === "Warrior") {
-      showAbilityName(unit, "Double Strike");
-      if (target) {
-        startLunge(unit, target);
-        const hit = Math.max(1, Math.round(atk / 4));
-        dealDamage(unit, target, hit);
-        if (!target.dead) dealDamage(unit, target, hit);
+    if (id === "destroy_weakest") {
+      const foe = weakestEnemy(unit);
+      if (foe) {
+        showFloatText(foe.uid, "DESTROY", false);
+        handleDeath(foe, unit);
       }
-      return;
+      return true;
     }
-    if (t === "Fiend") {
-      showAbilityName(unit, "Life Drain");
-      if (target) {
-        startLunge(unit, target);
-        const hit = Math.max(1, Math.round(atk / 4));
-        dealDamage(unit, target, hit, { lifesteal: 0.5 });
+    if (id === "bounce") {
+      const foe = target || closestEnemy(unit);
+      if (foe) {
+        foe.bounceUntil = performance.now() + 3000;
+        showFloatText(foe.uid, "BOUNCE", false);
+        const v = state.combatVisuals[foe.uid];
+        if (v && v.wrap) v.wrap.style.opacity = "0.25";
+        setTimeout(() => {
+          const vv = state.combatVisuals[foe.uid];
+          if (vv && vv.wrap) vv.wrap.style.opacity = "";
+        }, 3000 / state.fightSpeed);
       }
-      return;
+      return true;
     }
-    if (t === "Beast" || t === "Winged Beast") {
-      showAbilityName(unit, "Bloodrush");
-      unit.hasteUntil = performance.now() + 3000;
-      if (target) {
-        startLunge(unit, target);
-        dealDamage(unit, target, Math.max(1, Math.round(atk / 4)));
-      }
-      return;
-    }
-    if (t === "Machine") {
-      showAbilityName(unit, "Hard Shield");
-      unit.shield = Math.round(unit.maxHp * 0.3);
+    if (id === "heal_self") {
+      const heal = Math.round(unit.maxHp * 0.4);
+      unit.hp = Math.min(unit.maxHp, unit.hp + heal);
+      showFloatText(unit.uid, "+" + heal, true);
       syncCombatBars(unit);
+      return true;
+    }
+    if (id === "shield_self") {
+      unit.shield = Math.round(unit.maxHp * 0.35);
+      syncCombatBars(unit);
+      return true;
+    }
+    if (id === "burn" || id === "draw_strike") {
       if (target) {
         startLunge(unit, target);
-        dealDamage(unit, target, Math.max(1, Math.round(atk / 4)));
+        dealDamage(unit, target, attackDamage(unit) * (id === "draw_strike" ? 1.5 : 2), { magic: true });
       }
-      return;
+      return true;
     }
-    // Zombie & others: 2x ATK nuke (Zombie also has passive revive)
-    showAbilityName(unit, t === "Zombie" ? "Grave Bolt" : "Power Strike");
-    if (target) {
-      startLunge(unit, target);
-      dealDamage(unit, target, atk * 2);
+    if (id === "flip_strike") {
+      unit.poweredHit = true;
+      showFloatText(unit.uid, "POWER", true);
+      return true;
     }
+    return true;
+  }
+
+  function castAbilityFixed(unit, target) {
+    // Legacy mana ults removed — Effect monsters use tryCastEffect; Normals use passives.
+    tryCastEffect(unit, target);
+  }
+
+  function applyPassiveHitMods(unit, dmg) {
+    const pid = unit.passive && unit.passive.id;
+    const opts = {};
+    let out = dmg;
+    if (pid === "pierce") opts.pierce = true;
+    if (pid === "magic") { opts.magic = true; out = Math.round(out * 1.3); }
+    if (pid === "burn") out = Math.round(out * 1.15);
+    if (pid === "crit" && Math.random() < 0.2) {
+      out = Math.round(out * 1.75);
+      opts.crit = true;
+    }
+    if (pid === "rampage" && Math.random() < 0.15) {
+      out = Math.round(out * 1.5);
+      opts.crit = true;
+    }
+    if (unit.poweredHit) {
+      out = Math.round(out * 1.6);
+      unit.poweredHit = false;
+    }
+    return { dmg: out, opts };
   }
 
   function basicAttack(unit, target) {
+    if (!target || target.dead) return;
     startLunge(unit, target);
-    dealDamage(unit, target, attackDamage(unit));
-    const manaGain = (traitBonusesFor(unit).manaOnHit || 10) + itemManaBonus(unit);
-    gainMana(unit, manaGain);
-    if (!unit.dead && unit.mana >= 100) {
-      castAbilityFixed(unit, closestEnemy(unit) || target);
+    unit.hitCount = (unit.hitCount || 0) + 1;
+    const isBattle = (unit.hitCount % 4) === 0;
+
+    if (isBattle) {
+      showFloatText(unit.uid, "BATTLE!", false);
+      // Real duel rule: compare ATK vs DEF (or ATK if target is in Attack position)
+      const atkStat = effectiveAtk(unit);
+      const defendStat = target.position === "def" ? effectiveDef(target) : effectiveAtk(target);
+      if (atkStat > defendStat) {
+        showFloatText(target.uid, "DESTROYED!", false);
+        flashHit(target);
+        handleDeath(target, unit);
+        return;
+      }
+      // Failed battle → still a normal hit
     }
+
+    let dmg = attackDamage(unit);
+    const mod = applyPassiveHitMods(unit, dmg);
+    if (mod.opts.crit) showFloatText(target.uid, "CRIT", false);
+    dealDamage(unit, target, mod.dmg, mod.opts);
   }
 
   function updateCombatVisuals(dt) {
@@ -5370,7 +5620,12 @@
       u.shield = 0;
       u.stunUntil = 0;
       u.hasteUntil = 0;
+      u.bounceUntil = 0;
       u.dead = false;
+      u.hitCount = 0;
+      u.effectUsed = false;
+      u.poweredHit = false;
+      if (!u.position) u.position = "atk";
       u.side = "player";
       u.row = entry.row;
       u.col = entry.col;
@@ -5388,14 +5643,24 @@
     placeEnemy();
     allUnits().forEach((u) => {
       const tb = traitBonusesFor(u);
+      if (!u.position) u.position = "atk";
       u.maxHp = effectiveMaxHp(u);
       u.hp = u.maxHp;
       u.mana = 0;
       u.shield = Math.round(u.maxHp * (tb.startShieldPct || 0));
+      if (u.passive && u.passive.id === "plating") {
+        u.shield += Math.round(u.maxHp * 0.2);
+      }
       u.stunUntil = 0;
       u.hasteUntil = 0;
+      u.bounceUntil = 0;
       u.dead = false;
-      if (u.type === "Zombie") { u.canRevive = true; u.revived = false; }
+      u.hitCount = 0;
+      u.effectUsed = false;
+      u.poweredHit = false;
+      if (u.type === "Zombie" || (u.passive && u.passive.id === "undying")) {
+        u.canRevive = true; u.revived = false;
+      }
       // Stagger first swings so the fight opens with movement, not an instant nuke
       u.atkCd = 1100 + Math.random() * 700;
       u.moveCd = 200 + Math.random() * 300;
@@ -5463,6 +5728,10 @@
 
         units.forEach((u) => {
           if (u.dead) return;
+          if ((u.bounceUntil || 0) > nowMs) {
+            syncCombatBars(u);
+            return;
+          }
           if ((u.stunUntil || 0) > nowMs) {
             syncCombatBars(u);
             return;
@@ -5474,11 +5743,17 @@
           u.atkCd -= dt;
           u.moveCd -= dt;
 
+          // Defense position: hold ground (taunt), do not attack or chase
+          if (u.position === "def") {
+            syncCombatBars(u);
+            return;
+          }
+
           const range = u.range || 1;
           if (dist <= range) {
             if (u.atkCd <= 0) {
-              if (u.mana >= 100) {
-                castAbilityFixed(u, target);
+              if (u.isEffect && !u.effectUsed) {
+                tryCastEffect(u, target);
               } else {
                 basicAttack(u, target);
               }
@@ -5986,7 +6261,12 @@
     const id = "api_" + (apiId != null ? apiId : String(raw.name).toLowerCase().replace(/\W+/g, "_"));
     const imgSmall = apiId != null ? ("images/small/" + apiId + ".jpg") : null;
     const imgCropped = apiId != null ? ("images/cropped/" + apiId + ".jpg") : null;
-    return {
+    const cardType = String(raw.type || "");
+    const frameType = String(raw.frameType || "");
+    const desc = Array.isArray(raw.card_texts) && raw.card_texts[0]
+      ? String(raw.card_texts[0].desc || raw.desc || "")
+      : String(raw.desc || "");
+    const base = {
       id,
       apiId,
       name: raw.name,
@@ -5995,12 +6275,13 @@
       level: raw.level,
       atk: raw.atk,
       def: raw.def,
-      cost: costFromStats(raw.atk, raw.def),
-      role: roleFor({ atk: raw.atk, def: raw.def, type: raw.race || "Warrior" }),
-      range: rangeFor({ atk: raw.atk, def: raw.def, type: raw.race || "Warrior" }),
+      desc,
+      cardType,
+      frameType,
       imgSmall,
       imgCropped,
     };
+    return enrichCardBase(base);
   }
 
   function readCache() {
