@@ -640,8 +640,7 @@
       filter: drop-shadow(0 1px 2px #000);
     }
     .token.holo.pos-atk .holo-billboard { transform: none; }
-    .token.ace .holo-rig::before,
-    .token.ace .stars::before {
+    .token.ace .holo-rig::before {
       content: "👑";
       position: absolute;
       left: -2px; top: -2px;
@@ -650,7 +649,10 @@
       filter: drop-shadow(0 1px 2px #000);
       line-height: 1;
     }
-    .token.ace .stars { padding-left: 10px; }
+    .token.ace:not(.holo) .stars::before {
+      content: "👑";
+      margin-right: 2px;
+    }
     .bench-card.ace { box-shadow: 0 0 0 2px #f0c040, 0 0 10px rgba(240, 192, 64, 0.55); }
     .bench-card.ace::after {
       content: "👑";
