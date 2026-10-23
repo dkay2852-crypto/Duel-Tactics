@@ -640,6 +640,104 @@
       filter: drop-shadow(0 1px 2px #000);
     }
     .token.holo.pos-atk .holo-billboard { transform: none; }
+    .token.ace .holo-rig::before,
+    .token.ace .stars::before {
+      content: "👑";
+      position: absolute;
+      left: -2px; top: -2px;
+      font-size: 0.72rem;
+      z-index: 9;
+      filter: drop-shadow(0 1px 2px #000);
+      line-height: 1;
+    }
+    .token.ace .stars { padding-left: 10px; }
+    .bench-card.ace { box-shadow: 0 0 0 2px #f0c040, 0 0 10px rgba(240, 192, 64, 0.55); }
+    .bench-card.ace::after {
+      content: "👑";
+      position: absolute; top: 1px; left: 2px;
+      font-size: 0.55rem; z-index: 3;
+      filter: drop-shadow(0 1px 1px #000);
+    }
+    .name-face {
+      width: 100%; height: 100%;
+      display: flex; align-items: center; justify-content: center;
+      text-align: center; padding: 4px;
+      background: linear-gradient(165deg, #2a3348, #141a28);
+      color: #e8eef8;
+      font-weight: 800; font-size: 0.52rem; line-height: 1.15;
+      word-break: break-word;
+    }
+    .holo-billboard .name-face { font-size: 0.48rem; border-radius: 4px; }
+    .bench-emoji.name-face { font-size: 0.42rem; padding: 2px; }
+
+    /* Starter ace pick */
+    .starter-overlay .modal {
+      width: min(400px, 100%);
+      max-height: 92dvh;
+      background:
+        radial-gradient(ellipse at 50% 0%, rgba(120, 80, 40, 0.4), transparent 55%),
+        linear-gradient(165deg, #1a2840, #0c1424);
+      border: 2px solid #c8a060;
+      padding: 14px 12px 16px;
+    }
+    .starter-overlay h2 {
+      margin: 0 0 4px; text-align: center;
+      font-family: "Bungee", cursive; color: var(--gold); font-size: 1.05rem;
+    }
+    .starter-sub {
+      margin: 0 0 12px; text-align: center;
+      font-size: 0.78rem; color: var(--muted); font-weight: 700;
+    }
+    .starter-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    .starter-card {
+      border: 2px solid #6a5840;
+      border-radius: 12px;
+      background: linear-gradient(165deg, #2a2030, #141018);
+      color: var(--fog);
+      padding: 6px 4px 8px;
+      cursor: pointer;
+      touch-action: manipulation;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      box-shadow: 0 3px 0 #0a0810;
+      min-height: 0;
+    }
+    .starter-card:active { transform: translateY(2px); box-shadow: 0 1px 0 #0a0810; }
+    .starter-card .sc-art {
+      width: 100%;
+      aspect-ratio: 3/4;
+      max-height: 120px;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #0a1018;
+      border: 1px solid #8a7040;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .starter-card .sc-art img {
+      width: 100%; height: 100%; object-fit: cover; object-position: center 20%;
+      display: block;
+    }
+    .starter-card .sc-name {
+      font-family: "Bungee", cursive;
+      font-size: 0.58rem;
+      color: #ffe8a0;
+      text-align: center;
+      line-height: 1.15;
+      min-height: 2.3em;
+    }
+    .starter-card .sc-rival {
+      font-size: 0.58rem; font-weight: 800; color: var(--cyan); text-align: center;
+    }
+    @media (max-height: 720px) {
+      .starter-card .sc-art { max-height: 96px; }
+      .starter-card .sc-name { font-size: 0.52rem; }
+    }
 
     .hex-hit-token {
       width: 70% !important;
@@ -718,6 +816,7 @@
     .bench-slot .token { width: 32px; height: 32px; }
     .bench-slot .token .emoji { font-size: 0.9rem; }
     .bench-slot .bench-card {
+      position: relative;
       width: 100%;
       height: 100%;
       min-height: 0;
@@ -729,7 +828,7 @@
       border: 1px solid var(--gold-dim);
       pointer-events: none;
     }
-    .bench-slot .bench-art, .bench-slot .bench-emoji {
+    .bench-slot .bench-art, .bench-slot .bench-emoji, .bench-slot .name-face {
       flex: 1 1 auto;
       min-height: 0;
       width: 100%;
@@ -737,13 +836,16 @@
       object-position: center 18%;
       display: block;
     }
-    .bench-slot .bench-emoji {
+    .bench-slot .bench-emoji,
+    .bench-slot .bench-emoji.name-face,
+    .bench-slot .name-face {
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 1rem;
       background: #1a3040;
     }
+    .bench-slot .name-face { font-size: 0.42rem; padding: 2px; }
     .bench-slot .bench-meta {
       flex: 0 0 auto;
       padding: 1px 2px 2px;
@@ -2754,7 +2856,8 @@
       <h2>How to Play</h2>
       <ol>
         <li>Travel the <strong>Duelist Kingdom</strong> island map — about 12 stops from the shore to Pegasus's castle.</li>
-        <li>Stops: <strong>Duels</strong> (nameless), <strong>Bosses</strong> (Weevil→Rex→Mai→Keith→Panik), <strong>Rival</strong> Kaiba (twice), <strong>Grandpa's Shop</strong>, and <strong>Rest</strong>.</li>
+        <li>Pick an <strong>Ace</strong> (Dark Magician, Blue-Eyes, or Red-Eyes). Your <strong>Rival</strong> (Kaiba — or Joey if you pick Blue-Eyes) appears twice and counters your Ace.</li>
+        <li>Stops: <strong>Duels</strong>, <strong>Bosses</strong> (Weevil→Rex→Mai→Keith→Panik), <strong>Rival</strong>, <strong>Grandpa's Shop</strong>, and <strong>Rest</strong>.</li>
         <li>Some paths <strong>branch</strong> — pick left or right. Tap upcoming stops to preview the foe and their monsters.</li>
         <li>Your <strong>LP carries</strong> across the island (start 4000). Rest restores 1000 LP. Early nameless duels cannot drop you below 1000 LP.</li>
         <li>Shop, fight, and fuse as usual. Beat <strong>Pegasus</strong> to win the run. After one win, a secret <strong>Exodia</strong> stop appears.</li>
@@ -2879,6 +2982,14 @@
       <h2>Grandpa's Shop</h2>
       <p style="margin:0;font-size:0.85rem;color:var(--muted);font-weight:700;text-align:center">Pick one free gift</p>
       <div class="card-shop-grid" id="cardShopGrid"></div>
+    </div>
+  </div>
+
+  <div class="overlay starter-overlay" id="starterOverlay">
+    <div class="modal">
+      <h2>Choose Your Ace</h2>
+      <p class="starter-sub">Start with 1★ on your bench · your rival awaits</p>
+      <div class="starter-grid" id="starterGrid"></div>
     </div>
   </div>
 
@@ -3010,9 +3121,17 @@
     },
     kaiba: {
       id: "kaiba", name: "Seto Kaiba", theme: "Blue-Eyes", area: "mountain",
-      types: ["Dragon"], prefer: [/blue-eyes|blue.eyes|white dragon/i],
+      types: ["Dragon"], prefer: [/blue-eyes|blue.eyes|white dragon|lord of d|battle ox|judge man/i],
       sig: [/blue-eyes white dragon|blue.eyes/i],
       taunt: "I'll crush you with the power of Blue-Eyes!",
+      difficulty: 5, goldReward: 12, rival: true,
+    },
+    joey: {
+      id: "joey", name: "Joey Wheeler", theme: "Red-Eyes", area: "meadow",
+      types: ["Warrior", "Beast-Warrior", "Dragon"],
+      prefer: [/red-eyes|red.eyes|flame swordsman|swordsman|axe raider|battle steer|tiger axe|garoozis/i],
+      sig: [/red-eyes black dragon|red.eyes/i],
+      taunt: "You an' me, one-on-one — let's see whose Ace is tougher!",
       difficulty: 5, goldReward: 12, rival: true,
     },
     pegasus: {
@@ -3143,7 +3262,32 @@
   /** Guide / records list (named island figures). */
   const LADDER = [
     DUELISTS.weevil, DUELISTS.rex, DUELISTS.mai, DUELISTS.keith,
-    DUELISTS.panik, DUELISTS.kaiba, DUELISTS.exodia, DUELISTS.pegasus,
+    DUELISTS.panik, DUELISTS.kaiba, DUELISTS.joey, DUELISTS.exodia, DUELISTS.pegasus,
+  ];
+
+  /** Starter Ace choices for a new run. */
+  const STARTER_ACES = [
+    {
+      key: "dark_magician",
+      name: "Dark Magician",
+      match: /^dark magician$/i,
+      rivalId: "kaiba",
+      rivalLabel: "Seto Kaiba",
+    },
+    {
+      key: "blue_eyes",
+      name: "Blue-Eyes White Dragon",
+      match: /^blue-eyes white dragon$/i,
+      rivalId: "joey",
+      rivalLabel: "Joey Wheeler",
+    },
+    {
+      key: "red_eyes",
+      name: "Red-Eyes Black Dragon",
+      match: /^red-eyes black dragon$/i,
+      rivalId: "kaiba",
+      rivalLabel: "Seto Kaiba",
+    },
   ];
 
   /** Normal-monster Type passives (always on). Must be above TOON_POOL (enrich at init). */
@@ -3395,7 +3539,8 @@
   }
 
   const META_KEY = "duelTacticsMetaV1";
-  const SAVE_KEY = "duelTacticsRunV2";
+  const SAVE_KEY = "duelTacticsRunV3";
+  const SAVE_KEY_LEGACY = "duelTacticsRunV2";
   const DUEL_START_LP = 4000;
   const EARLY_LP_FLOOR = 1000;
   const DEFAULT_META = {
@@ -3440,7 +3585,7 @@
       if (u && u.side === "player" && !u.dead) grid[k] = cloneUnit(u);
     });
     return {
-      v: 2,
+      v: 3,
       lp: state.lp,
       enemyLp: state.enemyLp,
       gold: state.gold,
@@ -3468,6 +3613,9 @@
       routeDone: (state.routeDone || []).slice(),
       routeFork: (state.routeFork || []).slice(),
       mapPreviewId: state.mapPreviewId || null,
+      aceKey: state.aceKey || null,
+      aceCardId: state.aceCardId || null,
+      rivalEncounters: state.rivalEncounters | 0,
     };
   }
 
@@ -3477,15 +3625,19 @@
   }
 
   function clearSavedRun() {
-    try { localStorage.removeItem(SAVE_KEY); } catch (_) {}
+    try {
+      localStorage.removeItem(SAVE_KEY);
+      localStorage.removeItem(SAVE_KEY_LEGACY);
+    } catch (_) {}
   }
 
   function readSavedRun() {
     try {
-      const raw = localStorage.getItem(SAVE_KEY);
+      let raw = localStorage.getItem(SAVE_KEY);
+      if (!raw) raw = localStorage.getItem(SAVE_KEY_LEGACY);
       if (!raw) return null;
       const data = JSON.parse(raw);
-      if (!data || data.v !== 2) return null;
+      if (!data || (data.v !== 2 && data.v !== 3)) return null;
       return data;
     } catch (_) {
       return null;
@@ -3546,6 +3698,10 @@
     state.mapPreviewId = data.mapPreviewId && ROUTE_STOPS[data.mapPreviewId]
       ? data.mapPreviewId
       : (state.routeStopId || (state.routeFork[0] || null));
+    state.aceKey = data.aceKey || null;
+    state.aceCardId = data.aceCardId || null;
+    state.rivalEncounters = Math.max(0, data.rivalEncounters | 0);
+    reapplyAceFlags();
     state.selected = null;
     state.selectedItem = null;
     state.awaitingItemDraft = false;
@@ -3571,6 +3727,9 @@
     routeDone: [],
     routeFork: [], // when choosing left/right after a branch
     mapPreviewId: null,
+    aceKey: null,
+    aceCardId: null,
+    rivalEncounters: 0,
     level: 1,
     xp: 0,
     winStreak: 0,
@@ -3662,6 +3821,8 @@
     areaBanner: $("areaBanner"),
     duelFlash: $("duelFlash"),
     mapOverlay: $("mapOverlay"),
+    starterOverlay: $("starterOverlay"),
+    starterGrid: $("starterGrid"),
     mapSpots: $("mapSpots"),
     mapTaunt: $("mapTaunt"),
     mapSub: $("mapSub"),
@@ -3821,8 +3982,113 @@
     return stop.next.filter((id) => stopIsUnlocked(ROUTE_STOPS[id]));
   }
 
+  function findStarterCard(ace) {
+    if (!ace || !state.roster.length) return null;
+    const hits = state.roster.filter((c) => ace.match.test(c.name) && !/toon/i.test(c.name));
+    if (hits.length) {
+      hits.sort((a, b) => b.atk - a.atk);
+      return hits[0];
+    }
+    const loose = state.roster.filter((c) => ace.match.test(c.name));
+    if (loose.length) {
+      loose.sort((a, b) => b.atk - a.atk);
+      return loose[0];
+    }
+    return null;
+  }
+
+  function starterAceByKey(key) {
+    return STARTER_ACES.find((a) => a.key === key) || null;
+  }
+
+  function rivalCounterConfig(aceKey) {
+    if (aceKey === "blue_eyes") {
+      return {
+        id: "joey",
+        name: "Joey Wheeler",
+        theme: "Red-Eyes Counter",
+        area: "meadow",
+        types: ["Warrior", "Beast-Warrior", "Dragon"],
+        prefer: [/red-eyes|red.eyes|flame swordsman|swordsman|axe raider|battle steer|tiger axe|garoozis|warrior/i],
+        sig: [/red-eyes black dragon|red.eyes/i],
+        icon: "🔥",
+        tauntFor: (aceName) =>
+          "You picked " + aceName + "?! Watch me smash that oversized lizard with Red-Eyes!",
+      };
+    }
+    if (aceKey === "red_eyes") {
+      return {
+        id: "kaiba",
+        name: "Seto Kaiba",
+        theme: "Blue-Eyes Counter",
+        area: "mountain",
+        types: ["Dragon"],
+        prefer: [/blue-eyes|blue.eyes|white dragon|lord of d.|lord of d|dragon/i],
+        sig: [/blue-eyes white dragon|blue.eyes/i],
+        icon: "🐉",
+        tauntFor: (aceName) =>
+          "Red-Eyes? Pathetic. My Blue-Eyes will erase your " + aceName + "!",
+      };
+    }
+    // dark_magician default → Kaiba
+    return {
+      id: "kaiba",
+      name: "Seto Kaiba",
+      theme: "Dragon Court",
+      area: "mountain",
+      types: ["Dragon", "Warrior", "Beast-Warrior"],
+      prefer: [/blue-eyes|blue.eyes|white dragon|battle ox|judge man|lord of d.|lord of d|dragon/i],
+      sig: [/blue-eyes white dragon|blue.eyes/i],
+      icon: "🐉",
+      tauntFor: (aceName) =>
+        "Your " + aceName + " is a parlor trick. Blue-Eyes White Dragon ends this!",
+    };
+  }
+
+  function getRivalDuelist() {
+    const ace = starterAceByKey(state.aceKey) || STARTER_ACES[0];
+    const cfg = rivalCounterConfig(ace ? ace.key : "dark_magician");
+    const base = DUELISTS[cfg.id] || DUELISTS.kaiba;
+    const aceCard = ace ? findStarterCard(ace) : null;
+    const aceName = (aceCard && aceCard.name) || (ace && ace.name) || "your Ace";
+    const enc = state.rivalEncounters | 0;
+    return Object.assign({}, base, {
+      id: cfg.id,
+      name: cfg.name,
+      theme: cfg.theme,
+      area: cfg.area,
+      types: cfg.types,
+      prefer: cfg.prefer,
+      sig: cfg.sig,
+      icon: cfg.icon,
+      rival: true,
+      difficulty: (base.difficulty || 5) + enc,
+      goldReward: base.goldReward || 12,
+      taunt: cfg.tauntFor(aceName),
+      aceName: aceName,
+    });
+  }
+
+  function unitIsAce(unit) {
+    if (!unit) return false;
+    if (unit.isAce) return true;
+    return !!(state.aceCardId && unit.baseId === state.aceCardId);
+  }
+
+  function reapplyAceFlags() {
+    const mark = (u) => {
+      if (!u) return;
+      u.isAce = !!(state.aceCardId && u.baseId === state.aceCardId);
+    };
+    (state.bench || []).forEach(mark);
+    Object.keys(state.grid || {}).forEach((k) => mark(state.grid[k]));
+  }
+
   function resolveDuelistForStop(stop) {
     if (!stop) return NAMELESS_POOL[0];
+    if (stop.type === "rival") {
+      return getRivalDuelist();
+    }
     if (stop.duelistId && DUELISTS[stop.duelistId]) {
       return DUELISTS[stop.duelistId];
     }
@@ -4114,6 +4380,7 @@
       imgSmall: enriched.imgSmall || null,
       imgCropped: enriched.imgCropped || null,
       apiId: enriched.apiId || null,
+      isAce: !!(state.aceCardId && enriched.id === state.aceCardId),
     };
   }
 
@@ -4203,6 +4470,7 @@
       removeLoc(l);
     });
     const fused = makeInstance(base, toStars);
+    if (state.aceCardId && fused.baseId === state.aceCardId) fused.isAce = true;
     fused.items = pooledItems.slice(0, MAX_ITEMS);
     pooledItems.slice(MAX_ITEMS).forEach((it) => state.itemBench.push(it));
     let placed = false;
@@ -4466,18 +4734,73 @@
     }
   }
 
-  function cardArtSrc(card, kind) {
-    if (!card) return null;
-    if (kind === "cropped") return card.imgCropped || card.imgSmall || null;
-    return card.imgSmall || card.imgCropped || null;
+  function rosterCardFor(card) {
+    if (!card || !state.roster || !state.roster.length) return null;
+    const baseId = card.baseId || card.id || null;
+    if (baseId) {
+      const byId = state.roster.find((r) => r.id === baseId);
+      if (byId) return byId;
+    }
+    const apiId = card.apiId != null ? card.apiId : null;
+    if (apiId != null && apiId !== "") {
+      const byApi = state.roster.find((r) => String(r.apiId) === String(apiId));
+      if (byApi) return byApi;
+    }
+    if (card.name) {
+      const byName = state.roster.find((r) => r.name === card.name && !/toon/i.test(r.name));
+      if (byName) return byName;
+      const anyName = state.roster.find((r) => r.name === card.name);
+      if (anyName) return anyName;
+    }
+    return null;
   }
 
-  function bindArtFallback(img, emoji) {
+  function resolveApiId(card) {
+    if (!card) return null;
+    const base = rosterCardFor(card) || card;
+    if (base.apiId != null && base.apiId !== "") return base.apiId;
+    if (card.apiId != null && card.apiId !== "") return card.apiId;
+    // api_* ids from normalizeApiCard
+    const id = base.id || card.baseId || card.id;
+    if (id && String(id).indexOf("api_") === 0) {
+      const n = String(id).slice(4);
+      if (/^\d+$/.test(n)) return n;
+    }
+    return null;
+  }
+
+  function cardArtSrc(card, kind) {
+    if (!card) return null;
+    const base = rosterCardFor(card) || card;
+    const apiId = resolveApiId(card);
+    if (apiId != null && apiId !== "") {
+      return kind === "cropped"
+        ? ("images/cropped/" + apiId + ".jpg")
+        : ("images/small/" + apiId + ".jpg");
+    }
+    if (kind === "cropped") {
+      return base.imgCropped || base.imgSmall || card.imgCropped || card.imgSmall || null;
+    }
+    return base.imgSmall || base.imgCropped || card.imgSmall || card.imgCropped || null;
+  }
+
+  function nameFaceHtml(card, extraClass) {
+    const name = (card && card.name) || "?";
+    const cls = "name-face" + (extraClass ? (" " + extraClass) : "");
+    return '<div class="' + cls + '">' + escapeHtml(name) + "</div>";
+  }
+
+  function bindArtFallback(img, card) {
     if (!img) return;
+    const name = (card && card.name) || img.dataset.cardName || img.alt || "?";
     img.addEventListener("error", () => {
       const fb = document.createElement("div");
-      fb.className = img.dataset.fallbackClass || "emoji";
-      fb.textContent = emoji || "🃏";
+      const fc = img.dataset.fallbackClass || "name-face";
+      if (fc === "bench-emoji") fb.className = "bench-emoji name-face";
+      else if (fc === "emoji") fb.className = "name-face";
+      else if (fc.indexOf("name-face") !== -1) fb.className = fc;
+      else fb.className = "name-face";
+      fb.textContent = name;
       if (img.parentNode) img.parentNode.replaceChild(fb, img);
     }, { once: true });
   }
@@ -4490,19 +4813,25 @@
     const sideCls = unit.side === "enemy" ? "side-enemy" : "side-player";
     const tok = document.createElement("div");
     const posCls = unit.position === "def" ? "pos-def" : "pos-atk";
+    const ace = unitIsAce(unit);
     tok.className = "token attr-" + attr + " " + sideCls + " " + posCls +
       (unit.stars === 2 ? " star2" : "") +
       (unit.stars >= 3 ? " star3" : "") +
-      (asHolo ? " holo" : "");
+      (asHolo ? " holo" : "") +
+      (ace ? " ace" : "");
     tok.dataset.uid = String(unit.uid);
+    tok.dataset.baseId = String(unit.baseId || "");
+    if (unit.apiId != null) tok.dataset.apiId = String(unit.apiId);
     const hpPct = Math.max(0, Math.min(100, ((unit.hp || unit.maxHp) / (unit.maxHp || 1)) * 100));
     const icons = unitItems(unit).map((it) => itemDef(it.defId).emoji).join("");
     const src = cardArtSrc(unit, "cropped");
     let face;
     if (src) {
-      face = '<img class="holo-art" src="' + src + '" alt="" draggable="false" data-fallback-class="emoji" />';
+      face = '<img class="holo-art" src="' + src + '" alt="' + escapeHtml(unit.name || "") +
+        '" draggable="false" data-fallback-class="name-face" data-card-name="' +
+        escapeHtml(unit.name || "") + '" />';
     } else {
-      face = '<div class="emoji">' + meta.emoji + "</div>";
+      face = nameFaceHtml(unit);
     }
     if (asHolo) {
       tok.innerHTML =
@@ -4513,12 +4842,12 @@
           '<div class="bars"><div class="hp-bar"><div class="hp-fill" style="width:' + hpPct + '%"></div></div></div>' +
           '<div class="holo-billboard">' + face + "</div>" +
         "</div>";
-      bindArtFallback(tok.querySelector("img.holo-art"), meta.emoji);
+      bindArtFallback(tok.querySelector("img.holo-art"), unit);
     } else {
       tok.innerHTML =
         '<div class="stars">' + starsLabel(unit.stars) + "</div>" +
         '<div class="bars"><div class="hp-bar"><div class="hp-fill" style="width:' + hpPct + '%"></div></div></div>' +
-        '<div class="emoji">' + meta.emoji + "</div>";
+        face;
     }
     if (state.selected && state.selected.from === "hex" &&
         state.selected.row === unit.row && state.selected.col === unit.col) {
@@ -4530,19 +4859,22 @@
   function createBenchCardEl(card) {
     const meta = raceMeta(card.type);
     const wrap = document.createElement("div");
-    wrap.className = "bench-card token";
+    wrap.className = "bench-card token" + (unitIsAce(card) ? " ace" : "");
     wrap.dataset.uid = String(card.uid || "");
+    wrap.dataset.baseId = String(card.baseId || "");
     const src = cardArtSrc(card, "small");
     const short = card.name.length > 8 ? card.name.slice(0, 7) + "…" : card.name;
     if (src) {
       wrap.innerHTML =
-        '<img class="bench-art" src="' + src + '" alt="" draggable="false" data-fallback-class="bench-emoji" />' +
+        '<img class="bench-art" src="' + src + '" alt="' + escapeHtml(card.name || "") +
+        '" draggable="false" data-fallback-class="bench-emoji" data-card-name="' +
+        escapeHtml(card.name || "") + '" />' +
         '<div class="bench-meta"><span class="n">' + escapeHtml(short) + "</span>" +
         '<span class="s"><span class="atk">' + card.atk + '</span>/<span class="def">' + card.def + "</span></span></div>";
-      bindArtFallback(wrap.querySelector("img"), meta.emoji);
+      bindArtFallback(wrap.querySelector("img"), card);
     } else {
       wrap.innerHTML =
-        '<div class="bench-emoji">' + meta.emoji + "</div>" +
+        nameFaceHtml(card, "bench-emoji") +
         '<div class="bench-meta"><span class="n">' + escapeHtml(short) + "</span>" +
         '<span class="s"><span class="atk">' + card.atk + '</span>/<span class="def">' + card.def + "</span></span></div>";
     }
@@ -4634,11 +4966,11 @@
     const img = el.guideBody.querySelector(".g-art img");
     if (img) {
       const card = currentGuideCard();
-      bindArtFallback(img, raceMeta(card && card.type).emoji);
+      bindArtFallback(img, card);
     }
     el.guideBody.querySelectorAll(".g-fuse-card img").forEach((im) => {
       const card = currentGuideCard();
-      bindArtFallback(im, raceMeta(card && card.type).emoji);
+      bindArtFallback(im, card);
     });
   }
 
@@ -4656,15 +4988,18 @@
     const stars = state.guideStars || 1;
     const src = cardArtSrc(card, "cropped") || cardArtSrc(card, "small");
     const art = src
-      ? '<img src="' + src + '" alt="" />'
-      : '<span class="emoji">' + meta.emoji + "</span>";
+      ? '<img src="' + src + '" alt="' + escapeHtml(card.name || "") +
+        '" data-fallback-class="name-face" data-card-name="' + escapeHtml(card.name || "") + '" />'
+      : nameFaceHtml(card);
     const fuse = [1, 2, 3].map((s) => {
       const hp = battleHpFromDef(card.def, s);
       const dmg = battleDmgFromAtk(card.atk, s);
       const active = s === Math.min(3, Math.max(1, stars)) ? " active" : "";
       const fArt = src
-        ? '<img src="' + src + '" alt="" loading="lazy" />'
-        : '<div style="font-size:1.4rem;padding:12px 0;text-align:center">' + meta.emoji + "</div>";
+        ? '<img src="' + src + '" alt="' + escapeHtml(card.name || "") +
+          '" loading="lazy" data-fallback-class="name-face" data-card-name="' +
+          escapeHtml(card.name || "") + '" />'
+        : nameFaceHtml(card);
       return (
         '<div class="g-fuse-card' + active + '">' + fArt +
         '<span class="star-badge">' + starsLabel(s) + "</span>" +
@@ -4730,7 +5065,8 @@
     return (
       '<div class="g-basics"><ol>' +
       "<li><strong>Island map</strong>: travel ~12 stops to Pegasus's castle. Branches let you pick left or right. Tap upcoming stops to preview.</li>" +
-      "<li><strong>Stop types</strong>: Duels (nameless), Bosses (Weevil→Rex→Mai→Keith→Panik), Rival Kaiba (×2), Grandpa's Shop (pick 1 of 3), Rest (+1000 LP).</li>" +
+      "<li><strong>Ace & Rival</strong>: Pick Dark Magician, Blue-Eyes, or Red-Eyes to start. Your Rival (Kaiba — or Joey if you pick Blue-Eyes) appears twice, counters your Ace, and gets stronger each rematch.</li>" +
+      "<li><strong>Stop types</strong>: Duels (nameless), Bosses (Weevil→Rex→Mai→Keith→Panik), Rival (×2), Grandpa's Shop (pick 1 of 3), Rest (+1000 LP).</li>" +
       "<li><strong>LP carries</strong> across the island (start 4000). Early nameless duels cannot drop you below 1000 LP. Hit 0 LP later and the run ends.</li>" +
       "<li><strong>Damage</strong> = ATK÷4. <strong>HP</strong> = DEF + armor. Attack speed by Level (1–3 fast, 4–6 normal, 7+ slow). Tap twice to toggle Attack/Defense.</li>" +
       "<li>Effect monsters cost +1 with once-per-fight abilities; Normals get Type passives. Every 4th hit is a Battle destroy check.</li>" +
@@ -4753,8 +5089,10 @@
     const cost = card.cost != null ? card.cost : costFromStats(card.atk, card.def);
     const src = cardArtSrc(card, "small");
     const art = src
-      ? '<div class="art-wrap"><img class="card-art" src="' + src + '" alt="" draggable="false" data-fallback-class="emoji" /></div>'
-      : '<div class="art-wrap"><div class="emoji">' + meta.emoji + "</div></div>";
+      ? '<div class="art-wrap"><img class="card-art" src="' + src + '" alt="' + escapeHtml(card.name || "") +
+        '" draggable="false" data-fallback-class="name-face" data-card-name="' +
+        escapeHtml(card.name || "") + '" /></div>'
+      : '<div class="art-wrap">' + nameFaceHtml(card) + "</div>";
     const starCls = card.stars === 2 ? " star2" : (card.stars >= 3 ? " star3" : "");
     return (
       '<div class="card cost-' + cost + starCls + '">' +
@@ -4781,8 +5119,8 @@
       node.style.transform = "scale(" + s.toFixed(3) + ")";
     });
     el.shop.querySelectorAll("img.card-art").forEach((img) => {
-      const metaEmoji = img.closest(".card") && img.closest(".card").querySelector(".type-ico");
-      bindArtFallback(img, metaEmoji ? metaEmoji.textContent : "🃏");
+      const name = img.dataset.cardName || img.alt || "";
+      bindArtFallback(img, { name: name });
     });
   }
 
@@ -5467,7 +5805,9 @@
     const sorted = [...pool].sort((a, b) => b.atk - a.atk);
     const slots = [];
     for (let r = HEX_ROWS - 1; r >= 0; r--) {
-      for (let c = 0; c < HEX_COLS; c++) slots.push({ row: r, col: c });
+      for (let c = 0; c < HEX_COLS; c++) {
+        if (!getCell(r, c)) slots.push({ row: r, col: c });
+      }
     }
     for (let i = slots.length - 1; i > 0; i--) {
       if (Math.random() < 0.35) {
@@ -5475,31 +5815,47 @@
         const tmp = slots[i]; slots[i] = slots[j]; slots[j] = tmp;
       }
     }
-    const scale = (dr - 1) * 80 + di * 120 + (isBoss ? 280 : 0) + (isRival ? 160 : 0);
-    for (let i = 0; i < count; i++) {
+    const rivalBoost = isRival ? (state.rivalEncounters | 0) * 150 : 0;
+    const scale = (dr - 1) * 80 + di * 120 + (isBoss ? 280 : 0) + (isRival ? 160 : 0) + rivalBoost;
+    let placed = 0;
+    for (let i = 0; i < slots.length && placed < count; i++) {
+      const slot = slots[i];
+      if (getCell(slot.row, slot.col)) continue;
       let base = (dr >= 3 && Math.random() < 0.35 + di * 0.04)
-        ? sorted[Math.min(i, sorted.length - 1)]
+        ? sorted[Math.min(placed, sorted.length - 1)]
         : pool[Math.floor(Math.random() * pool.length)];
       let stars = 1;
       if (dr >= 2 && Math.random() < 0.1 + dr * 0.08 + di * 0.03) stars = 2;
       if (dr >= 5 && Math.random() < 0.08 + di * 0.02) stars = 3;
-      if (isBoss && i === 0 && sorted.length) {
+      if (isBoss && placed === 0 && sorted.length) {
         base = sorted[0];
         stars = dr >= 4 ? 2 : 1;
         if (dr >= 7) stars = 3;
       }
-      if (i < 2 && sorted.length) {
-        const sig = sorted[Math.min(i, sorted.length - 1)];
+      if (placed < 2 && sorted.length) {
+        const sig = sorted[Math.min(placed, sorted.length - 1)];
         if (sig && Math.random() < 0.55 + di * 0.04) base = sig;
       }
+      if (!base) continue;
       const mon = makeInstance(base, stars);
+      // Re-bind art from live roster by card id (never reuse another monster's art)
+      const live = rosterCardFor(mon) || base;
+      if (live) {
+        mon.baseId = live.id || mon.baseId;
+        mon.apiId = live.apiId != null ? live.apiId : mon.apiId;
+        mon.imgSmall = live.imgSmall || (mon.apiId != null ? ("images/small/" + mon.apiId + ".jpg") : null);
+        mon.imgCropped = live.imgCropped || (mon.apiId != null ? ("images/cropped/" + mon.apiId + ".jpg") : null);
+        mon.name = live.name || mon.name;
+      }
       mon.atk += scale;
       mon.def += Math.floor(scale * 0.55);
       mon.maxHp = battleHpFromDef(mon.def, stars);
       mon.hp = mon.maxHp;
       mon.side = "enemy";
       if (mon.def >= mon.atk * 1.2) mon.position = "def";
-      setCell(slots[i].row, slots[i].col, mon);
+      if (getCell(slot.row, slot.col)) continue;
+      setCell(slot.row, slot.col, mon);
+      placed += 1;
     }
   }
 
@@ -5551,7 +5907,16 @@
       if (d < bestD) { bestD = d; best = n; }
     });
     if (!best) return false;
-    setCell(unit.row, unit.col, null);
+    // Atomic occupancy: another unit may have claimed this hex earlier in the tick
+    if (getCell(best.row, best.col)) return false;
+    const fromRow = unit.row;
+    const fromCol = unit.col;
+    setCell(fromRow, fromCol, null);
+    if (getCell(best.row, best.col)) {
+      // Race lost — restore
+      setCell(fromRow, fromCol, unit);
+      return false;
+    }
     setCell(best.row, best.col, unit);
     return true;
   }
@@ -6653,7 +7018,12 @@
       if (stop.final || stop.type === "secret") spot.classList.add("castle-spot");
       spot.style.left = stop.x + "%";
       spot.style.top = stop.y + "%";
-      spot.innerHTML = '<span class="spot-ico">' + (stop.icon || "•") + "</span>";
+      let ico = stop.icon || "•";
+      if (stop.type === "rival") {
+        const riv = getRivalDuelist();
+        ico = (riv && riv.icon) || (riv && riv.id === "joey" ? "🔥" : "🐉");
+      }
+      spot.innerHTML = '<span class="spot-ico">' + ico + "</span>";
       spot.title = stopTitle(stop);
 
       const isDone = doneSet.has(id);
@@ -6837,6 +7207,9 @@
     if (!stop) {
       showMap();
       return;
+    }
+    if (stop.type === "rival") {
+      state.rivalEncounters = (state.rivalEncounters | 0) + 1;
     }
     if (state.routeDone.indexOf(stop.id) === -1) state.routeDone.push(stop.id);
     if (won && stop.final) {
@@ -7162,8 +7535,12 @@
       const emoji = raceMeta(sig ? sig.type : (foe.types && foe.types[0])).emoji;
       const src = sig ? (cardArtSrc(sig, "cropped") || cardArtSrc(sig, "small")) : null;
       if (src) {
-        el.homeSigArt.innerHTML = '<img src="' + src + '" alt="" />';
-        bindArtFallback(el.homeSigArt.querySelector("img"), emoji);
+        el.homeSigArt.innerHTML = '<img src="' + src + '" alt="' +
+          escapeHtml((sig && sig.name) || "") + '" data-fallback-class="name-face" data-card-name="' +
+          escapeHtml((sig && sig.name) || "") + '" />';
+        bindArtFallback(el.homeSigArt.querySelector("img"), sig);
+      } else if (sig) {
+        el.homeSigArt.innerHTML = nameFaceHtml(sig);
       } else {
         el.homeSigArt.innerHTML = '<span class="emoji-fallback">' + emoji + "</span>";
       }
@@ -7180,6 +7557,65 @@
       else el.btnStart.textContent = hasSavedRun() ? "▶ New Run" : "▶ Duel!";
     }
     setHomeTab(state.homeTab === "records" || state.homeTab === "binder" ? state.homeTab : "duel");
+  }
+
+  function openStarterPick() {
+    if (!el.starterOverlay || !el.starterGrid) {
+      pickStarterAce(STARTER_ACES[0]);
+      return;
+    }
+    el.starterGrid.innerHTML = "";
+    STARTER_ACES.forEach((ace) => {
+      const card = findStarterCard(ace);
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "starter-card";
+      const src = card ? (cardArtSrc(card, "cropped") || cardArtSrc(card, "small")) : null;
+      let art;
+      if (src) {
+        art = '<img src="' + src + '" alt="' + escapeHtml(ace.name) +
+          '" draggable="false" data-fallback-class="name-face" data-card-name="' +
+          escapeHtml(ace.name) + '" />';
+      } else {
+        art = nameFaceHtml({ name: ace.name });
+      }
+      btn.innerHTML =
+        '<div class="sc-art">' + art + "</div>" +
+        '<div class="sc-name">' + escapeHtml(ace.name) + "</div>" +
+        '<div class="sc-rival">vs ' + escapeHtml(ace.rivalLabel) + "</div>";
+      const img = btn.querySelector("img");
+      if (img) bindArtFallback(img, card || { name: ace.name });
+      btn.addEventListener("click", () => {
+        playUiBlip();
+        pickStarterAce(ace);
+      });
+      el.starterGrid.appendChild(btn);
+    });
+    el.starterOverlay.classList.add("open");
+  }
+
+  function pickStarterAce(ace) {
+    if (!ace) ace = STARTER_ACES[0];
+    const card = findStarterCard(ace);
+    if (!card) {
+      toast("Could not find " + ace.name + " in the Classic set");
+      return;
+    }
+    state.aceKey = ace.key;
+    state.aceCardId = card.id;
+    state.rivalEncounters = 0;
+    const inst = makeInstance(card, 1);
+    inst.isAce = true;
+    state.bench = [null, null, null, null, null, null, null, null, null];
+    state.bench[0] = inst;
+    if (el.starterOverlay) el.starterOverlay.classList.remove("open");
+    const rival = getRivalDuelist();
+    logLine('<span class="sys">👑 Ace: ' + escapeHtml(card.name) +
+      " · Rival: " + escapeHtml(rival.name) + "</span>");
+    toast("Ace: " + card.name);
+    render();
+    showMap();
+    saveRun();
   }
 
   function beginDuel() {
@@ -7203,6 +7639,9 @@
     state.winStreak = 0;
     state.lossStreak = 0;
     state.phase = "map";
+    state.aceKey = null;
+    state.aceCardId = null;
+    state.rivalEncounters = 0;
     state.bench = [null, null, null, null, null, null, null, null, null];
     state.shopLocked = false;
     state.itemBench = [];
@@ -7222,6 +7661,7 @@
     el.itemDraftOverlay.classList.remove("open");
     if (el.cardShopOverlay) el.cardShopOverlay.classList.remove("open");
     if (el.settingsOverlay) el.settingsOverlay.classList.remove("open");
+    if (el.starterOverlay) el.starterOverlay.classList.remove("open");
     if (el.homeScreen) el.homeScreen.classList.remove("open");
     el.app.classList.add("visible");
     rollShop();
@@ -7230,8 +7670,7 @@
       " LP · island map · beat Pegasus to win" +
       (exodiaUnlocked() ? " · Exodia path unlocked" : "") + "</span>");
     render();
-    showMap();
-    saveRun();
+    openStarterPick();
   }
 
   async function continueRun() {
@@ -7319,6 +7758,7 @@
     state.phase = "menu";
     state.homeTab = "duel";
     hideMap();
+    if (el.starterOverlay) el.starterOverlay.classList.remove("open");
     el.app.classList.remove("visible");
     el.endOverlay.classList.remove("open");
     el.resultsBanner.classList.remove("show");
