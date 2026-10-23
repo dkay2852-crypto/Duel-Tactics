@@ -4769,10 +4769,18 @@
     return null;
   }
 
+  /** Alternate artwork ids → preferred local pack id (set API sometimes returns alt ids). */
+  const ART_ID_ALIASES = {
+    36996508: 46986414, // Dark Magician alt → classic
+  };
+
   function cardArtSrc(card, kind) {
     if (!card) return null;
     const base = rosterCardFor(card) || card;
-    const apiId = resolveApiId(card);
+    let apiId = resolveApiId(card);
+    if (apiId != null && apiId !== "" && ART_ID_ALIASES[apiId] != null) {
+      apiId = ART_ID_ALIASES[apiId];
+    }
     if (apiId != null && apiId !== "") {
       return kind === "cropped"
         ? ("images/cropped/" + apiId + ".jpg")
