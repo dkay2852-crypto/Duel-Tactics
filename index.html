@@ -3399,14 +3399,21 @@
     state.uid = Math.max(1, data.uid | 0);
     state.fightSpeed = data.fightSpeed || 1;
     state.soundOn = data.soundOn !== false;
-    state.routeStopId = data.routeStopId && ROUTE_STOPS[data.routeStopId] ? data.routeStopId : ROUTE_START;
+    if (Array.isArray(data.routeFork) && data.routeFork.length) {
+      state.routeFork = data.routeFork.filter((id) => ROUTE_STOPS[id] && stopIsUnlocked(ROUTE_STOPS[id]));
+      state.routeStopId = null;
+    } else {
+      state.routeFork = [];
+      state.routeStopId = data.routeStopId && ROUTE_STOPS[data.routeStopId]
+        ? data.routeStopId
+        : ROUTE_START;
+    }
     state.routeDone = Array.isArray(data.routeDone)
       ? data.routeDone.filter((id) => ROUTE_STOPS[id])
       : [];
-    state.routeFork = Array.isArray(data.routeFork)
-      ? data.routeFork.filter((id) => ROUTE_STOPS[id] && stopIsUnlocked(ROUTE_STOPS[id]))
-      : [];
-    state.mapPreviewId = data.mapPreviewId && ROUTE_STOPS[data.mapPreviewId] ? data.mapPreviewId : null;
+    state.mapPreviewId = data.mapPreviewId && ROUTE_STOPS[data.mapPreviewId]
+      ? data.mapPreviewId
+      : (state.routeStopId || (state.routeFork[0] || null));
     state.selected = null;
     state.selectedItem = null;
     state.awaitingItemDraft = false;
